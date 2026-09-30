@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My 3D Viewer — v0.4</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Inter,Arial,sans-serif}
+#viewer{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#ui{position:fixed;inset:0;pointer-events:none;color:#fff}
+#ui>*{position:absolute}
+.panel{background:rgba(20,20,24,.78);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+button,.file-label,select{border:0;color:#fff;background:#2a2a31;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-family:inherit}
+button:hover,.file-label:hover{background:#3a3a44}
+button.on{background:#fff;color:#111}
+input[type=file]{display:none}
+input[type=range]{accent-color:#fff}
+#topbar{left:18px;top:18px;display:flex;gap:8px;align-items:center;pointer-events:auto;flex-wrap:wrap;right:300px}
+#topbar>*{margin:0}
+#settings{left:18px;top:74px;width:250px;padding:14px;pointer-events:auto;display:none;max-height:calc(100% - 150px);overflow:auto}
+#settings label{display:block;font-size:12px;color:#bbb;margin:10px 0 4px}
+#settings select{width:100%}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.row button{flex:1;padding:8px 6px;font-size:13px}
+#animations{right:18px;top:18px;width:250px;padding:14px;pointer-events:auto;display:none}
+#animations h3{margin:0 0 10px;font-size:14px}
+#animationList{display:flex;flex-direction:column;gap:7px;max-height:45vh;overflow:auto}
+.anim{width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anim.active{background:#fff;color:#111}
+#dock{left:50%;bottom:58px;transform:translateX(-50%);width:min(620px,calc(100% - 36px));padding:10px 12px;pointer-events:auto;display:none;align-items:center;gap:10px}
+#timeline{flex:1;min-width:0}
+#dock select{padding:8px 6px}
+#time{font-size:12px;color:#ccc;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+#hint{left:50%;bottom:18px;transform:translateX(-50%);padding:9px 13px;font-size:12px;color:#ddd;white-space:nowrap}
+#status{left:18px;bottom:18px;padding:8px 11px;font-size:12px;color:#ccc;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#drop{inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);opacity:0;visibility:hidden;transition:.15s;z-index:10}
+#drop.show{opacity:1;visibility:visible}
+.dropbox{padding:30px 40px;text-align:center;font-size:18px}
+@media(max-width:700px){#animations{left:18px;right:18px;top:auto;bottom:112px;width:auto}#hint{display:none}#topbar{right:18px}#status{max-width:calc(100% - 36px);bottom:12px}#dock{bottom:54px}}
+#left{left:18px;top:18px;width:270px;max-height:calc(100% - 110px);overflow:auto;display:flex;flex-direction:column;gap:8px;pointer-events:none;padding-top:44px}
+#left>*{pointer-events:auto;flex-shrink:0}
+#left #topbar,#left #settings,#left #animations{position:static;width:auto;right:auto;left:auto;top:auto;max-height:none}
+#left #topbar{padding:0}
+#paths{padding:14px}
+.pill{position:absolute;pointer-events:auto;opacity:.5;padding:8px 11px}
+.pill:hover{opacity:1}
+#pillL{left:18px;top:18px}#pillE{left:66px;top:18px}
+#pillD{right:18px;bottom:58px;display:none}
+.krow{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12px;color:#bbb}
+.krow input{width:58px;background:#2a2a31;color:#fff;border:0;border-radius:8px;padding:7px}
+.krow .go{flex:1;text-align:left}
+body.noL #left{display:none}
+body.noD #dock{display:none!important}
+body.clean #ui>*:not(#pillE){display:none!important}
+body.clean #pillE{opacity:.15}
+</style>
+</head>
+<body>
+<div id="viewer"></div>
+<div id="ui">
+  <div id="left"><div id="topbar">
+    <div class="panel" style="padding:6px"><label class="file-label" for="file">📦 Открыть GLB</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple></div>
+    <button id="reset" class="panel">↺ Камера</button>
+    <button id="settingsBtn" class="panel">⚙ Вид</button>
+    <button id="fs" class="panel">⛶</button>
+  </div>
+
+  <div id="settings" class="panel">
+    <label>Освещение</label>
+    <select id="light"><option value="studio">Студия (HDRI)</option><option value="classic">Классика</option></select>
+    <label>Яркость</label>
+    <input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1" style="width:100%">
+    <label>Фон</label>
+    <select id="bg"><option value="dark">Тёмный</option><option value="gray">Серый</option><option value="light">Светлый</option><option value="env">Студия (размытая)</option></select>
+    <label>Материалы</label>
+    <select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select>
+    <label>Показывать</label>
+    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button></div>
+    <label>Сохранённые камеры <span style="color:#888">(💾, затем слот)</span></label>
+    <div class="row"><button id="saveCam">💾</button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
+  </div>
+
+  <div id="animations" class="panel"><h3>Анимации</h3><div id="animationList"></div></div>
+
+  <div id="paths" class="panel"><h3 style="margin:0 0 10px;font-size:14px">Пролёт камеры</h3>
+    <div class="row"><button id="addKey">＋ Ключ</button><button id="pathPlay">▶ Пролёт</button></div>
+    <div id="keyList"></div>
+    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button></div>
+    <div class="row" style="margin-top:6px"><button id="rec">⏺ Записать видео</button><button id="clearKeys">🗑</button></div>
+    <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json">💾 Сохранить сцену</button><button id="loadScene">📂 Загрузить</button></div>
+    <input id="jsonIn" type="file" accept=".json">
+  </div>
+  </div>
+  <button id="pillL" class="pill panel" title="Меню">☰</button>
+  <button id="pillE" class="pill panel" title="Чистый экран (H)">👁</button>
+  <button id="pillD" class="pill panel" title="Плеер">🎞</button>
+
+  <div id="dock" class="panel">
+    <button id="play">⏸</button>
+    <input id="timeline" type="range" min="0" max="1000" value="0">
+    <span id="time">0.00 / 0.00</span>
+    <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+    <button id="loop" class="on" title="Повтор">🔁</button><button id="hideD" title="Скрыть плеер">✕</button>
+  </div>
+
+  <div id="status" class="panel">Модель не загружена</div>
+  <div id="hint" class="panel">ЛКМ — вращение · Колесо — масштаб · ПКМ — панорама · H — чистый экран</div>
+</div>
+<div id="drop"><div class="dropbox panel"><div style="font-size:42px;margin-bottom:8px">📦</div>Перетащи сюда <b>.GLB</b></div></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const $ = id => document.getElementById(id);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100000);
+camera.position.set(4, 3, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+$('viewer').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06; controls.screenSpacePanning = true;
+controls.autoRotateSpeed = 2;
+
+// Свет
+const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
+const key = new THREE.DirectionalLight(0xffffff, 3); key.position.set(5, 10, 7);
+const fill = new THREE.DirectionalLight(0xffffff, 1.2); fill.position.set(-5, 4, -5);
+scene.add(hemi, key, fill);
+
+const grid = new THREE.GridHelper(20, 20, 0x555555, 0x333333);
+grid.material.transparent = true; grid.material.opacity = 0.35;
+const axes = new THREE.AxesHelper(1); axes.visible = false;
+scene.add(grid, axes);
+
+function applyLight() {
+  const studio = $('light').value === 'studio';
+  scene.environment = studio ? envTex : null;
+  hemi.intensity = studio ? 0.25 : 2;
+  key.intensity = studio ? 0.8 : 3;
+  fill.intensity = studio ? 0.3 : 1.2;
+  applyBg();
+}
+function applyBg() {
+  const v = $('bg').value;
+  scene.backgroundBlurriness = 0.7;
+  scene.background = v === 'env' ? envTex : new THREE.Color({ dark: 0x151515, gray: 0x6b6f76, light: 0xe6e8eb }[v] ?? 0x151515);
+}
+$('light').onchange = applyLight;
+$('bg').onchange = applyBg;
+$('exposure').oninput = e => renderer.toneMappingExposure = +e.target.value;
+applyLight();
+
+// Материалы
+const origMats = new Map();
+const shared = {
+  clay: new THREE.MeshStandardMaterial({ color: 0xcfcfcf, roughness: 0.85 }),
+  wire: new THREE.MeshBasicMaterial({ color: 0x7fe3ff, wireframe: true }),
+  normal: new THREE.MeshNormalMaterial()
+};
+function applyMaterials() {
+  const mode = $('mat').value;
+  origMats.forEach((m, mesh) => mesh.material = mode === 'orig' ? m : shared[mode]);
+}
+$('mat').onchange = applyMaterials;
+
+// Модель и анимации
+const loader = new GLTFLoader();
+let model = null, mixer = null, action = null, clips = [], playing = true, loop = true, scrubbing = false;
+const clock = new THREE.Clock();
+const setStatus = t => $('status').textContent = t;
+
+function clearAnimations() {
+  $('animationList').innerHTML = '';
+  $('animations').style.display = $('dock').style.display = 'none';
+  mixer?.stopAllAction(); mixer = action = null; clips = [];
+}
+
+function fmt(t) { return t.toFixed(2); }
+
+function playAnimation(i, btn) {
+  if (!mixer) return;
+  mixer.stopAllAction();
+  action = mixer.clipAction(clips[i]);
+  action.reset().setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
+  action.clampWhenFinished = true;
+  action.play();
+  playing = true; $('play').textContent = '⏸';
+  document.querySelectorAll('.anim').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setStatus(`Анимация: ${clips[i].name || 'Animation ' + (i + 1)}`);
+}
+
+$('play').onclick = () => {
+  if (!action) return;
+  playing = !playing;
+  if (playing && !action.isRunning()) action.reset().play();
+  $('play').textContent = playing ? '⏸' : '▶';
+};
+$('speed').onchange = e => { if (mixer) mixer.timeScale = +e.target.value; };
+$('loop').onclick = e => {
+  loop = !loop; e.currentTarget.classList.toggle('on', loop);
+  action?.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
+};
+$('timeline').addEventListener('input', e => {
+  if (!action) return;
+  scrubbing = true; playing = false; $('play').textContent = '▶';
+  action.paused = false;
+  action.time = (e.target.value / 1000) * action.getClip().duration;
+  mixer.update(0);
+});
+$('timeline').addEventListener('change', () => scrubbing = false);
+
+// Камера
+function fitCamera(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+  const max = Math.max(size.x, size.y, size.z) || 1;
+  const dist = (max / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.35;
+  camera.position.copy(center).add(new THREE.Vector3(dist, dist * 0.65, dist));
+  camera.near = Math.max(max / 10000, 0.001); camera.far = Math.max(max * 100, 1000);
+  camera.updateProjectionMatrix();
+  controls.target.copy(center);
+  controls.minDistance = Math.max(max * 0.02, 0.01); controls.maxDistance = Math.max(max * 100, 100);
+  controls.update();
+  grid.scale.setScalar(Math.max(max / 20, 1));
+  grid.position.y = box.min.y;
+  axes.scale.setScalar(max * 0.6); axes.position.set(box.min.x, box.min.y, box.min.z);
+}
+
+let fly = null;
+const slots = [null, null, null];
+let saveMode = false;
+function flyTo(p, t) {
+  fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0 };
+}
+$('saveCam').onclick = e => { saveMode = !saveMode; e.currentTarget.classList.toggle('on', saveMode); };
+document.querySelectorAll('.slot').forEach(b => b.onclick = () => {
+  const i = +b.dataset.i;
+  if (saveMode) {
+    slots[i] = { p: camera.position.clone(), t: controls.target.clone() };
+    b.classList.add('on'); saveMode = false; $('saveCam').classList.remove('on');
+    setStatus(`Камера ${i + 1} сохранена`);
+  } else if (slots[i]) flyTo(slots[i].p, slots[i].t);
+});
+
+// Загрузка
+function disposeModel(o) {
+  o.traverse(c => {
+    if (!c.isMesh) return;
+    c.geometry?.dispose();
+    const ms = origMats.get(c); const arr = Array.isArray(ms) ? ms : [ms];
+    arr.forEach(m => { if (!m) return; for (const k in m) if (m[k]?.isTexture) m[k].dispose(); m.dispose(); });
+  });
+}
+
+let curName = "scene.glb";
+async function loadBuffer(buf, name, sceneData) {
+  curName = name; keys.length = 0; renderKeys();
+  clearAnimations();
+  if (model) { scene.remove(model); disposeModel(model); origMats.clear(); model = null; }
+  setStatus(`Загрузка: ${name}…`);
+  try {
+    const gltf = await loader.parseAsync(buf, '');
+    model = gltf.scene; scene.add(model); window.__hasModel = true;
+    model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
+    applyMaterials();
+    clips = gltf.animations || [];
+    fitCamera(model);
+    slots.fill(null); document.querySelectorAll('.slot').forEach(b => b.classList.remove('on'));
+    if (sceneData) applySceneData(sceneData);
+    if (clips.length) {
+      mixer = new THREE.AnimationMixer(model);
+      mixer.timeScale = +$('speed').value;
+      clips.forEach((clip, i) => {
+        const b = document.createElement('button');
+        b.className = 'anim';
+        b.textContent = `▶ ${clip.name || 'Animation ' + (i + 1)}`;
+        b.onclick = () => playAnimation(i, b);
+        $('animationList').appendChild(b);
+      });
+      $('animations').style.display = 'block';
+      $('dock').style.display = 'flex';
+      $('animationList').firstChild.click();
+      setStatus(`${name} · ${clips.length} анимац.`);
+    } else setStatus(`${name} · анимаций нет`);
+  } catch (err) {
+    console.error(err);
+    setStatus('Ошибка загрузки — F12 → Console');
+    alert('Не получилось загрузить модель. Проверь, что это GLB (для .gltf с внешними файлами используй GLB) и файл не повреждён.');
+  }
+}
+
+async function handleFiles(files) {
+  const model = files.find(f => /\.(glb|gltf)$/i.test(f.name));
+  const json = files.find(f => /\.json$/i.test(f.name));
+  let data = null;
+  if (json) { try { data = JSON.parse(await json.text()); } catch { return alert('Не удалось прочитать JSON'); } }
+  if (model) return loadBuffer(await model.arrayBuffer(), model.name, data);
+  if (data) { if (!window.__hasModel) return alert('Сначала открой модель (или выбери GLB и JSON вместе)'); applySceneData(data); setStatus('Сцена загружена: ' + json.name); }
+  else alert('Нужен .GLB/.GLTF и, при желании, .json со сценой');
+}
+$('file').addEventListener('change', async e => { await handleFiles([...e.target.files]); e.target.value = ''; });
+$('reset').onclick = () => model && fitCamera(model);
+$('settingsBtn').onclick = e => {
+  const s = $('settings'); const open = s.style.display !== 'block';
+  s.style.display = open ? 'block' : 'none'; e.currentTarget.classList.toggle('on', open);
+};
+const toggle = (id, fn) => $(id).onclick = e => { const on = !e.currentTarget.classList.contains('on'); e.currentTarget.classList.toggle('on', on); fn(on); };
+toggle('gridBtn', on => grid.visible = on);
+toggle('axesBtn', on => axes.visible = on);
+toggle('rotBtn', on => controls.autoRotate = on);
+
+if (document.documentElement.requestFullscreen) {
+  $('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+} else $('fs').style.display = 'none';
+
+// Пролёт камеры
+const keys = [];
+let pathT = null, pc = null, tc = null, cum = [], recorder = null, chunks = [], recAuto = false;
+const on = id => $(id).classList.contains('on');
+function renderKeys() {
+  const box = $('keyList'); box.innerHTML = '';
+  keys.forEach((k, i) => {
+    const r = document.createElement('div'); r.className = 'krow';
+    r.innerHTML = `<button class="go">Ключ ${i + 1}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="del">✕</button>`;
+    r.querySelector('.go').onclick = () => flyTo(k.p.clone(), k.t.clone());
+    r.querySelector('input')?.addEventListener('change', e => k.d = Math.max(0.2, +e.target.value || 3));
+    r.querySelector('.del').onclick = () => { keys.splice(i, 1); renderKeys(); };
+    box.appendChild(r);
+  });
+}
+$('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: controls.target.clone(), d: 3 }); renderKeys(); setStatus(`Ключ ${keys.length} добавлен`); };
+$('clearKeys').onclick = () => { keys.length = 0; renderKeys(); };
+toggle('sync', () => {}); toggle('pathLoop', () => {});
+function syncAnim() {
+  if (on('sync') && action) { action.reset().play(); playing = true; $('play').textContent = '⏸'; }
+}
+function startPath() {
+  if (keys.length < 2) return setStatus('Для пролёта нужно минимум 2 ключа'), false;
+  pc = new THREE.CatmullRomCurve3(keys.map(k => k.p.clone()), false, 'centripetal');
+  tc = new THREE.CatmullRomCurve3(keys.map(k => k.t.clone()), false, 'centripetal');
+  cum = [0]; keys.forEach((k, i) => { if (i) cum.push(cum[i - 1] + k.d); });
+  fly = null; pathT = 0; controls.enabled = false; controls.autoRotate = false;
+  syncAnim();
+  $('pathPlay').textContent = '⏹ Стоп';
+  return true;
+}
+function stopPath() {
+  pathT = null; controls.enabled = true;
+  $('pathPlay').textContent = '▶ Пролёт';
+  if (recorder && recAuto) stopRec();
+}
+function applyPath(T) {
+  const n = keys.length; let i = 0;
+  while (i < n - 2 && T >= cum[i + 1]) i++;
+  const s = THREE.MathUtils.clamp((T - cum[i]) / (cum[i + 1] - cum[i]), 0, 1), f = (i + s) / (n - 1);
+  pc.getPoint(f, camera.position); tc.getPoint(f, controls.target);
+  camera.lookAt(controls.target);
+}
+$('pathPlay').onclick = () => pathT === null ? startPath() : stopPath();
+
+// Запись видео (только холст, без интерфейса)
+function stopRec() {
+  recorder?.state === 'recording' && recorder.stop();
+  recorder = null; recAuto = false;
+  $('rec').classList.remove('on'); $('rec').textContent = '⏺ Записать видео';
+}
+$('rec').onclick = () => {
+  if (recorder) { stopRec(); if (pathT !== null) stopPath(); return; }
+  if (!window.MediaRecorder) return alert('Браузер не поддерживает запись видео');
+  const mt = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t));
+  const rc = new MediaRecorder(renderer.domElement.captureStream(60), { mimeType: mt, videoBitsPerSecond: 16e6 });
+  const buf = [];
+  rc.ondataavailable = e => e.data.size && buf.push(e.data);
+  rc.onstop = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(buf, { type: mt }));
+    a.download = 'shot.' + (mt.includes('mp4') ? 'mp4' : 'webm'); a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    setStatus('Видео сохранено: ' + a.download);
+  };
+  recorder = rc; rc.start();
+  $('rec').classList.add('on'); $('rec').textContent = '⏹ Стоп записи';
+  if (keys.length >= 2) { recAuto = true; startPath(); } else setStatus('Запись идёт (ключей нет — двигай камеру вручную)');
+};
+
+// Сцена: ключи + камеры + вид → JSON
+const vec = x => x.toArray().map(n => +n.toFixed(4));
+function collectScene() {
+  return {
+    version: 1, model: curName,
+    camera: { p: vec(camera.position), t: vec(controls.target) },
+    keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d })),
+    slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
+    path: { sync: on('sync'), loop: on('pathLoop') },
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value }
+  };
+}
+function applySceneData(d) {
+  const V = a => new THREE.Vector3(...a);
+  keys.length = 0; (d.keys || []).forEach(k => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3 }));
+  renderKeys();
+  document.querySelectorAll('.slot').forEach((b, i) => {
+    const s = d.slots?.[i]; slots[i] = s ? { p: V(s.p), t: V(s.t) } : null; b.classList.toggle('on', !!s);
+  });
+  if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); }
+  if (d.view) {
+    for (const k of ['light', 'bg', 'mat']) if (d.view[k]) $(k).value = d.view[k];
+    if (d.view.exposure) { $('exposure').value = d.view.exposure; renderer.toneMappingExposure = d.view.exposure; }
+    applyLight(); applyMaterials();
+  }
+  if (d.camera) { camera.position.copy(V(d.camera.p)); controls.target.copy(V(d.camera.t)); controls.update(); }
+}
+$('saveScene').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(collectScene(), null, 1)], { type: 'application/json' }));
+  a.download = curName.replace(/\.(glb|gltf)$/i, '') + '.cam.json'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  setStatus('Сцена сохранена: ' + a.download);
+};
+$('loadScene').onclick = () => $('jsonIn').click();
+$('jsonIn').onchange = async e => { await handleFiles([...e.target.files]); e.target.value = ''; };
+
+// Скрытие интерфейса
+$('pillL').onclick = () => document.body.classList.toggle('noL');
+$('pillE').onclick = () => document.body.classList.toggle('clean');
+$('hideD').onclick = () => { document.body.classList.add('noD'); $('pillD').style.display = 'block'; };
+$('pillD').onclick = () => { document.body.classList.remove('noD'); $('pillD').style.display = 'none'; };
+
+// Drag & drop
+let depth = 0;
+addEventListener('dragenter', e => { e.preventDefault(); depth++; $('drop').classList.add('show'); });
+addEventListener('dragleave', e => { e.preventDefault(); if (--depth <= 0) { depth = 0; $('drop').classList.remove('show'); } });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', async e => {
+  e.preventDefault(); depth = 0; $('drop').classList.remove('show');
+  handleFiles([...e.dataTransfer.files]);
+});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+addEventListener('keydown', e => {
+  if (e.code === 'KeyH') document.body.classList.toggle('clean');
+  if (e.code === 'Space' && action && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT') { e.preventDefault(); $('play').click(); }
+});
+
+const q = new URLSearchParams(location.search).get('model');
+if (q) (async () => {
+  try {
+    const buf = await (await fetch(q)).arrayBuffer(); let data = null;
+    try { const j = await fetch(q.replace(/\.(glb|gltf)$/i, '.cam.json')); if (j.ok) data = await j.json(); } catch {}
+    loadBuffer(buf, q.split('/').pop(), data);
+  } catch { setStatus('Не удалось открыть ' + q); }
+})();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  if (mixer && playing) mixer.update(dt);
+  if (action && !scrubbing) {
+    const d = action.getClip().duration || 1;
+    const t = action.time % d || (action.time >= d ? d : 0);
+    $('timeline').value = (Math.min(t, d) / d) * 1000;
+    $('time').textContent = `${fmt(Math.min(t, d))} / ${fmt(d)}`;
+  }
+  if (pathT !== null) {
+    pathT += dt; const total = cum[cum.length - 1];
+    if (pathT >= total) {
+      if (on('pathLoop') && !recorder) { pathT -= total; syncAnim(); applyPath(pathT); }
+      else { applyPath(total); stopPath(); }
+    } else applyPath(pathT);
+  }
+  if (fly) {
+    fly.k = Math.min(fly.k + dt / 0.7, 1);
+    const s = fly.k * fly.k * (3 - 2 * fly.k);
+    camera.position.lerpVectors(fly.p0, fly.p1, s);
+    controls.target.lerpVectors(fly.t0, fly.t1, s);
+    if (fly.k >= 1) fly = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
