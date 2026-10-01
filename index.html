@@ -311,6 +311,11 @@ function updateSun(force) {
   else { L.set(-sunDir.x, -sunDir.y, -sunDir.z); key.intensity = 0.45 * (0.3 + 0.7 * wx.sun) * D.smoothstep(-el, 6, 14); key.color.set(0x9db6ff); }
   L.y = Math.max(L.y, 0.03); curKeyDir.copy(L).normalize(); placeKey();
   hemi.intensity = 0.05 + 0.25 * day; fill.intensity = 0;
+  // Реализм: смягчаем дневной пик, чтобы белые поверхности не пересвечивались
+  const realM = $('light').value === 'real', noon = realM ? D.smoothstep(el, 15, 50) * wx.sun : 0;
+  if (el > -3) key.intensity *= 1 - 0.4 * noon;
+  scene.environmentIntensity = 1 - 0.35 * noon;
+  if (bloomPass) { bloomPass.threshold = D.lerp(1.1, 4.0, day); bloomPass.strength = D.lerp(0.25, 0.1, day); }
   // дымка: цвет горизонта по времени и погоде
   if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0001);
   scene.fog.density = 1 / (wx.fog * modelSphere.radius);
@@ -325,7 +330,7 @@ $('weather').onchange = () => { $('cloud').value = (WX[$('weather').value] || WX
 $('tod').oninput = () => { todVal = +$('tod').value; updateSun(); };
 ['az', 'cloud'].forEach(id => $(id).oninput = () => updateSun());
 
-let composer = null, gtao = null, usePost = false;
+let composer = null, gtao = null, usePost = false, bloomPass = null;
 function tuneAO() {
   if (!gtao) return;
   gtao.updateGtaoMaterial({ radius: THREE.MathUtils.clamp(modelSphere.radius * 0.02, 0.15, 3), distanceExponent: 1, thickness: 1, scale: 1.2, samples: 16, distanceFallOff: 1, screenSpaceRadius: false });
@@ -342,7 +347,7 @@ function ensureComposer() {
   const orig = gtao.render.bind(gtao);
   gtao.render = (...args) => { const v = skyRig.visible; skyRig.visible = false; orig(...args); skyRig.visible = v; };
   composer.addPass(gtao);
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), 0.25, 0.6, 1.1));
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(W, H), 0.25, 0.6, 1.1); composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
   tuneAO();
 }
@@ -355,6 +360,7 @@ function applyLight() {
   scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : envRT?.texture ?? null;
   if (sun) updateSun(true);
   else {
+    scene.environmentIntensity = 1;
     hemi.intensity = m === 'studio' ? 0.25 : 2; key.intensity = m === 'studio' ? 0.8 : 3; fill.intensity = m === 'studio' ? 0.3 : 1.2;
     key.color.set(0xffffff); curKeyDir.copy(keyDir); placeKey();
   }
