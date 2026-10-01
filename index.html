@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v0.6</title>
+<title>My 3D Viewer — v0.7</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Inter,Arial,sans-serif}
@@ -56,26 +56,28 @@ body.noL #left{display:none}
 body.noD #dock{display:none!important}
 body.clean #ui>*:not(#pillE){display:none!important}
 body.clean #pillE{opacity:.15}
+svg.ic{width:1.15em;height:1.15em;vertical-align:-0.22em;flex-shrink:0;pointer-events:none}
 </style>
 </head>
 <body>
 <div id="viewer"></div>
 <div id="ui">
   <div id="left"><div id="topbar">
-    <div class="panel" style="padding:6px"><label class="file-label" for="file">📦 Открыть GLB</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple></div>
-    <button id="reset" class="panel">↺ Камера</button>
-    <button id="settingsBtn" class="panel">⚙ Вид</button>
-    <button id="fs" class="panel">⛶</button>
+    <div class="panel" style="padding:6px"><label class="file-label" for="file"><i data-ic="cube"></i> Открыть GLB</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple></div>
+    <button id="reset" class="panel"><i data-ic="refresh"></i> Камера</button>
+    <button id="settingsBtn" class="panel"><i data-ic="tune"></i> Вид</button>
+    <button id="fs" class="panel" title="Полный экран"><i data-ic="full"></i></button>
   </div>
 
   <div id="settings" class="panel">
     <label>Освещение</label>
     <select id="light"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="classic">Классика</option></select>
     <div id="sunCtl" style="display:none">
+      <label>Погода</label><select id="weather"><option value="clear">Ясно</option><option value="few">Лёгкая облачность</option><option value="partly">Переменная облачность</option><option value="overcast">Пасмурно</option><option value="fog">Туман / дымка</option></select>
       <label>Время суток: <b id="clockTxt">15:00</b></label><input id="tod" type="range" min="0" max="24" step="0.05" value="15" style="width:100%">
       <label>Направление солнца</label><input id="az" type="range" min="0" max="360" step="1" value="200" style="width:100%">
-      <label>Облачность</label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35" style="width:100%">
-      <div class="row" style="margin-top:8px"><button id="timePlay">⏵ Ход времени</button><select id="timeSpeed"><option value="0.25">0.25 ч/с</option><option value="0.5">0.5 ч/с</option><option value="1" selected>1 ч/с</option><option value="2">2 ч/с</option></select></div>
+      <label>Облачность (тонкая настройка)</label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35" style="width:100%">
+      <div class="row" style="margin-top:8px"><button id="timePlay"><i data-ic="play"></i> Ход времени</button><select id="timeSpeed"><option value="0.25">0.25 ч/с</option><option value="0.5">0.5 ч/с</option><option value="1" selected>1 ч/с</option><option value="2">2 ч/с</option></select></div>
     </div>
     <label>Яркость</label>
     <input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1" style="width:100%">
@@ -83,39 +85,42 @@ body.clean #pillE{opacity:.15}
     <select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option></select>
     <label>Материалы</label>
     <select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select>
+    <label>Инерция камеры</label><select id="inertia"><option value="0.12">Лёгкая</option><option value="0.05" selected>Плавная</option><option value="0.025">Тяжёлая (кино)</option></select>
     <label>Показывать</label>
-    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button><button id="shadowBtn" class="on">Тени</button></div>
-    <label>Сохранённые камеры <span style="color:#888">(💾, затем слот)</span></label>
-    <div class="row"><button id="saveCam">💾</button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
+    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button></div>
+    <label>Сохранённые камеры <span style="color:#888">(сначала «записать», затем слот)</span></label>
+    <div class="row"><button id="saveCam" title="Записать текущий вид в слот"><i data-ic="save"></i></button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
   </div>
 
   <div id="animations" class="panel"><h3>Анимации</h3><div id="animationList"></div></div>
 
   <div id="paths" class="panel"><h3 style="margin:0 0 10px;font-size:14px">Пролёт камеры</h3>
-    <div class="row"><button id="addKey">＋ Ключ</button><button id="pathPlay">▶ Пролёт</button></div>
+    <div class="row"><button id="addKey"><i data-ic="plus"></i> Ключ</button><button id="pathPlay"><i data-ic="play"></i> Пролёт</button></div>
     <div id="keyList"></div>
-    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу">🕐 Время в ключах</button></div>
-    <div class="row" style="margin-top:6px"><button id="rec">⏺ Записать видео</button><button id="clearKeys">🗑</button></div>
-    <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json">💾 Сохранить сцену</button><button id="loadScene">📂 Загрузить</button></div>
+    <label style="font-size:12px;color:#bbb;display:block;margin:8px 0 4px">Движение камеры</label>
+    <select id="ease" style="width:100%"><option value="smooth">Плавный разгон и торможение</option><option value="cine">Кино: мягкая остановка на ключах</option><option value="linear">Равномерно</option></select>
+    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу"><i data-ic="clock"></i> Время в ключах</button></div>
+    <div class="row" style="margin-top:6px"><button id="rec"><i data-ic="rec"></i> Записать видео</button><button id="clearKeys" title="Удалить все ключи"><i data-ic="trash"></i></button></div>
+    <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json"><i data-ic="save"></i> Сохранить сцену</button><button id="loadScene"><i data-ic="folder"></i> Загрузить</button></div>
     <input id="jsonIn" type="file" accept=".json">
   </div>
   </div>
-  <button id="pillL" class="pill panel" title="Меню">☰</button>
-  <button id="pillE" class="pill panel" title="Чистый экран (H)">👁</button>
-  <button id="pillD" class="pill panel" title="Плеер">🎞</button>
+  <button id="pillL" class="pill panel" title="Меню"><i data-ic="menu"></i></button>
+  <button id="pillE" class="pill panel" title="Чистый экран (H)"><i data-ic="eye"></i></button>
+  <button id="pillD" class="pill panel" title="Плеер"><i data-ic="film"></i></button>
 
   <div id="dock" class="panel">
-    <button id="play">⏸</button>
+    <button id="play"><i data-ic="pause"></i></button>
     <input id="timeline" type="range" min="0" max="1000" value="0">
     <span id="time">0.00 / 0.00</span>
     <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
-    <button id="loop" class="on" title="Повтор">🔁</button><button id="hideD" title="Скрыть плеер">✕</button>
+    <button id="loop" class="on" title="Повтор"><i data-ic="repeat"></i></button><button id="hideD" title="Скрыть плеер"><i data-ic="close"></i></button>
   </div>
 
   <div id="status" class="panel">Модель не загружена</div>
-  <div id="hint" class="panel">ЛКМ — вращение · Колесо — масштаб · ПКМ — панорама · H — чистый экран</div>
+  <div id="hint" class="panel">ЛКМ — вращение · Колесо — масштаб · ПКМ — панорама · двойной клик — фокус · H — чистый экран</div>
 </div>
-<div id="drop"><div class="dropbox panel"><div style="font-size:42px;margin-bottom:8px">📦</div>Перетащи сюда <b>.GLB</b></div></div>
+<div id="drop"><div class="dropbox panel"><div style="margin-bottom:8px"><i data-ic="cube" data-s="42"></i></div>Перетащи сюда <b>.GLB</b></div></div>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"}}
@@ -126,8 +131,34 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Sky } from 'three/addons/objects/Sky.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const $ = id => document.getElementById(id);
+const SVG = {
+  play: 'M8 5v14l11-7z', pause: 'M6 19h4V5H6v14zm8-14v14h4V5h-4z', stop: 'M6 6h12v12H6z', rec: 'M12 6a6 6 0 100 12 6 6 0 000-12z',
+  plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', close: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  trash: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z', menu: 'M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
+  eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z',
+  full: 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z',
+  refresh: 'M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
+  tune: 'M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z',
+  save: 'M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z',
+  folder: 'M20 6h-8l-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2zm0 12H4V8h16v10z',
+  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z',
+  repeat: 'M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z',
+  cube: 'M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.3L5.6 7.9 12 11.5l6.4-3.6L12 4.3zM5 9.6v6.8l6 3.4v-6.8L5 9.6zm14 0l-6 3.4v6.8l6-3.4V9.6z',
+  film: 'M10 16.5l6-4.5-6-4.5v9zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z'
+};
+const ico = (n, sz) => `<svg class="ic" viewBox="0 0 24 24" fill="currentColor"${sz ? ` style="width:${sz}px;height:${sz}px"` : ''}><path d="${SVG[n]}"/></svg>`;
+function setBtn(el, n, text) {
+  el.innerHTML = ico(n);
+  if (text) { const sp = document.createElement('span'); sp.textContent = ' ' + text; el.appendChild(sp); }
+}
+document.querySelectorAll('[data-ic]').forEach(e => e.outerHTML = ico(e.dataset.ic, e.dataset.s));
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100000);
 camera.position.set(4, 3, 6);
@@ -143,7 +174,7 @@ $('viewer').appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.06; controls.screenSpacePanning = true;
-controls.autoRotateSpeed = 2;
+controls.autoRotateSpeed = 2; controls.zoomToCursor = true;
 
 // Свет
 const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
@@ -189,7 +220,14 @@ function placeKey() {
 }
 const catcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.5 }));
 catcher.rotation.x = -Math.PI / 2; catcher.receiveShadow = true; scene.add(catcher);
-function setShadows(on) { key.castShadow = on; catcher.visible = on; }
+const ground = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshStandardMaterial({ color: 0x77736a, roughness: 1, metalness: 0 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+let shadowsOn = true;
+function updateGround() {
+  const g = isSun() && $('bg').value === 'sky' && $('groundBtn').classList.contains('on');
+  ground.visible = g; catcher.visible = shadowsOn && !g;
+}
+function setShadows(v) { shadowsOn = v; key.castShadow = v; updateGround(); }
 
 // Небо, облака, звёзды
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -198,9 +236,9 @@ const envSkyScene = new THREE.Scene(); skyEnv.scale.setScalar(50); envSkyScene.a
 const skyRig = new THREE.Group(); skyRig.add(sky); sky.renderOrder = -3; scene.add(skyRig);
 const cloudMat = new THREE.ShaderMaterial({
   transparent: true, depthWrite: false, side: THREE.BackSide,
-  uniforms: { uTime: { value: 0 }, uCover: { value: 0.35 }, uSunDir: { value: new THREE.Vector3() }, uSunCol: { value: new THREE.Color() }, uLight: { value: 1 }, uNight: { value: 0 } },
+  uniforms: { uOvercast: { value: 0 }, uTime: { value: 0 }, uCover: { value: 0.35 }, uSunDir: { value: new THREE.Vector3() }, uSunCol: { value: new THREE.Color() }, uLight: { value: 1 }, uNight: { value: 0 } },
   vertexShader: 'varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-  fragmentShader: `varying vec3 vP; uniform float uTime,uCover,uLight,uNight; uniform vec3 uSunDir,uSunCol;
+  fragmentShader: `varying vec3 vP; uniform float uTime,uCover,uLight,uNight,uOvercast; uniform vec3 uSunDir,uSunCol;
   float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
   float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
@@ -208,10 +246,12 @@ const cloudMat = new THREE.ShaderMaterial({
     vec3 d=normalize(vP); if(d.y<0.0) discard;
     vec2 uv=d.xz/(d.y+0.12)*1.2+vec2(uTime*0.004,uTime*0.0015);
     float a=fbm(uv), b=fbm(uv+uSunDir.xz*0.07);
-    float t=0.95-uCover*0.6, c=smoothstep(t,t+0.15,a)*smoothstep(0.0,0.18,d.y);
+    float t=0.95-uCover*0.6, c=smoothstep(t,t+0.15,a); c=max(c,uOvercast)*smoothstep(0.0,0.12,d.y);
     float lit=clamp(0.75+(a-b)*4.0,0.35,1.15);
-    vec3 col=mix(vec3(.62,.66,.74),vec3(1.0),lit)*uSunCol*uLight*1.5+uNight*vec3(.02,.03,.06);
-    gl_FragColor=vec4(col,c*0.92);
+    vec3 col=mix(vec3(.62,.66,.74),vec3(1.0),lit)*uSunCol*uLight*1.5;
+    vec3 ov=vec3(.5,.53,.58)*(0.75+0.35*lit)*(0.12+0.88*uLight)*1.4;
+    col=mix(col,ov,uOvercast)+uNight*vec3(.02,.03,.06);
+    gl_FragColor=vec4(col,c*mix(0.92,1.0,uOvercast));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }`
@@ -226,47 +266,91 @@ for (let i = 0; i < 1800; i++) {
 const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false });
 const stars = new THREE.Points(starGeo, starMat); stars.renderOrder = -2; stars.frustumCulled = false; skyRig.add(stars);
+skyEnv.renderOrder = -3;
+const cloudsEnv = new THREE.Mesh(clouds.geometry, cloudMat); cloudsEnv.scale.setScalar(50); cloudsEnv.renderOrder = -1; cloudsEnv.frustumCulled = false; envSkyScene.add(cloudsEnv);
+const bounce = new THREE.Mesh(new THREE.CircleGeometry(200, 32), new THREE.MeshBasicMaterial({ color: 0x555555, toneMapped: false }));
+bounce.rotation.x = -Math.PI / 2; bounce.position.y = -1; envSkyScene.add(bounce);
 
 let envRT = null, lastEnv = 0, envTimer = 0;
 function regenEnv() {
   lastEnv = performance.now();
-  const t = pmrem.fromScene(envSkyScene, 0, 0.1, 100);
+  const t = pmrem.fromScene(envSkyScene, 0, 0.1, 300);
   envRT?.dispose(); envRT = t;
   if (isSun()) scene.environment = t.texture;
 }
 let todVal = 15;
 function setTod(h) { todVal = ((h % 24) + 24) % 24; $('tod').value = todVal; updateSun(); }
 const sunDir = new THREE.Vector3(), L = new THREE.Vector3(), D = THREE.MathUtils;
+const WX = {
+  clear:    { cover: 0.05, ov: 0, turb: 2.5, ray: 2.0, sun: 1.0,  fog: 16 },
+  few:      { cover: 0.3,  ov: 0, turb: 4,   ray: 2.0, sun: 0.95, fog: 14 },
+  partly:   { cover: 0.6,  ov: 0, turb: 6,   ray: 1.8, sun: 0.75, fog: 11 },
+  overcast: { cover: 1.0,  ov: 1, turb: 10,  ray: 1.0, sun: 0.12, fog: 6 },
+  fog:      { cover: 1.0,  ov: 1, turb: 20,  ray: 0.6, sun: 0.04, fog: 2.5 }
+};
+const _c1 = new THREE.Color(), _c2 = new THREE.Color();
 function updateSun(force) {
-  const h = todVal, az0 = +$('az').value, cover = +$('cloud').value;
+  const h = todVal, az0 = +$('az').value, cover = +$('cloud').value, wx = WX[$('weather').value] || WX.clear;
   const el = Math.sin((h - 6) / 24 * Math.PI * 2) * 62;
   sunDir.setFromSphericalCoords(1, D.degToRad(90 - el), D.degToRad(az0 + (h - 12) * 15));
   $('clockTxt').textContent = String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0');
-  const day = D.smoothstep(el, -3, 12), night = D.smoothstep(-el, 2, 12);
+  const day = D.smoothstep(el, -3, 12), night = D.smoothstep(-el, 2, 12), horizon = 1 - D.smoothstep(el, 0, 25);
   const sunCol = new THREE.Color(0xff8a4a).lerp(new THREE.Color(0xfff2df), D.smoothstep(el, 0, 30));
   for (const sk of [sky, skyEnv]) {
     const u = sk.material.uniforms;
-    u.turbidity.value = 8; u.rayleigh.value = 1 + 2 * (1 - D.smoothstep(el, 0, 25));
+    u.turbidity.value = wx.turb; u.rayleigh.value = (1 + 2 * horizon) * wx.ray / 2;
     u.mieCoefficient.value = 0.005; u.mieDirectionalG.value = 0.8; u.sunPosition.value.copy(sunDir);
   }
   const cu = cloudMat.uniforms;
-  cu.uCover.value = cover; cu.uSunDir.value.copy(sunDir); cu.uSunCol.value.copy(sunCol);
+  cu.uCover.value = cover + wx.ov * 0.6; cu.uOvercast.value = wx.ov; cu.uSunDir.value.copy(sunDir); cu.uSunCol.value.copy(sunCol);
   cu.uLight.value = 0.1 + 0.9 * day; cu.uNight.value = night;
-  starMat.opacity = night * (1 - cover * 0.7);
+  starMat.opacity = night * (1 - Math.min(1, cover + wx.ov) * 0.9);
+  bounce.material.color.setRGB(0.3, 0.28, 0.25).multiplyScalar((0.04 + 0.96 * day) * (0.45 + 0.55 * wx.sun));
   if (!isSun()) return;
-  if (el > -0.5) { L.copy(sunDir); key.intensity = 3.5 * D.smoothstep(el, 0, 10); key.color.copy(sunCol); }
-  else { L.set(-sunDir.x, -sunDir.y, -sunDir.z); key.intensity = 0.45 * D.smoothstep(-el, 0, 8); key.color.set(0x9db6ff); }
+  if (el > -3) { L.copy(sunDir); key.intensity = 3.5 * wx.sun * D.smoothstep(el, 0, 10); key.color.copy(sunCol); }
+  else { L.set(-sunDir.x, -sunDir.y, -sunDir.z); key.intensity = 0.45 * (0.3 + 0.7 * wx.sun) * D.smoothstep(-el, 6, 14); key.color.set(0x9db6ff); }
   L.y = Math.max(L.y, 0.03); curKeyDir.copy(L).normalize(); placeKey();
   hemi.intensity = 0.05 + 0.25 * day; fill.intensity = 0;
+  // дымка: цвет горизонта по времени и погоде
+  if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0001);
+  scene.fog.density = 1 / (wx.fog * modelSphere.radius);
+  _c1.setRGB(0.42, 0.54, 0.74).lerp(_c2.setRGB(0.55, 0.58, 0.62), wx.ov);
+  _c1.lerp(_c2.setRGB(0.8, 0.45, 0.22), horizon * day * (1 - wx.ov * 0.7) * 0.8);
+  scene.fog.color.copy(_c1).multiplyScalar(0.03 + 0.97 * day);
+  ground.material.color.setRGB(0.19, 0.18, 0.16).multiplyScalar(1);
   clearTimeout(envTimer);
   if (force || performance.now() - lastEnv > 150) regenEnv(); else envTimer = setTimeout(regenEnv, 170);
 }
+$('weather').onchange = () => { $('cloud').value = (WX[$('weather').value] || WX.clear).cover; updateSun(true); };
 $('tod').oninput = () => { todVal = +$('tod').value; updateSun(); };
 ['az', 'cloud'].forEach(id => $(id).oninput = () => updateSun());
 
+let composer = null, gtao = null, usePost = false;
+function tuneAO() {
+  if (!gtao) return;
+  gtao.updateGtaoMaterial({ radius: THREE.MathUtils.clamp(modelSphere.radius * 0.02, 0.15, 3), distanceExponent: 1, thickness: 1, scale: 1.2, samples: 16, distanceFallOff: 1, screenSpaceRadius: false });
+  gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 8, radiusExponent: 1, rings: 2, samples: 16 });
+}
+function ensureComposer() {
+  if (composer) return;
+  const pr = renderer.getPixelRatio(), W = $('viewer').clientWidth || innerWidth, H = $('viewer').clientHeight || innerHeight;
+  const rt = new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: 4 });
+  composer = new EffectComposer(renderer, rt);
+  composer.setPixelRatio(pr); composer.setSize(W, H);
+  composer.addPass(new RenderPass(scene, camera));
+  gtao = new GTAOPass(scene, camera, W, H);
+  const orig = gtao.render.bind(gtao);
+  gtao.render = (...args) => { const v = skyRig.visible; skyRig.visible = false; orig(...args); skyRig.visible = v; };
+  composer.addPass(gtao);
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), 0.25, 0.6, 1.1));
+  composer.addPass(new OutputPass());
+  tuneAO();
+}
 function applyLight() {
   const m = $('light').value, sun = isSun();
   applyQuality();
+  usePost = $('light').value === 'real'; if (usePost) ensureComposer();
+  if (!sun) scene.fog = null;
   $('sunCtl').style.display = sun ? 'block' : 'none';
   scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : envRT?.texture ?? null;
   if (sun) updateSun(true);
@@ -274,10 +358,10 @@ function applyLight() {
     hemi.intensity = m === 'studio' ? 0.25 : 2; key.intensity = m === 'studio' ? 0.8 : 3; fill.intensity = m === 'studio' ? 0.3 : 1.2;
     key.color.set(0xffffff); curKeyDir.copy(keyDir); placeKey();
   }
-  applyBg();
+  applyBg(); updateGround();
 }
 function applyBg() {
-  const v = $('bg').value; skyRig.visible = v === 'sky';
+  const v = $('bg').value; skyRig.visible = v === 'sky'; updateGround();
   if (v === 'sky') { scene.background = null; updateSun(); }
   else { scene.background = envTex; scene.backgroundBlurriness = v === 'env' ? 0.7 : 0.85; scene.backgroundIntensity = v === 'env' ? 1 : 0.16; }
 }
@@ -326,7 +410,7 @@ function playAnimation(i, btn) {
   action.reset().setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
   action.clampWhenFinished = true;
   action.play();
-  playing = true; $('play').textContent = '⏸';
+  playing = true; setBtn($('play'), 'pause');
   document.querySelectorAll('.anim').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   setStatus(`Анимация: ${clips[i].name || 'Animation ' + (i + 1)}`);
@@ -336,7 +420,7 @@ $('play').onclick = () => {
   if (!action) return;
   playing = !playing;
   if (playing && !action.isRunning()) action.reset().play();
-  $('play').textContent = playing ? '⏸' : '▶';
+  setBtn($('play'), playing ? 'pause' : 'play');
 };
 $('speed').onchange = e => { if (mixer) mixer.timeScale = +e.target.value; };
 $('loop').onclick = e => {
@@ -345,7 +429,7 @@ $('loop').onclick = e => {
 };
 $('timeline').addEventListener('input', e => {
   if (!action) return;
-  scrubbing = true; playing = false; $('play').textContent = '▶';
+  scrubbing = true; playing = false; setBtn($('play'), 'play');
   action.paused = false;
   action.time = (e.target.value / 1000) * action.getClip().duration;
   mixer.update(0);
@@ -357,14 +441,15 @@ function fitCamera(obj) {
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
   const max = Math.max(size.x, size.y, size.z) || 1;
-  box.getBoundingSphere(modelSphere); placeKey();
+  box.getBoundingSphere(modelSphere); isSun() ? updateSun(true) : placeKey(); tuneAO();
   catcher.position.set(center.x, box.min.y + max * 0.0005, center.z); catcher.scale.setScalar(max * 12);
+  ground.position.set(center.x, box.min.y - max * 0.002, center.z); ground.scale.setScalar(max * 35);
   const dist = (max / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.35;
   camera.position.copy(center).add(new THREE.Vector3(dist, dist * 0.65, dist));
-  camera.near = Math.max(max / 10000, 0.001); camera.far = Math.max(max * 100, 1000);
+  camera.near = Math.max(max / 2000, 0.001); camera.far = Math.max(max * 50, 200);
   camera.updateProjectionMatrix();
   controls.target.copy(center);
-  controls.minDistance = Math.max(max * 0.02, 0.01); controls.maxDistance = Math.max(max * 100, 100);
+  controls.minDistance = Math.max(max * 0.002, 0.005); controls.maxDistance = Math.max(max * 30, 50);
   controls.update();
   grid.scale.setScalar(Math.max(max / 20, 1));
   grid.position.y = box.min.y;
@@ -418,7 +503,7 @@ async function loadBuffer(buf, name, sceneData) {
       clips.forEach((clip, i) => {
         const b = document.createElement('button');
         b.className = 'anim';
-        b.textContent = `▶ ${clip.name || 'Animation ' + (i + 1)}`;
+        setBtn(b, 'play', clip.name || 'Animation ' + (i + 1));
         b.onclick = () => playAnimation(i, b);
         $('animationList').appendChild(b);
       });
@@ -454,6 +539,9 @@ toggle('gridBtn', on => grid.visible = on);
 toggle('axesBtn', on => axes.visible = on);
 toggle('rotBtn', on => controls.autoRotate = on);
 toggle('shadowBtn', setShadows);
+toggle('groundBtn', updateGround);
+$('inertia').onchange = () => controls.dampingFactor = +$('inertia').value;
+controls.dampingFactor = +$('inertia').value;
 toggle('timePlay', () => {});
 
 if (document.documentElement.requestFullscreen) {
@@ -469,7 +557,7 @@ function renderKeys() {
   const box = $('keyList'); box.innerHTML = '';
   keys.forEach((k, i) => {
     const r = document.createElement('div'); r.className = 'krow';
-    r.innerHTML = `<button class="go">Ключ ${i + 1} · ${fmtT(k.tod)}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="tk" title="Записать текущее время суток в ключ">🕐</button><button class="del">✕</button>`;
+    r.innerHTML = `<button class="go">Ключ ${i + 1} · ${fmtT(k.tod)}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="tk" title="Записать текущее время суток в ключ">${ico('clock')}</button><button class="del">${ico('close')}</button>`;
     r.querySelector('.go').onclick = () => { flyTo(k.p.clone(), k.t.clone()); if (isSun()) setTod(k.tod); };
     r.querySelector('.tk').onclick = () => { k.tod = todVal; renderKeys(); };
     r.querySelector('input')?.addEventListener('change', e => k.d = Math.max(0.2, +e.target.value || 3));
@@ -481,7 +569,7 @@ $('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: control
 $('clearKeys').onclick = () => { keys.length = 0; renderKeys(); };
 toggle('sync', () => {}); toggle('pathLoop', () => {}); toggle('todKeys', () => {});
 function syncAnim() {
-  if (on('sync') && action) { action.reset().play(); playing = true; $('play').textContent = '⏸'; }
+  if (on('sync') && action) { action.reset().play(); playing = true; setBtn($('play'), 'pause'); }
 }
 function startPath() {
   if (keys.length < 2) return setStatus('Для пролёта нужно минимум 2 ключа'), false;
@@ -490,18 +578,22 @@ function startPath() {
   cum = [0]; keys.forEach((k, i) => { if (i) cum.push(cum[i - 1] + k.d); });
   fly = null; pathT = 0; controls.enabled = false; controls.autoRotate = false;
   syncAnim();
-  $('pathPlay').textContent = '⏹ Стоп';
+  setBtn($('pathPlay'), 'stop', 'Стоп');
   return true;
 }
 function stopPath() {
   pathT = null; controls.enabled = true;
-  $('pathPlay').textContent = '▶ Пролёт';
+  setBtn($('pathPlay'), 'play', 'Пролёт');
   if (recorder && recAuto) stopRec();
 }
 function applyPath(T) {
-  const n = keys.length; let i = 0;
+  const n = keys.length, total = cum[n - 1], mode = $('ease').value; let i = 0;
+  const sm = x => x * x * x * (x * (x * 6 - 15) + 10);
+  if (mode === 'smooth') T = total * sm(THREE.MathUtils.clamp(T / total, 0, 1));
   while (i < n - 2 && T >= cum[i + 1]) i++;
-  const s = THREE.MathUtils.clamp((T - cum[i]) / (cum[i + 1] - cum[i]), 0, 1), f = (i + s) / (n - 1);
+  let s = THREE.MathUtils.clamp((T - cum[i]) / (cum[i + 1] - cum[i]), 0, 1);
+  if (mode === 'cine') s = sm(s);
+  const f = (i + s) / (n - 1);
   if (on('todKeys') && isSun()) {
     const ta = keys[i].tod, tb = keys[i + 1].tod; let dl = (((tb - ta) % 24) + 24) % 24; if (dl > 12) dl -= 24;
     todVal = (((ta + dl * s) % 24) + 24) % 24; $('tod').value = todVal; updateSun();
@@ -515,7 +607,7 @@ $('pathPlay').onclick = () => pathT === null ? startPath() : stopPath();
 function stopRec() {
   recorder?.state === 'recording' && recorder.stop();
   recorder = null; recAuto = false;
-  $('rec').classList.remove('on'); $('rec').textContent = '⏺ Записать видео';
+  $('rec').classList.remove('on'); setBtn($('rec'), 'rec', 'Записать видео');
 }
 $('rec').onclick = () => {
   if (recorder) { stopRec(); if (pathT !== null) stopPath(); return; }
@@ -532,7 +624,7 @@ $('rec').onclick = () => {
     setStatus('Видео сохранено: ' + a.download);
   };
   recorder = rc; rc.start();
-  $('rec').classList.add('on'); $('rec').textContent = '⏹ Стоп записи';
+  $('rec').classList.add('on'); setBtn($('rec'), 'stop', 'Стоп записи');
   if (keys.length >= 2) { recAuto = true; startPath(); } else setStatus('Запись идёт (ключей нет — двигай камеру вручную)');
 };
 
@@ -544,8 +636,8 @@ function collectScene() {
     camera: { p: vec(camera.position), t: vec(controls.target) },
     keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3) })),
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
-    path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys') },
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn') }
+    path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value }
   };
 }
 function applySceneData(d) {
@@ -555,11 +647,12 @@ function applySceneData(d) {
   document.querySelectorAll('.slot').forEach((b, i) => {
     const s = d.slots?.[i]; slots[i] = s ? { p: V(s.p), t: V(s.t) } : null; b.classList.toggle('on', !!s);
   });
-  if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); $('todKeys').classList.toggle('on', d.path.todKeys !== false); }
+  if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); $('todKeys').classList.toggle('on', d.path.todKeys !== false); if ([...$('ease').options].some(o => o.value === d.path.ease)) $('ease').value = d.path.ease; }
   if (d.view) {
-    for (const k of ['light', 'bg', 'mat']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
+    for (const k of ['light', 'bg', 'mat', 'weather', 'inertia']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
     for (const k of ['tod', 'az', 'cloud']) if (d.view[k] != null) $(k).value = d.view[k];
-    todVal = +$('tod').value;
+    todVal = +$('tod').value; controls.dampingFactor = +$('inertia').value;
+    if (d.view.ground != null) $('groundBtn').classList.toggle('on', d.view.ground);
     if (d.view.shadows != null) { $('shadowBtn').classList.toggle('on', d.view.shadows); setShadows(d.view.shadows); }
     if (d.view.exposure) { $('exposure').value = d.view.exposure; renderer.toneMappingExposure = d.view.exposure; }
     applyLight(); applyMaterials();
@@ -575,6 +668,16 @@ $('saveScene').onclick = () => {
 };
 $('loadScene').onclick = () => $('jsonIn').click();
 $('jsonIn').onchange = async e => { await handleFiles([...e.target.files]); e.target.value = ''; };
+
+// Двойной клик — сфокусироваться на точке модели
+const ray = new THREE.Raycaster();
+renderer.domElement.addEventListener('dblclick', e => {
+  if (!model || pathT !== null) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  const hit = ray.intersectObject(model, true)[0];
+  if (hit) flyTo(hit.point.clone().add(camera.position.clone().sub(controls.target)), hit.point.clone());
+});
 
 // Скрытие интерфейса
 $('pillL').onclick = () => document.body.classList.toggle('noL');
@@ -592,10 +695,14 @@ addEventListener('drop', async e => {
   handleFiles([...e.dataTransfer.files]);
 });
 
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
+function onResize() {
+  const w = $('viewer').clientWidth || innerWidth, h = $('viewer').clientHeight || innerHeight;
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h); composer?.setSize(w, h);
+}
+addEventListener('resize', onResize);
+new ResizeObserver(onResize).observe($('viewer'));
+onResize();
 addEventListener('keydown', e => {
   if (e.code === 'KeyH') document.body.classList.toggle('clean');
   if (e.code === 'Space' && action && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT') { e.preventDefault(); $('play').click(); }
@@ -628,8 +735,8 @@ function animate() {
     } else applyPath(pathT);
   }
   if (fly) {
-    fly.k = Math.min(fly.k + dt / 0.7, 1);
-    const s = fly.k * fly.k * (3 - 2 * fly.k);
+    fly.k = Math.min(fly.k + dt / 1.4, 1);
+    const s = fly.k ** 3 * (fly.k * (fly.k * 6 - 15) + 10);
     camera.position.lerpVectors(fly.p0, fly.p1, s);
     controls.target.lerpVectors(fly.t0, fly.t1, s);
     if (fly.k >= 1) fly = null;
@@ -638,8 +745,9 @@ function animate() {
   placeKey();
   skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
   cloudMat.uniforms.uTime.value = performance.now() / 1000;
+  if (!fly && pathT === null) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
   controls.update();
-  renderer.render(scene, camera);
+  if (usePost) composer.render(dt); else renderer.render(scene, camera);
 }
 animate();
 </script>
