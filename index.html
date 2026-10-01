@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v0.4</title>
+<title>My 3D Viewer — v0.6</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Inter,Arial,sans-serif}
@@ -51,6 +51,7 @@ input[type=range]{accent-color:#fff}
 .krow{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12px;color:#bbb}
 .krow input{width:58px;background:#2a2a31;color:#fff;border:0;border-radius:8px;padding:7px}
 .krow .go{flex:1;text-align:left}
+.krow button{padding:7px 9px}
 body.noL #left{display:none}
 body.noD #dock{display:none!important}
 body.clean #ui>*:not(#pillE){display:none!important}
@@ -69,15 +70,21 @@ body.clean #pillE{opacity:.15}
 
   <div id="settings" class="panel">
     <label>Освещение</label>
-    <select id="light"><option value="studio">Студия (HDRI)</option><option value="classic">Классика</option></select>
+    <select id="light"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="classic">Классика</option></select>
+    <div id="sunCtl" style="display:none">
+      <label>Время суток: <b id="clockTxt">15:00</b></label><input id="tod" type="range" min="0" max="24" step="0.05" value="15" style="width:100%">
+      <label>Направление солнца</label><input id="az" type="range" min="0" max="360" step="1" value="200" style="width:100%">
+      <label>Облачность</label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35" style="width:100%">
+      <div class="row" style="margin-top:8px"><button id="timePlay">⏵ Ход времени</button><select id="timeSpeed"><option value="0.25">0.25 ч/с</option><option value="0.5">0.5 ч/с</option><option value="1" selected>1 ч/с</option><option value="2">2 ч/с</option></select></div>
+    </div>
     <label>Яркость</label>
     <input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1" style="width:100%">
     <label>Фон</label>
-    <select id="bg"><option value="dark">Тёмный</option><option value="gray">Серый</option><option value="light">Светлый</option><option value="env">Студия (размытая)</option></select>
+    <select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option></select>
     <label>Материалы</label>
     <select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select>
     <label>Показывать</label>
-    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button></div>
+    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button><button id="shadowBtn" class="on">Тени</button></div>
     <label>Сохранённые камеры <span style="color:#888">(💾, затем слот)</span></label>
     <div class="row"><button id="saveCam">💾</button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
   </div>
@@ -87,7 +94,7 @@ body.clean #pillE{opacity:.15}
   <div id="paths" class="panel"><h3 style="margin:0 0 10px;font-size:14px">Пролёт камеры</h3>
     <div class="row"><button id="addKey">＋ Ключ</button><button id="pathPlay">▶ Пролёт</button></div>
     <div id="keyList"></div>
-    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button></div>
+    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу">🕐 Время в ключах</button></div>
     <div class="row" style="margin-top:6px"><button id="rec">⏺ Записать видео</button><button id="clearKeys">🗑</button></div>
     <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json">💾 Сохранить сцену</button><button id="loadScene">📂 Загрузить</button></div>
     <input id="jsonIn" type="file" accept=".json">
@@ -118,6 +125,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { Sky } from 'three/addons/objects/Sky.js';
 
 const $ = id => document.getElementById(id);
 const scene = new THREE.Scene();
@@ -129,6 +137,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 $('viewer').appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -147,20 +157,137 @@ grid.material.transparent = true; grid.material.opacity = 0.35;
 const axes = new THREE.AxesHelper(1); axes.visible = false;
 scene.add(grid, axes);
 
+// Тени
+key.castShadow = true;
+const isMobile = matchMedia('(max-width:700px)').matches;
+function isSun() { const v = $('light').value; return v === 'sun' || v === 'real'; }
+function applyQuality() {
+  const real = $('light').value === 'real';
+  const ms = real ? (isMobile ? 2048 : 4096) : (isMobile ? 1024 : 2048);
+  if (key.shadow.mapSize.x !== ms) { key.shadow.mapSize.set(ms, ms); key.shadow.map?.dispose(); key.shadow.map = null; }
+  key.shadow.radius = real ? 5 : isSun() ? 3 : 2.5;
+}
+applyQuality();
+scene.add(key.target);
+const modelSphere = new THREE.Sphere(new THREE.Vector3(), 5);
+const keyDir = new THREE.Vector3(5, 10, 7).normalize(), curKeyDir = keyDir.clone();
+const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _c = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
+function placeKey() {
+  const r = modelSphere.radius, ms = key.shadow.mapSize.x;
+  let R = THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) * 0.75, r * 0.05, r * 1.3);
+  R = Math.pow(1.25, Math.ceil(Math.log(R) / Math.log(1.25)));
+  const texel = 2 * R / ms;
+  _r.crossVectors(UP, curKeyDir).normalize(); _u.crossVectors(curKeyDir, _r);
+  _c.copy(controls.target);
+  const pa = _c.dot(_r), pb = _c.dot(_u);
+  _c.addScaledVector(_r, Math.round(pa / texel) * texel - pa).addScaledVector(_u, Math.round(pb / texel) * texel - pb);
+  const D = 3 * r + 2 * R;
+  key.position.copy(_c).addScaledVector(curKeyDir, D);
+  key.target.position.copy(_c); key.target.updateMatrixWorld();
+  const c = key.shadow.camera; c.left = c.bottom = -R; c.right = c.top = R; c.near = 0.01; c.far = D + 2 * r + R; c.updateProjectionMatrix();
+  key.shadow.bias = -0.00005; key.shadow.normalBias = texel * 1.5;
+}
+const catcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.5 }));
+catcher.rotation.x = -Math.PI / 2; catcher.receiveShadow = true; scene.add(catcher);
+function setShadows(on) { key.castShadow = on; catcher.visible = on; }
+
+// Небо, облака, звёзды
+const pmrem = new THREE.PMREMGenerator(renderer);
+const sky = new Sky(), skyEnv = new Sky();
+const envSkyScene = new THREE.Scene(); skyEnv.scale.setScalar(50); envSkyScene.add(skyEnv);
+const skyRig = new THREE.Group(); skyRig.add(sky); sky.renderOrder = -3; scene.add(skyRig);
+const cloudMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, side: THREE.BackSide,
+  uniforms: { uTime: { value: 0 }, uCover: { value: 0.35 }, uSunDir: { value: new THREE.Vector3() }, uSunCol: { value: new THREE.Color() }, uLight: { value: 1 }, uNight: { value: 0 } },
+  vertexShader: 'varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `varying vec3 vP; uniform float uTime,uCover,uLight,uNight; uniform vec3 uSunDir,uSunCol;
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+  float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
+  void main(){
+    vec3 d=normalize(vP); if(d.y<0.0) discard;
+    vec2 uv=d.xz/(d.y+0.12)*1.2+vec2(uTime*0.004,uTime*0.0015);
+    float a=fbm(uv), b=fbm(uv+uSunDir.xz*0.07);
+    float t=0.95-uCover*0.6, c=smoothstep(t,t+0.15,a)*smoothstep(0.0,0.18,d.y);
+    float lit=clamp(0.75+(a-b)*4.0,0.35,1.15);
+    vec3 col=mix(vec3(.62,.66,.74),vec3(1.0),lit)*uSunCol*uLight*1.5+uNight*vec3(.02,.03,.06);
+    gl_FragColor=vec4(col,c*0.92);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }`
+});
+const clouds = new THREE.Mesh(new THREE.SphereGeometry(0.4, 48, 24), cloudMat);
+clouds.renderOrder = -1; clouds.frustumCulled = false; skyRig.add(clouds);
+const starPos = new Float32Array(1800 * 3);
+for (let i = 0; i < 1800; i++) {
+  const th = Math.random() * 6.2832, y = 0.02 + Math.random() * 0.98, r = Math.sqrt(1 - y * y);
+  starPos.set([r * Math.cos(th) * 0.43, y * 0.43, r * Math.sin(th) * 0.43], i * 3);
+}
+const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false });
+const stars = new THREE.Points(starGeo, starMat); stars.renderOrder = -2; stars.frustumCulled = false; skyRig.add(stars);
+
+let envRT = null, lastEnv = 0, envTimer = 0;
+function regenEnv() {
+  lastEnv = performance.now();
+  const t = pmrem.fromScene(envSkyScene, 0, 0.1, 100);
+  envRT?.dispose(); envRT = t;
+  if (isSun()) scene.environment = t.texture;
+}
+let todVal = 15;
+function setTod(h) { todVal = ((h % 24) + 24) % 24; $('tod').value = todVal; updateSun(); }
+const sunDir = new THREE.Vector3(), L = new THREE.Vector3(), D = THREE.MathUtils;
+function updateSun(force) {
+  const h = todVal, az0 = +$('az').value, cover = +$('cloud').value;
+  const el = Math.sin((h - 6) / 24 * Math.PI * 2) * 62;
+  sunDir.setFromSphericalCoords(1, D.degToRad(90 - el), D.degToRad(az0 + (h - 12) * 15));
+  $('clockTxt').textContent = String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0');
+  const day = D.smoothstep(el, -3, 12), night = D.smoothstep(-el, 2, 12);
+  const sunCol = new THREE.Color(0xff8a4a).lerp(new THREE.Color(0xfff2df), D.smoothstep(el, 0, 30));
+  for (const sk of [sky, skyEnv]) {
+    const u = sk.material.uniforms;
+    u.turbidity.value = 8; u.rayleigh.value = 1 + 2 * (1 - D.smoothstep(el, 0, 25));
+    u.mieCoefficient.value = 0.005; u.mieDirectionalG.value = 0.8; u.sunPosition.value.copy(sunDir);
+  }
+  const cu = cloudMat.uniforms;
+  cu.uCover.value = cover; cu.uSunDir.value.copy(sunDir); cu.uSunCol.value.copy(sunCol);
+  cu.uLight.value = 0.1 + 0.9 * day; cu.uNight.value = night;
+  starMat.opacity = night * (1 - cover * 0.7);
+  if (!isSun()) return;
+  if (el > -0.5) { L.copy(sunDir); key.intensity = 3.5 * D.smoothstep(el, 0, 10); key.color.copy(sunCol); }
+  else { L.set(-sunDir.x, -sunDir.y, -sunDir.z); key.intensity = 0.45 * D.smoothstep(-el, 0, 8); key.color.set(0x9db6ff); }
+  L.y = Math.max(L.y, 0.03); curKeyDir.copy(L).normalize(); placeKey();
+  hemi.intensity = 0.05 + 0.25 * day; fill.intensity = 0;
+  clearTimeout(envTimer);
+  if (force || performance.now() - lastEnv > 150) regenEnv(); else envTimer = setTimeout(regenEnv, 170);
+}
+$('tod').oninput = () => { todVal = +$('tod').value; updateSun(); };
+['az', 'cloud'].forEach(id => $(id).oninput = () => updateSun());
+
 function applyLight() {
-  const studio = $('light').value === 'studio';
-  scene.environment = studio ? envTex : null;
-  hemi.intensity = studio ? 0.25 : 2;
-  key.intensity = studio ? 0.8 : 3;
-  fill.intensity = studio ? 0.3 : 1.2;
+  const m = $('light').value, sun = isSun();
+  applyQuality();
+  $('sunCtl').style.display = sun ? 'block' : 'none';
+  scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : envRT?.texture ?? null;
+  if (sun) updateSun(true);
+  else {
+    hemi.intensity = m === 'studio' ? 0.25 : 2; key.intensity = m === 'studio' ? 0.8 : 3; fill.intensity = m === 'studio' ? 0.3 : 1.2;
+    key.color.set(0xffffff); curKeyDir.copy(keyDir); placeKey();
+  }
   applyBg();
 }
 function applyBg() {
-  const v = $('bg').value;
-  scene.backgroundBlurriness = 0.7;
-  scene.background = v === 'env' ? envTex : new THREE.Color({ dark: 0x151515, gray: 0x6b6f76, light: 0xe6e8eb }[v] ?? 0x151515);
+  const v = $('bg').value; skyRig.visible = v === 'sky';
+  if (v === 'sky') { scene.background = null; updateSun(); }
+  else { scene.background = envTex; scene.backgroundBlurriness = v === 'env' ? 0.7 : 0.85; scene.backgroundIntensity = v === 'env' ? 1 : 0.16; }
 }
-$('light').onchange = applyLight;
+function setExposure(v) { $('exposure').value = v; renderer.toneMappingExposure = v; }
+$('light').onchange = () => {
+  const sun = isSun();
+  if (sun) { $('bg').value = 'sky'; setExposure(0.7); }
+  else { if ($('bg').value === 'sky') $('bg').value = 'dark'; setExposure(1); }
+  applyLight();
+};
 $('bg').onchange = applyBg;
 $('exposure').oninput = e => renderer.toneMappingExposure = +e.target.value;
 applyLight();
@@ -230,6 +357,8 @@ function fitCamera(obj) {
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
   const max = Math.max(size.x, size.y, size.z) || 1;
+  box.getBoundingSphere(modelSphere); placeKey();
+  catcher.position.set(center.x, box.min.y + max * 0.0005, center.z); catcher.scale.setScalar(max * 12);
   const dist = (max / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.35;
   camera.position.copy(center).add(new THREE.Vector3(dist, dist * 0.65, dist));
   camera.near = Math.max(max / 10000, 0.001); camera.far = Math.max(max * 100, 1000);
@@ -277,7 +406,7 @@ async function loadBuffer(buf, name, sceneData) {
   try {
     const gltf = await loader.parseAsync(buf, '');
     model = gltf.scene; scene.add(model); window.__hasModel = true;
-    model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
+    model.traverse(c => { if (c.isMesh) { origMats.set(c, c.material); c.castShadow = !c.material.transparent; c.receiveShadow = true; } });
     applyMaterials();
     clips = gltf.animations || [];
     fitCamera(model);
@@ -324,6 +453,8 @@ const toggle = (id, fn) => $(id).onclick = e => { const on = !e.currentTarget.cl
 toggle('gridBtn', on => grid.visible = on);
 toggle('axesBtn', on => axes.visible = on);
 toggle('rotBtn', on => controls.autoRotate = on);
+toggle('shadowBtn', setShadows);
+toggle('timePlay', () => {});
 
 if (document.documentElement.requestFullscreen) {
   $('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
@@ -333,20 +464,22 @@ if (document.documentElement.requestFullscreen) {
 const keys = [];
 let pathT = null, pc = null, tc = null, cum = [], recorder = null, chunks = [], recAuto = false;
 const on = id => $(id).classList.contains('on');
+const fmtT = h => String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0');
 function renderKeys() {
   const box = $('keyList'); box.innerHTML = '';
   keys.forEach((k, i) => {
     const r = document.createElement('div'); r.className = 'krow';
-    r.innerHTML = `<button class="go">Ключ ${i + 1}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="del">✕</button>`;
-    r.querySelector('.go').onclick = () => flyTo(k.p.clone(), k.t.clone());
+    r.innerHTML = `<button class="go">Ключ ${i + 1} · ${fmtT(k.tod)}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="tk" title="Записать текущее время суток в ключ">🕐</button><button class="del">✕</button>`;
+    r.querySelector('.go').onclick = () => { flyTo(k.p.clone(), k.t.clone()); if (isSun()) setTod(k.tod); };
+    r.querySelector('.tk').onclick = () => { k.tod = todVal; renderKeys(); };
     r.querySelector('input')?.addEventListener('change', e => k.d = Math.max(0.2, +e.target.value || 3));
     r.querySelector('.del').onclick = () => { keys.splice(i, 1); renderKeys(); };
     box.appendChild(r);
   });
 }
-$('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: controls.target.clone(), d: 3 }); renderKeys(); setStatus(`Ключ ${keys.length} добавлен`); };
+$('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: controls.target.clone(), d: 3, tod: todVal }); renderKeys(); setStatus(`Ключ ${keys.length} добавлен`); };
 $('clearKeys').onclick = () => { keys.length = 0; renderKeys(); };
-toggle('sync', () => {}); toggle('pathLoop', () => {});
+toggle('sync', () => {}); toggle('pathLoop', () => {}); toggle('todKeys', () => {});
 function syncAnim() {
   if (on('sync') && action) { action.reset().play(); playing = true; $('play').textContent = '⏸'; }
 }
@@ -369,6 +502,10 @@ function applyPath(T) {
   const n = keys.length; let i = 0;
   while (i < n - 2 && T >= cum[i + 1]) i++;
   const s = THREE.MathUtils.clamp((T - cum[i]) / (cum[i + 1] - cum[i]), 0, 1), f = (i + s) / (n - 1);
+  if (on('todKeys') && isSun()) {
+    const ta = keys[i].tod, tb = keys[i + 1].tod; let dl = (((tb - ta) % 24) + 24) % 24; if (dl > 12) dl -= 24;
+    todVal = (((ta + dl * s) % 24) + 24) % 24; $('tod').value = todVal; updateSun();
+  }
   pc.getPoint(f, camera.position); tc.getPoint(f, controls.target);
   camera.lookAt(controls.target);
 }
@@ -405,22 +542,25 @@ function collectScene() {
   return {
     version: 1, model: curName,
     camera: { p: vec(camera.position), t: vec(controls.target) },
-    keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d })),
+    keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3) })),
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
-    path: { sync: on('sync'), loop: on('pathLoop') },
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value }
+    path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys') },
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn') }
   };
 }
 function applySceneData(d) {
   const V = a => new THREE.Vector3(...a);
-  keys.length = 0; (d.keys || []).forEach(k => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3 }));
+  keys.length = 0; (d.keys || []).forEach(k => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3, tod: k.tod ?? todVal }));
   renderKeys();
   document.querySelectorAll('.slot').forEach((b, i) => {
     const s = d.slots?.[i]; slots[i] = s ? { p: V(s.p), t: V(s.t) } : null; b.classList.toggle('on', !!s);
   });
-  if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); }
+  if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); $('todKeys').classList.toggle('on', d.path.todKeys !== false); }
   if (d.view) {
-    for (const k of ['light', 'bg', 'mat']) if (d.view[k]) $(k).value = d.view[k];
+    for (const k of ['light', 'bg', 'mat']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
+    for (const k of ['tod', 'az', 'cloud']) if (d.view[k] != null) $(k).value = d.view[k];
+    todVal = +$('tod').value;
+    if (d.view.shadows != null) { $('shadowBtn').classList.toggle('on', d.view.shadows); setShadows(d.view.shadows); }
     if (d.view.exposure) { $('exposure').value = d.view.exposure; renderer.toneMappingExposure = d.view.exposure; }
     applyLight(); applyMaterials();
   }
@@ -494,6 +634,10 @@ function animate() {
     controls.target.lerpVectors(fly.t0, fly.t1, s);
     if (fly.k >= 1) fly = null;
   }
+  if (on('timePlay') && isSun() && !(pathT !== null && on('todKeys'))) { todVal = (todVal + Math.min(dt, 0.1) * +$('timeSpeed').value) % 24; $('tod').value = todVal; updateSun(); }
+  placeKey();
+  skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
+  cloudMat.uniforms.uTime.value = performance.now() / 1000;
   controls.update();
   renderer.render(scene, camera);
 }
