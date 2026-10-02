@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v1.0</title>
+<title>My 3D Viewer — v1.1</title>
 <style>
 :root{
   --glass:rgba(255,255,255,.62);--glass-strong:rgba(255,255,255,.78);--stroke:rgba(255,255,255,.55);--hair:rgba(20,20,30,.08);
@@ -1415,6 +1415,18 @@ addEventListener('keydown', e => {
   if (document.body.classList.contains('cardOpen') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) stepPoi(e.key === 'ArrowRight' ? 1 : -1);
 });
 
+// Динамическая ближняя плоскость отсечения: точность глубины против мерцания (z-fighting) издалека
+function updateClip() {
+  const R = modelSphere.radius || 1;
+  const dT = camera.position.distanceTo(controls.target);
+  const dOut = camera.position.distanceTo(modelSphere.center) - R;   // > 0 — камера вне модели
+  let n = Math.max(dT * 0.01, dOut > 0 ? dOut * 0.9 : 0);
+  n = THREE.MathUtils.clamp(n, Math.max(R * 2e-5, 0.001), Math.max(R, 1));
+  const f = Math.max(camera.position.distanceTo(modelSphere.center) + R * 80, n * 1000, 200);
+  if (Math.abs(n - camera.near) > camera.near * 0.02 || Math.abs(f - camera.far) > camera.far * 0.05) {
+    camera.near = n; camera.far = f; camera.updateProjectionMatrix();
+  }
+}
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
@@ -1444,7 +1456,7 @@ function animate() {
   skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
   cloudMat.uniforms.uTime.value = performance.now() / 1000;
   if (!fly && pathT === null) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
-  controls.update();
+  controls.update(); updateClip();
   if (usePost) composer.render(dt); else renderer.render(scene, camera);
 }
 animate();
