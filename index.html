@@ -2,126 +2,529 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v0.7</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>My 3D Viewer — v1.0</title>
 <style>
+:root{
+  --glass:rgba(255,255,255,.62);--glass-strong:rgba(255,255,255,.78);--stroke:rgba(255,255,255,.55);--hair:rgba(20,20,30,.08);
+  --text:#1d1d1f;--muted:#6b6b72;--accent:#2783DE;--accent-soft:rgba(39,131,222,.12);--ctl:rgba(118,118,128,.12);--ctl-h:rgba(118,118,128,.2);
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 8px 32px rgba(0,0,0,.12);--r:14px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,Arial,sans-serif;
+}
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Inter,Arial,sans-serif}
-#viewer{position:fixed;inset:0}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:var(--font);-webkit-font-smoothing:antialiased}
+#viewer{position:fixed;top:0;right:0;bottom:0;left:0}
 canvas{display:block;width:100%;height:100%}
-#ui{position:fixed;inset:0;pointer-events:none;color:#fff}
-#ui>*{position:absolute}
-.panel{background:rgba(20,20,24,.78);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
-button,.file-label,select{border:0;color:#fff;background:#2a2a31;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-family:inherit}
-button:hover,.file-label:hover{background:#3a3a44}
-button.on{background:#fff;color:#111}
+#ui{position:fixed;top:0;right:0;bottom:0;left:0;pointer-events:none;color:var(--text);font-size:14px;line-height:1.4}
+#ui>*{position:absolute;pointer-events:auto}
+.panel,.glass{background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-radius:var(--r);box-shadow:var(--shadow)}
+button,.file-label,select{font:500 14px/1 var(--font);color:var(--text);border:0;border-radius:9px;cursor:pointer;background:var(--ctl);padding:0 12px;height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s,transform .1s;white-space:nowrap}
+button:hover,.file-label:hover,select:hover{background:var(--ctl-h)}
+button:active{transform:scale(.97)}
+button:focus-visible,select:focus-visible,input:focus-visible,.file-label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);color:#fff}
+#rec.on{background:#E56458}
+select{appearance:none;-webkit-appearance:none;width:100%;justify-content:flex-start;padding:0 34px 0 12px;text-align:left;
+  background:var(--ctl) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b6b72' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center/14px}
+select option{color:#111;background:#fff}
 input[type=file]{display:none}
-input[type=range]{accent-color:#fff}
-#topbar{left:18px;top:18px;display:flex;gap:8px;align-items:center;pointer-events:auto;flex-wrap:wrap;right:300px}
-#topbar>*{margin:0}
-#settings{left:18px;top:74px;width:250px;padding:14px;pointer-events:auto;display:none;max-height:calc(100% - 150px);overflow:auto}
-#settings label{display:block;font-size:12px;color:#bbb;margin:10px 0 4px}
-#settings select{width:100%}
+svg.ic{width:18px;height:18px;flex-shrink:0;pointer-events:none}
+
+/* Слайдеры */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:rgba(118,118,128,.25)}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:rgba(118,118,128,.25)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 2px 6px rgba(0,0,0,.25)}
+#tod::-webkit-slider-runnable-track{height:6px;background:linear-gradient(90deg,#1c2541 0%,#3a4a7a 20%,#f2a65a 27%,#8cc4f0 38%,#cfe8ff 50%,#8cc4f0 62%,#f2a65a 73%,#3a4a7a 80%,#1c2541 100%)}
+#tod::-moz-range-track{height:6px;background:linear-gradient(90deg,#1c2541 0%,#3a4a7a 20%,#f2a65a 27%,#8cc4f0 38%,#cfe8ff 50%,#8cc4f0 62%,#f2a65a 73%,#3a4a7a 80%,#1c2541 100%)}
+#tod::-webkit-slider-thumb{margin-top:-6px}
+
+/* Верхний левый блок: файл и статус */
+#fileChip{left:16px;top:16px;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 12px;max-width:min(460px,calc(100% - 420px))}
+#fileChip .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2783DE,#5E9FE8);color:#fff;display:grid;place-items:center;flex-shrink:0}
+#fileChip .meta{min-width:0;display:flex;flex-direction:column}
+#fileChip .cap{font-size:12px;color:var(--muted);line-height:1.2}
+#status{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.file-label{background:var(--text);color:#fff;flex-shrink:0}
+.file-label:hover{background:#000}
+
+/* Инспектор справа */
+#inspector{right:16px;top:16px;max-height:calc(100% - 112px);width:360px;display:flex;flex-direction:column;overflow:hidden;transition:opacity .2s,transform .2s}
+body.noL #inspector{opacity:0;transform:translateX(16px);pointer-events:none}
+.tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;margin:12px 12px 4px;padding:3px;background:var(--ctl);border-radius:10px}
+.tab{height:32px;background:transparent;font-size:13px;font-weight:600;color:var(--muted);padding:0 6px;border-radius:8px}
+.tab:hover{background:rgba(255,255,255,.4)}
+.tab.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tab[hidden]{display:none}
+.panes{flex:1;overflow:auto;padding:4px 16px 16px;scrollbar-width:thin}
+.pane{display:none}.pane.active{display:block}
+.sec{padding:14px 0;border-bottom:1px solid var(--hair)}
+.sec:last-child{border-bottom:0}
+.sec h4{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field{margin-top:12px}.field:first-of-type{margin-top:0}
+.field>label,.lbl{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field>label b,.lbl b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.clock{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.clock .big{font-size:28px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:8px}
+.clock .big svg{width:22px;height:22px;color:#E9A13B}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
 .row{display:flex;gap:6px;flex-wrap:wrap}
-.row button{flex:1;padding:8px 6px;font-size:13px}
-#animations{right:18px;top:18px;width:250px;padding:14px;pointer-events:auto;display:none}
-#animations h3{margin:0 0 10px;font-size:14px}
-#animationList{display:flex;flex-direction:column;gap:7px;max-height:45vh;overflow:auto}
-.anim{width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.anim.active{background:#fff;color:#111}
-#dock{left:50%;bottom:58px;transform:translateX(-50%);width:min(620px,calc(100% - 36px));padding:10px 12px;pointer-events:auto;display:none;align-items:center;gap:10px}
+.row>*{flex:1}
+.row select{flex:0 0 96px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chips button{justify-content:flex-start;padding:0 12px}
+.chips button::before{content:"";width:8px;height:8px;border-radius:50%;background:rgba(118,118,128,.45);flex-shrink:0}
+.chips button.on::before{background:#fff}
+.hint-s{font-size:12px;color:var(--muted);margin:8px 0 0}
+.slots{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:6px}
+.slots #saveCam{padding:0 12px}
+#keyList:empty::before{content:"Ключей пока нет. Поставь камеру и нажми «Ключ»";display:block;font-size:13px;color:var(--muted);padding:10px 12px;border:1px dashed rgba(118,118,128,.35);border-radius:10px;margin-top:8px}
+.krow{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px;color:var(--muted)}
+.krow input{width:56px;height:36px;background:var(--ctl);color:var(--text);border:0;border-radius:9px;padding:0 8px;font:500 14px var(--font)}
+.krow .go{flex:1;justify-content:flex-start;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.krow button{padding:0 10px}
+#animations{display:none}
+#animations h3{display:none}
+#animationList{display:flex;flex-direction:column;gap:6px}
+.anim{width:100%;justify-content:flex-start;overflow:hidden;text-overflow:ellipsis}
+.anim.active{background:var(--accent);color:#fff}
+
+/* Нижняя панель инструментов */
+#toolbar{left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:6px;border-radius:16px}
+#toolbar button{width:44px;height:44px;padding:0;background:transparent;border-radius:11px;position:relative}
+#toolbar button:hover{background:var(--ctl)}
+#toolbar button.on{background:var(--accent);color:#fff}
+#toolbar .sep{width:1px;height:24px;background:var(--hair);margin:0 4px}
+#toolbar svg.ic{width:20px;height:20px}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(29,29,31,.9);color:#fff;font:500 12px/1 var(--font);padding:7px 9px;border-radius:7px;white-space:nowrap;pointer-events:none}
+
+/* Плеер анимации */
+#dock{left:50%;bottom:84px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));padding:8px 10px;display:none;align-items:center;gap:8px}
+#dock button{width:36px;padding:0}
+#dock select{width:76px;flex:0 0 76px}
 #timeline{flex:1;min-width:0}
-#dock select{padding:8px 6px}
-#time{font-size:12px;color:#ccc;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
-#hint{left:50%;bottom:18px;transform:translateX(-50%);padding:9px 13px;font-size:12px;color:#ddd;white-space:nowrap}
-#status{left:18px;bottom:18px;padding:8px 11px;font-size:12px;color:#ccc;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#drop{inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);opacity:0;visibility:hidden;transition:.15s;z-index:10}
-#drop.show{opacity:1;visibility:visible}
-.dropbox{padding:30px 40px;text-align:center;font-size:18px}
-@media(max-width:700px){#animations{left:18px;right:18px;top:auto;bottom:112px;width:auto}#hint{display:none}#topbar{right:18px}#status{max-width:calc(100% - 36px);bottom:12px}#dock{bottom:54px}}
-#left{left:18px;top:18px;width:270px;max-height:calc(100% - 110px);overflow:auto;display:flex;flex-direction:column;gap:8px;pointer-events:none;padding-top:44px}
-#left>*{pointer-events:auto;flex-shrink:0}
-#left #topbar,#left #settings,#left #animations{position:static;width:auto;right:auto;left:auto;top:auto;max-height:none}
-#left #topbar{padding:0}
-#paths{padding:14px}
-.pill{position:absolute;pointer-events:auto;opacity:.5;padding:8px 11px}
-.pill:hover{opacity:1}
-#pillL{left:18px;top:18px}#pillE{left:66px;top:18px}
-#pillD{right:18px;bottom:58px;display:none}
-.krow{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12px;color:#bbb}
-.krow input{width:58px;background:#2a2a31;color:#fff;border:0;border-radius:8px;padding:7px}
-.krow .go{flex:1;text-align:left}
-.krow button{padding:7px 9px}
-body.noL #left{display:none}
+#time{font-size:13px;color:var(--muted);min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
 body.noD #dock{display:none!important}
-body.clean #ui>*:not(#pillE){display:none!important}
-body.clean #pillE{opacity:.15}
-svg.ic{width:1.15em;height:1.15em;vertical-align:-0.22em;flex-shrink:0;pointer-events:none}
+
+/* Подсказка */
+#hint{left:50%;bottom:84px;transform:translateX(-50%);padding:10px 14px;font-size:13px;color:var(--muted);display:flex;gap:16px;white-space:nowrap;transition:opacity .25s}
+#hint b{color:var(--text);font-weight:600}
+body.hideHint #hint{opacity:0;pointer-events:none}
+body.hasDock #hint{bottom:148px}
+
+#pillE{right:16px;top:16px;display:none;width:40px;height:40px;padding:0;border-radius:12px;opacity:.55}
+#pillE:hover{opacity:1}
+body.clean #ui>*:not(#pillE):not(#pins):not(#poiCard){display:none!important}
+body.clean #cEdit{display:none}
+@media(max-width:820px){body.clean #poiCard{bottom:16px}}
+body.clean #pillE{display:inline-flex}
+
+#drop{top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:rgba(10,10,14,.45);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:.15s;z-index:10;position:fixed}
+#drop.show{opacity:1;visibility:visible}
+.dropbox{padding:36px 48px;text-align:center;font-size:18px;color:var(--text);border:2px dashed rgba(39,131,222,.6)}
+
+@media(max-width:820px){
+  #fileChip{max-width:calc(100% - 32px)}
+  #inspector{left:8px;right:8px;top:auto;bottom:84px;width:auto;max-height:56vh}
+  body.noL #inspector{transform:translateY(16px)}
+  #hint{display:none}
+  #dock{bottom:84px}
+}
+@media(max-width:820px) and (min-height:521px){body:not(.noL) #dock{display:none!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Выпадающие списки в стиле интерфейса */
+.dd{position:relative;display:block;min-width:0}
+.dd-native{display:none!important}
+.dd-btn{width:100%;justify-content:space-between;padding:0 10px 0 12px;text-align:left}
+.dd-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.dd-btn svg.ic{width:16px;height:16px;color:var(--muted);transition:transform .15s}
+.dd-btn[aria-expanded=true]{background:var(--ctl-h)}
+.dd-btn[aria-expanded=true] svg.ic{transform:rotate(180deg)}
+#ddMenu{position:fixed;z-index:60;min-width:160px;max-height:320px;overflow:auto;padding:5px;border-radius:12px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);box-shadow:0 2px 6px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.18);font:500 14px/1.3 var(--font);color:var(--text);display:none;animation:ddIn .12s ease-out}
+#ddMenu.show{display:block}
+@keyframes ddIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.dd-opt{display:flex;align-items:center;gap:8px;padding:0 10px;min-height:36px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.dd-opt .ck{width:16px;height:16px;flex-shrink:0;color:var(--accent);visibility:hidden}
+.dd-opt.sel{color:var(--accent);font-weight:600}
+.dd-opt.sel .ck{visibility:visible}
+.dd-opt:hover,.dd-opt.hl{background:var(--ctl)}
+#dock .dd{width:76px;flex:0 0 76px}
+
+/* Поля ввода */
+.inp,textarea.inp{width:100%;font:500 14px/1.4 var(--font);color:var(--text);background:rgba(255,255,255,.55);border:1px solid rgba(20,20,30,.1);border-radius:9px;padding:8px 12px;outline:none;transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--accent);background:rgba(255,255,255,.85)}
+textarea.inp{resize:vertical;min-height:96px}
+button.primary{background:var(--accent);color:#fff}
+button.primary:hover{background:#1f74c7}
+button.danger{color:#C9483C}
+button.danger:hover{background:rgba(229,100,88,.14)}
+button.wide{width:100%}
+
+/* Точки: список */
+#poiList{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+#poiList:empty::before{content:"Точек пока нет. Нажми «Добавить точку» и кликни по модели";display:block;font-size:13px;color:var(--muted);padding:10px 12px;border:1px dashed rgba(118,118,128,.35);border-radius:10px}
+.poi-item{display:flex;align-items:center;gap:10px;padding:6px;border-radius:10px;cursor:pointer;transition:background .15s}
+.poi-item:hover{background:var(--ctl)}
+.poi-item.active{background:var(--accent-soft)}
+.poi-item .em{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:16px;flex-shrink:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8)}
+.poi-item .tx{flex:1;min-width:0}
+.poi-item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poi-item .s{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poi-item button{width:36px;padding:0;background:transparent;color:var(--muted)}
+.poi-item button:hover{background:var(--ctl-h);color:var(--text)}
+.ed-head{display:flex;align-items:center;gap:6px;padding:12px 0 4px}
+.ed-head b{flex:1;font-size:15px}
+.ed-head button{width:36px;padding:0}
+.emojis{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.emojis button{height:34px;padding:0;font-size:17px;background:transparent}
+.emojis button:hover{background:var(--ctl)}
+.emojis button.on{background:#fff;box-shadow:0 0 0 2px var(--accent)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.swatches button{width:28px;height:28px;padding:0;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
+.swatches button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--text)}
+.swatches label{width:28px;height:28px;border-radius:50%;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);cursor:pointer;position:relative;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
+.swatches input{position:absolute;top:0;right:0;bottom:0;left:0;opacity:0;cursor:pointer}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.photos .ph{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;background:var(--ctl)}
+.photos .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.photos .ph button{position:absolute;top:4px;right:4px;width:24px;height:24px;padding:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff}
+.photos .ph button svg.ic{width:14px;height:14px}
+.photos .ph:first-child::after{content:"Обложка";position:absolute;left:4px;bottom:4px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:5px}
+.photos label.add{aspect-ratio:1;border-radius:9px;border:1px dashed rgba(118,118,128,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer}
+.photos label.add:hover{background:var(--ctl)}
+.camstate{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* Точки: маркеры на модели */
+#pins{top:0;right:0;bottom:0;left:0;pointer-events:none!important;overflow:hidden}
+.pin{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;will-change:transform}
+.pin .head{display:flex;align-items:center;gap:6px;padding:3px 11px 3px 3px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 2px 10px rgba(0,0,0,.2);font:600 13px/1 var(--font);color:var(--text);white-space:nowrap;transition:transform .15s}
+.pin .em{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}
+.pin .stem{width:2px;height:12px;background:rgba(255,255,255,.95);box-shadow:0 0 3px rgba(0,0,0,.25)}
+.pin .foot{width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.35)}
+.pin:hover .head{transform:scale(1.06)}
+.pin.active .head{box-shadow:0 0 0 2px var(--c),0 4px 14px rgba(0,0,0,.25)}
+body.noLabels .pin .lbl{display:none}
+body.noLabels .pin .head{padding:3px}
+body.noPins #pins{display:none}
+body.placing canvas{cursor:crosshair}
+#placeBanner{left:50%;top:16px;transform:translateX(-50%);display:none;align-items:center;gap:12px;padding:6px 6px 6px 16px;font-weight:500}
+body.placing #placeBanner{display:flex}
+
+/* Карточка точки */
+#poiCard{left:16px;top:84px;width:380px;max-height:calc(100% - 184px);display:flex;flex-direction:column;overflow:hidden;transition:opacity .2s,transform .2s}
+body:not(.cardOpen) #poiCard{opacity:0;transform:translateY(8px);pointer-events:none}
+#cardClose{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;padding:0;border-radius:50%;background:rgba(255,255,255,.8);backdrop-filter:blur(10px)}
+.gallery{position:relative;aspect-ratio:16/10;background:#e8e8ec;flex-shrink:0;overflow:hidden}
+.gallery img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.gallery .nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;border-radius:50%;background:rgba(255,255,255,.8)}
+.gallery .nav.l{left:10px}.gallery .nav.r{right:10px}
+.gallery .dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px}
+.gallery .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55)}
+.gallery .dots i.on{background:#fff}
+.cbody{padding:16px 18px 14px;overflow:auto}
+.ctag{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ctag i{width:8px;height:8px;border-radius:50%}
+#poiCard h2{margin:6px 0 8px;font-size:21px;line-height:1.25;font-weight:650;letter-spacing:-.01em;padding-right:36px}
+.gallery:not([hidden])~.cbody h2{padding-right:0}
+.cdesc{font-size:14px;line-height:1.55;color:#3a3a3f;white-space:pre-wrap;margin:0}
+.cfoot{display:flex;align-items:center;gap:4px;padding:8px 10px;border-top:1px solid var(--hair);flex-shrink:0}
+.cfoot .cnt{flex:1;font-size:13px;color:var(--muted);padding-left:8px;font-variant-numeric:tabular-nums}
+.cfoot button{height:36px;min-width:36px;padding:0 10px;background:transparent}
+.cfoot button:hover{background:var(--ctl)}
+.cfoot button.on{background:var(--accent);color:#fff}
+#lightbox{position:fixed;top:0;right:0;bottom:0;left:0;z-index:70;background:rgba(10,10,14,.88);display:none;align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.show{display:flex}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+@media(max-width:820px){
+  #poiCard{left:8px;right:8px;top:auto;bottom:84px;width:auto;max-height:62vh}
+  body.cardOpen #inspector{display:none}
+  .gallery{aspect-ratio:16/8}
+}
+/* ===== Совместимость и сенсорные экраны ===== */
+:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+#ui,#drop,#lightbox{-webkit-tap-highlight-color:transparent}
+#ui button,#ui label,.pin,.dd-opt,.tab{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#ui input,#ui textarea{-webkit-user-select:text;user-select:text}
+#fileChip{top:calc(16px + var(--sat));left:calc(16px + var(--sal))}
+#inspector{top:calc(16px + var(--sat));right:calc(16px + var(--sar));max-height:calc(100% - 112px - var(--sat) - var(--sab))}
+#toolbar{bottom:calc(16px + var(--sab))}
+#pillE{top:calc(16px + var(--sat));right:calc(16px + var(--sar))}
+#dock,#hint{bottom:calc(84px + var(--sab))}
+body.hasDock #hint{bottom:calc(148px + var(--sab))}
+.panes,#ddMenu,.cbody{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* Подсказки только там, где есть наведение мышью */
+[data-tip]:hover::after{content:none}
+@media(hover:hover){[data-tip]:hover::after{content:attr(data-tip)}}
+@media(hover:none){
+  #toolbar button:hover,.cfoot button:hover,.emojis button:hover,.poi-item:hover,.tab:hover{background:transparent}
+  #toolbar button.on:hover,.cfoot button.on:hover{background:var(--accent)}
+  .tab.active:hover{background:#fff}
+  .pin:hover .head{transform:none}
+}
+/* Крупнее для пальцев */
+@media(pointer:coarse){
+  input[type=range]{height:34px}
+  input[type=range]::-webkit-slider-thumb{width:26px;height:26px;margin-top:-11px}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px}
+  #tod::-webkit-slider-thumb{margin-top:-10px}
+  button,.file-label,.dd-btn{height:44px}
+  .dd-opt{min-height:44px}
+  .tab{height:38px}
+  .inp,textarea.inp,.krow input{font-size:16px}
+  .poi-item button{width:44px}
+  .photos .ph button{width:32px;height:32px}
+  .pin .em{width:30px;height:30px;font-size:16px}
+  .pin .head{font-size:14px}
+}
+/* Старые браузеры без aspect-ratio */
+@supports not (aspect-ratio:1){
+  .photos .ph,.photos label.add{height:96px}
+  .gallery{height:220px}
+}
+/* Старые браузеры без размытия фона: делаем стекло плотнее */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass,.panel,#ddMenu,.pin .head,#cardClose,.gallery .nav{background:rgba(255,255,255,.95)}
+}
+/* Телефон в портрете */
+@media(max-width:820px){
+  #fileChip{left:calc(8px + var(--sal));right:calc(8px + var(--sar));max-width:none;top:calc(8px + var(--sat))}
+  #fileChip .cap{display:none}
+  #inspector{left:calc(8px + var(--sal));right:calc(8px + var(--sar));top:auto;bottom:calc(80px + var(--sab));max-height:56vh;max-height:56dvh}
+  #poiCard{left:calc(8px + var(--sal));right:calc(8px + var(--sar));bottom:calc(80px + var(--sab));max-height:62vh;max-height:62dvh}
+  body.clean #poiCard{bottom:calc(12px + var(--sab))}
+  #toolbar{bottom:calc(8px + var(--sab));max-width:calc(100% - 16px);gap:2px;padding:4px}
+  #toolbar .sep{margin:0 2px}
+  #pillE{top:calc(8px + var(--sat));right:calc(8px + var(--sar))}
+  #dock{bottom:calc(80px + var(--sab));width:calc(100% - 16px)}
+  #time{min-width:0}
+  #hint{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;white-space:normal;width:calc(100% - 16px);bottom:calc(80px + var(--sab));text-align:center}
+  body:not(.noL) #hint,body.cardOpen #hint{opacity:0;pointer-events:none}
+  #placeBanner{top:calc(64px + var(--sat));width:calc(100% - 16px);font-size:14px}
+  #lightbox img{max-width:100vw;border-radius:0}
+}
+@media(max-width:380px){
+  #toolbar button{width:40px;height:40px}
+  .file-label{padding:0 10px}
+}
+/* Телефон в ландшафте: низкий экран */
+@media(max-height:520px) and (min-width:560px){
+  #fileChip{left:calc(8px + var(--sal));right:auto;top:calc(8px + var(--sat));max-width:min(420px,calc(100% - 380px))}
+  #inspector{left:auto;right:calc(8px + var(--sar));top:calc(8px + var(--sat));bottom:calc(8px + var(--sab));width:340px;max-height:none}
+  body.noL #inspector{transform:translateX(16px)}
+  #toolbar{left:calc(8px + var(--sal));transform:none;bottom:calc(8px + var(--sab))}
+  #poiCard{left:calc(8px + var(--sal));right:auto;top:calc(64px + var(--sat));bottom:auto;width:min(360px,calc(100% - 376px));max-height:calc(100% - 136px - var(--sat) - var(--sab))}
+  body.noL #poiCard,body.clean #poiCard{width:min(380px,calc(100% - 16px))}
+  body.cardOpen #inspector{display:flex}
+  .gallery{aspect-ratio:auto;height:110px}
+  .gallery .nav{top:auto;bottom:8px;transform:none;width:30px;height:30px}
+  .gallery .dots{bottom:20px}
+  .cbody{padding:12px 16px 10px}
+  #poiCard h2{font-size:18px;margin:4px 0 6px}
+  #dock{left:calc(8px + var(--sal));transform:none;bottom:calc(70px + var(--sab));width:min(480px,calc(100% - 376px))}
+  body.hasDock:not(.noD) #poiCard{max-height:calc(100% - 200px - var(--sat) - var(--sab))}
+  #hint{display:none}
+  #placeBanner{top:calc(8px + var(--sat))}
+}
+#compat{position:fixed;top:0;right:0;bottom:0;left:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:#f4f4f6;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1d1d1f;text-align:center}
+#compat div{max-width:440px}
+#compat b{display:block;font-size:20px;margin-bottom:8px}
 </style>
 </head>
 <body>
 <div id="viewer"></div>
 <div id="ui">
-  <div id="left"><div id="topbar">
-    <div class="panel" style="padding:6px"><label class="file-label" for="file"><i data-ic="cube"></i> Открыть GLB</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple></div>
-    <button id="reset" class="panel"><i data-ic="refresh"></i> Камера</button>
-    <button id="settingsBtn" class="panel"><i data-ic="tune"></i> Вид</button>
-    <button id="fs" class="panel" title="Полный экран"><i data-ic="full"></i></button>
+  <div id="pins"></div>
+  <div id="placeBanner" class="glass"><i data-ic="target"></i><span id="placeTxt">Кликни по модели, чтобы поставить точку</span><button id="placeCancel">Отмена</button></div>
+  <article id="poiCard" class="glass" aria-live="polite">
+    <button id="cardClose" title="Закрыть (Esc)"><i data-ic="close"></i></button>
+    <div class="gallery" id="cGal"><img id="cImg" alt=""><button class="nav l" id="cPrevImg"><i data-ic="left"></i></button><button class="nav r" id="cNextImg"><i data-ic="right"></i></button><div class="dots" id="cDots"></div></div>
+    <div class="cbody"><div class="ctag"><i id="cDot"></i><span id="cSub"></span></div><h2 id="cTitle"></h2><p class="cdesc" id="cDesc"></p></div>
+    <div class="cfoot"><span class="cnt" id="cCnt">1 / 1</span><button id="cPrev" title="Предыдущая (←)"><i data-ic="left"></i></button><button id="cTour" title="Экскурсия по точкам"><i data-ic="play"></i></button><button id="cNext" title="Следующая (→)"><i data-ic="right"></i></button><button id="cEdit" title="Редактировать"><i data-ic="edit"></i> Изменить</button></div>
+  </article>
+  <div id="fileChip" class="glass">
+    <div class="logo"><i data-ic="cube"></i></div>
+    <div class="meta"><span class="cap">Модель</span><div id="status">Не загружена</div></div>
+    <label class="file-label" for="file"><i data-ic="folder"></i> Открыть</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple>
   </div>
 
-  <div id="settings" class="panel">
-    <label>Освещение</label>
-    <select id="light"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="classic">Классика</option></select>
-    <div id="sunCtl" style="display:none">
-      <label>Погода</label><select id="weather"><option value="clear">Ясно</option><option value="few">Лёгкая облачность</option><option value="partly">Переменная облачность</option><option value="overcast">Пасмурно</option><option value="fog">Туман / дымка</option></select>
-      <label>Время суток: <b id="clockTxt">15:00</b></label><input id="tod" type="range" min="0" max="24" step="0.05" value="15" style="width:100%">
-      <label>Направление солнца</label><input id="az" type="range" min="0" max="360" step="1" value="200" style="width:100%">
-      <label>Облачность (тонкая настройка)</label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35" style="width:100%">
-      <div class="row" style="margin-top:8px"><button id="timePlay"><i data-ic="play"></i> Ход времени</button><select id="timeSpeed"><option value="0.25">0.25 ч/с</option><option value="0.5">0.5 ч/с</option><option value="1" selected>1 ч/с</option><option value="2">2 ч/с</option></select></div>
+  <aside id="inspector" class="glass">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="light">Свет</button>
+      <button class="tab" data-tab="scene">Сцена</button>
+      <button class="tab" data-tab="cam">Камера</button>
+      <button class="tab" data-tab="poi">Точки</button>
+      <button class="tab" data-tab="anim" id="tabAnim" hidden>Анимация</button>
     </div>
-    <label>Яркость</label>
-    <input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1" style="width:100%">
-    <label>Фон</label>
-    <select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option></select>
-    <label>Материалы</label>
-    <select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select>
-    <label>Инерция камеры</label><select id="inertia"><option value="0.12">Лёгкая</option><option value="0.05" selected>Плавная</option><option value="0.025">Тяжёлая (кино)</option></select>
-    <label>Показывать</label>
-    <div class="row"><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="rotBtn">Автовращение</button><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button></div>
-    <label>Сохранённые камеры <span style="color:#888">(сначала «записать», затем слот)</span></label>
-    <div class="row"><button id="saveCam" title="Записать текущий вид в слот"><i data-ic="save"></i></button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
-  </div>
+    <div class="panes">
+      <!-- СВЕТ -->
+      <div class="pane active" data-pane="light" id="settings">
+        <div class="sec">
+          <h4>Освещение</h4>
+          <select id="light" aria-label="Освещение"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="classic">Классика</option></select>
+          <div class="field" style="margin-top:12px"><label>Яркость <b id="expVal">1.00</b></label><input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1"></div>
+        </div>
+        <div id="sunCtl" style="display:none">
+          <div class="sec">
+            <h4>Солнце и время</h4>
+            <div class="clock"><div class="big"><i data-ic="sun"></i><span id="clockTxt">15:00</span></div>
+              <div class="row" style="flex:0 0 auto;gap:4px"><button id="timePlay" title="Ход времени"><i data-ic="play"></i></button><select id="timeSpeed" aria-label="Скорость времени" style="flex:0 0 92px"><option value="0.25">0.25 ч/с</option><option value="0.5">0.5 ч/с</option><option value="1" selected>1 ч/с</option><option value="2">2 ч/с</option></select></div></div>
+            <input id="tod" type="range" min="0" max="24" step="0.05" value="15" aria-label="Время суток">
+            <div class="scale"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+            <div class="field" style="margin-top:14px"><label>Направление солнца <b id="azVal">200°</b></label><input id="az" type="range" min="0" max="360" step="1" value="200"></div>
+          </div>
+          <div class="sec">
+            <h4>Погода</h4>
+            <select id="weather" aria-label="Погода"><option value="clear">Ясно</option><option value="few">Лёгкая облачность</option><option value="partly">Переменная облачность</option><option value="overcast">Пасмурно</option><option value="fog">Туман / дымка</option></select>
+            <div class="field" style="margin-top:12px"><label>Облачность <b id="cloudVal">35%</b></label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+          </div>
+        </div>
+      </div>
 
-  <div id="animations" class="panel"><h3>Анимации</h3><div id="animationList"></div></div>
+      <!-- СЦЕНА -->
+      <div class="pane" data-pane="scene">
+        <div class="sec">
+          <h4>Окружение</h4>
+          <div class="field"><label>Фон</label><select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option></select></div>
+          <div class="field"><label>Материалы</label><select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select></div>
+        </div>
+        <div class="sec">
+          <h4>Показывать</h4>
+          <div class="chips"><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button></div>
+        </div>
+      </div>
 
-  <div id="paths" class="panel"><h3 style="margin:0 0 10px;font-size:14px">Пролёт камеры</h3>
-    <div class="row"><button id="addKey"><i data-ic="plus"></i> Ключ</button><button id="pathPlay"><i data-ic="play"></i> Пролёт</button></div>
-    <div id="keyList"></div>
-    <label style="font-size:12px;color:#bbb;display:block;margin:8px 0 4px">Движение камеры</label>
-    <select id="ease" style="width:100%"><option value="smooth">Плавный разгон и торможение</option><option value="cine">Кино: мягкая остановка на ключах</option><option value="linear">Равномерно</option></select>
-    <div class="row" style="margin-top:8px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу"><i data-ic="clock"></i> Время в ключах</button></div>
-    <div class="row" style="margin-top:6px"><button id="rec"><i data-ic="rec"></i> Записать видео</button><button id="clearKeys" title="Удалить все ключи"><i data-ic="trash"></i></button></div>
-    <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json"><i data-ic="save"></i> Сохранить сцену</button><button id="loadScene"><i data-ic="folder"></i> Загрузить</button></div>
-    <input id="jsonIn" type="file" accept=".json">
-  </div>
-  </div>
-  <button id="pillL" class="pill panel" title="Меню"><i data-ic="menu"></i></button>
-  <button id="pillE" class="pill panel" title="Чистый экран (H)"><i data-ic="eye"></i></button>
-  <button id="pillD" class="pill panel" title="Плеер"><i data-ic="film"></i></button>
+      <!-- КАМЕРА -->
+      <div class="pane" data-pane="cam">
+        <div class="sec">
+          <h4>Управление</h4>
+          <div class="field"><label>Инерция</label><select id="inertia"><option value="0.12">Лёгкая</option><option value="0.05" selected>Плавная</option><option value="0.025">Тяжёлая (кино)</option></select></div>
+          <div class="chips" style="margin-top:10px"><button id="rotBtn">Автовращение</button></div>
+        </div>
+        <div class="sec">
+          <h4>Сохранённые виды</h4>
+          <div class="slots"><button id="saveCam" title="Записать текущий вид в слот"><i data-ic="save"></i></button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
+          <p class="hint-s">Нажми <i data-ic="save" data-s="14"></i>, затем номер слота, чтобы записать вид.</p>
+        </div>
+        <div class="sec" id="paths">
+          <h4>Пролёт камеры</h4>
+          <div class="row"><button id="addKey"><i data-ic="plus"></i> Ключ</button><button id="pathPlay"><i data-ic="play"></i> Пролёт</button><button id="clearKeys" title="Удалить все ключи" style="flex:0 0 44px"><i data-ic="trash"></i></button></div>
+          <div id="keyList"></div>
+          <div class="field" style="margin-top:14px"><label>Движение</label><select id="ease"><option value="smooth">Плавный разгон и торможение</option><option value="cine">Кино: мягкая остановка на ключах</option><option value="linear">Равномерно</option></select></div>
+          <div class="chips" style="margin-top:10px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу" style="grid-column:span 2">Время суток в ключах</button></div>
+        </div>
+        <div class="sec">
+          <h4>Экспорт</h4>
+          <button id="rec" style="width:100%"><i data-ic="rec"></i> Записать видео</button>
+          <div class="row" style="margin-top:6px"><button id="saveScene" title="Ключи, камеры и настройки вида → .cam.json"><i data-ic="save"></i> Сохранить сцену</button><button id="loadScene"><i data-ic="folder"></i> Загрузить</button></div>
+          <input id="jsonIn" type="file" accept=".json">
+        </div>
+      </div>
 
-  <div id="dock" class="panel">
+      <!-- ТОЧКИ -->
+      <div class="pane" data-pane="poi">
+        <div id="poiListView">
+          <div class="sec">
+            <h4>Точки интереса</h4>
+            <button id="poiAdd" class="primary wide"><i data-ic="plus"></i> Добавить точку</button>
+            <div id="poiList"></div>
+            <p class="hint-s">Клик по точке — камера подлетит и откроется карточка с описанием.</p>
+          </div>
+          <div class="sec">
+            <h4>Отображение</h4>
+            <div class="chips"><button id="poiShow" class="on">Точки</button><button id="poiLabels" class="on">Подписи</button></div>
+          </div>
+        </div>
+        <div id="poiEdit" hidden>
+          <div class="ed-head"><button id="edBack" title="К списку"><i data-ic="left"></i></button><b>Редактирование</b><button id="edDel" class="danger" title="Удалить точку"><i data-ic="trash"></i></button></div>
+          <div class="sec">
+            <div class="field"><label>Название</label><input id="edTitle" class="inp" type="text" maxlength="80"></div>
+            <div class="field"><label>Подзаголовок / категория</label><input id="edSub" class="inp" type="text" maxlength="80"></div>
+            <div class="field"><label>Описание</label><textarea id="edDesc" class="inp" rows="5"></textarea></div>
+          </div>
+          <div class="sec">
+            <h4>Значок и цвет</h4>
+            <div class="emojis" id="edEmojis"></div>
+            <div class="swatches" id="edColors" style="margin-top:12px"></div>
+          </div>
+          <div class="sec">
+            <h4>Фотографии</h4>
+            <div class="photos" id="edPhotos"></div>
+            <input id="edPhotoIn" type="file" accept="image/*" multiple>
+            <div class="row" style="margin-top:8px"><input id="edUrl" class="inp" type="url" placeholder="или ссылка на фото…" style="flex:1"><button id="edUrlAdd" style="flex:0 0 auto">Добавить</button></div>
+          </div>
+          <div class="sec">
+            <h4>Камера и положение</h4>
+            <div class="row"><button id="edCam"><i data-ic="photo"></i> Запомнить вид</button><button id="edGo" style="flex:0 0 auto" title="Подлететь к точке"><i data-ic="play"></i></button></div>
+            <p class="camstate">Поставь камеру так, как точка должна выглядеть при клике, и нажми «Запомнить вид».</p>
+            <button id="edMove" class="wide" style="margin-top:8px"><i data-ic="target"></i> Переставить точку</button>
+          </div>
+          <div class="sec"><button id="edDone" class="primary wide"><i data-ic="check"></i> Готово</button></div>
+        </div>
+      </div>
+
+      <!-- АНИМАЦИЯ -->
+      <div class="pane" data-pane="anim">
+        <div class="sec"><h4>Клипы</h4><div id="animations"><h3>Анимации</h3><div id="animationList"></div></div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="dock" class="glass">
     <button id="play"><i data-ic="pause"></i></button>
-    <input id="timeline" type="range" min="0" max="1000" value="0">
+    <input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Время анимации">
     <span id="time">0.00 / 0.00</span>
-    <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+    <select id="speed" aria-label="Скорость"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
     <button id="loop" class="on" title="Повтор"><i data-ic="repeat"></i></button><button id="hideD" title="Скрыть плеер"><i data-ic="close"></i></button>
   </div>
 
-  <div id="status" class="panel">Модель не загружена</div>
-  <div id="hint" class="panel">ЛКМ — вращение · Колесо — масштаб · ПКМ — панорама · двойной клик — фокус · H — чистый экран</div>
-</div>
-<div id="drop"><div class="dropbox panel"><div style="margin-bottom:8px"><i data-ic="cube" data-s="42"></i></div>Перетащи сюда <b>.GLB</b></div></div>
+  <div id="hint" class="glass"><span><b>ЛКМ</b> вращение</span><span><b>Колесо</b> масштаб</span><span><b>ПКМ</b> панорама</span><span><b>2×клик</b> фокус</span><span><b>H</b> чистый экран</span></div>
 
+  <nav id="toolbar" class="glass">
+    <button id="reset" data-tip="Сбросить камеру"><i data-ic="refresh"></i></button>
+    <button id="quickPath" data-tip="Пролёт камеры"><i data-ic="play"></i></button>
+    <button id="pillD" data-tip="Плеер анимации" style="display:none"><i data-ic="film"></i></button>
+    <span class="sep"></span>
+    <button id="settingsBtn" class="on" data-tip="Настройки"><i data-ic="tune"></i></button>
+    <button id="helpBtn" data-tip="Подсказки"><i data-ic="help"></i></button>
+    <button id="pillL" data-tip="Чистый экран (H)"><i data-ic="eye"></i></button>
+    <button id="fs" data-tip="Полный экран"><i data-ic="full"></i></button>
+  </nav>
+  <button id="pillE" class="glass" title="Вернуть интерфейс (H)"><i data-ic="eye"></i></button>
+</div>
+<div id="drop"><div class="dropbox glass"><div style="margin-bottom:10px;color:#2783DE"><i data-ic="cube" data-s="44"></i></div>Отпусти, чтобы открыть <b>.GLB</b></div></div>
+
+
+<script>
+// Проверка браузера (старый синтаксис намеренно — должен работать везде)
+(function () {
+  var reason = '';
+  try { new Function('var a = {}; return a?.b ?? 1;'); } catch (e) { reason = 'браузер не понимает современный JavaScript'; }
+  if (!reason) {
+    var gl = null;
+    try { var c = document.createElement('canvas'); gl = c.getContext('webgl2'); } catch (e) {}
+    if (!gl) reason = 'нет поддержки WebGL 2 (видеокарта или браузер)';
+  }
+  function show(title, text) {
+    if (document.getElementById('compat')) return;
+    var d = document.createElement('div'); d.id = 'compat';
+    d.innerHTML = '<div><b>' + title + '</b>' + text + '</div>';
+    document.body.appendChild(d);
+  }
+  window.__compatShow = show;
+  var need = 'Нужен Chrome / Edge 91+, Safari 15+ (iOS 15+), Firefox 90+ или Яндекс Браузер свежей версии.';
+  if (reason) {
+    document.addEventListener('DOMContentLoaded', function () { show('Браузер устарел', 'Причина: ' + reason + '.<br>' + need); });
+    return;
+  }
+  // Если 3D-движок не стартовал (нет интернета / блокировка CDN / ошибка) — сообщаем
+  setTimeout(function () {
+    if (!window.__viewerReady) show('Не удалось запустить вьювер', 'Проверь подключение к интернету (движок three.js грузится с cdn.jsdelivr.net) и обнови страницу.<br>' + need);
+  }, 20000);
+})();
+</script>
+<!-- Полифилл import maps для старых Safari (до 16.4) и Firefox (до 108) -->
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"}}
 </script>
@@ -137,6 +540,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+window.__viewerReady = true; document.getElementById('compat')?.remove();
 const $ = id => document.getElementById(id);
 const SVG = {
   play: 'M8 5v14l11-7z', pause: 'M6 19h4V5H6v14zm8-14v14h4V5h-4z', stop: 'M6 6h12v12H6z', rec: 'M12 6a6 6 0 100 12 6 6 0 000-12z',
@@ -151,6 +555,14 @@ const SVG = {
   clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z',
   repeat: 'M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z',
   cube: 'M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.3L5.6 7.9 12 11.5l6.4-3.6L12 4.3zM5 9.6v6.8l6 3.4v-6.8L5 9.6zm14 0l-6 3.4v6.8l6-3.4V9.6z',
+  sun: 'M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z',
+  help: 'M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z',
+  edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+  left: 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z', right: 'M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z',
+  chevron: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z', check: 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+  image: 'M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z',
+  photo: 'M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4zM9 2L7.17 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2h-3.17L15 2H9z',
+  target: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.94 3A8.99 8.99 0 0013 3.06V1h-2v2.06A8.99 8.99 0 003.06 11H1v2h2.06A8.99 8.99 0 0011 20.94V23h2v-2.06A8.99 8.99 0 0020.94 13H23v-2h-2.06zM12 19a7 7 0 110-14 7 7 0 010 14z',
   film: 'M10 16.5l6-4.5-6-4.5v9zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z'
 };
 const ico = (n, sz) => `<svg class="ic" viewBox="0 0 24 24" fill="currentColor"${sz ? ` style="width:${sz}px;height:${sz}px"` : ''}><path d="${SVG[n]}"/></svg>`;
@@ -404,6 +816,7 @@ const setStatus = t => $('status').textContent = t;
 function clearAnimations() {
   $('animationList').innerHTML = '';
   $('animations').style.display = $('dock').style.display = 'none';
+  $('tabAnim').hidden = true; document.body.classList.remove('hasDock'); if ($('tabAnim').classList.contains('active')) showTab('light');
   mixer?.stopAllAction(); mixer = action = null; clips = [];
 }
 
@@ -490,7 +903,7 @@ function disposeModel(o) {
 
 let curName = "scene.glb";
 async function loadBuffer(buf, name, sceneData) {
-  curName = name; keys.length = 0; renderKeys();
+  curName = name; keys.length = 0; renderKeys(); poiLoad([]);
   clearAnimations();
   if (model) { scene.remove(model); disposeModel(model); origMats.clear(); model = null; }
   setStatus(`Загрузка: ${name}…`);
@@ -514,7 +927,7 @@ async function loadBuffer(buf, name, sceneData) {
         $('animationList').appendChild(b);
       });
       $('animations').style.display = 'block';
-      $('dock').style.display = 'flex';
+      $('dock').style.display = 'flex'; $('tabAnim').hidden = false; document.body.classList.add('hasDock');
       $('animationList').firstChild.click();
       setStatus(`${name} · ${clips.length} анимац.`);
     } else setStatus(`${name} · анимаций нет`);
@@ -536,10 +949,31 @@ async function handleFiles(files) {
 }
 $('file').addEventListener('change', async e => { await handleFiles([...e.target.files]); e.target.value = ''; });
 $('reset').onclick = () => model && fitCamera(model);
-$('settingsBtn').onclick = e => {
-  const s = $('settings'); const open = s.style.display !== 'block';
-  s.style.display = open ? 'block' : 'none'; e.currentTarget.classList.toggle('on', open);
+$('settingsBtn').onclick = e => { const open = document.body.classList.toggle('noL') === false; e.currentTarget.classList.toggle('on', open); };
+// Вкладки инспектора
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+// Значения рядом со слайдерами
+const showVals = () => {
+  $('expVal').textContent = (+$('exposure').value).toFixed(2);
+  $('azVal').textContent = Math.round(+$('az').value) + '°';
+  $('cloudVal').textContent = Math.round(+$('cloud').value * 100) + '%';
 };
+['exposure', 'az', 'cloud'].forEach(id => $(id).addEventListener('input', showVals));
+setInterval(showVals, 400); showVals();
+if (matchMedia('(pointer:coarse)').matches) $('hint').innerHTML = '<span><b>1 палец</b> вращение</span><span><b>2 пальца</b> масштаб и сдвиг</span><span><b>2×тап</b> фокус</span>';
+// Подсказка: видна при старте, скрывается после первого взаимодействия
+$('helpBtn').onclick = e => { const show = document.body.classList.toggle('hideHint') === false; e.currentTarget.classList.toggle('on', show); };
+let hintTimer = setTimeout(() => document.body.classList.add('hideHint'), 9000);
+renderer.domElement.addEventListener('pointerdown', () => { clearTimeout(hintTimer); hintTimer = setTimeout(() => { document.body.classList.add('hideHint'); $('helpBtn').classList.remove('on'); }, 1500); }, { once: true });
+// Быстрый пролёт с нижней панели
+$('quickPath').onclick = () => $('pathPlay').click();
+new MutationObserver(() => { const run = $('pathPlay').textContent.includes('Стоп'); $('quickPath').classList.toggle('on', run); $('quickPath').innerHTML = ico(run ? 'stop' : 'play'); })
+  .observe($('pathPlay'), { childList: true, subtree: true });
+if (matchMedia('(max-width:820px), (max-height:520px)').matches) { document.body.classList.add('noL'); $('settingsBtn').classList.remove('on'); }
 const toggle = (id, fn) => $(id).onclick = e => { const on = !e.currentTarget.classList.contains('on'); e.currentTarget.classList.toggle('on', on); fn(on); };
 toggle('gridBtn', on => grid.visible = on);
 toggle('axesBtn', on => axes.visible = on);
@@ -550,8 +984,9 @@ $('inertia').onchange = () => controls.dampingFactor = +$('inertia').value;
 controls.dampingFactor = +$('inertia').value;
 toggle('timePlay', () => {});
 
-if (document.documentElement.requestFullscreen) {
-  $('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+const _de = document.documentElement, _reqFS = _de.requestFullscreen || _de.webkitRequestFullscreen, _exitFS = document.exitFullscreen || document.webkitExitFullscreen;
+if (_reqFS) {
+  $('fs').onclick = () => (document.fullscreenElement || document.webkitFullscreenElement) ? _exitFS.call(document) : _reqFS.call(_de);
 } else $('fs').style.display = 'none';
 
 // Пролёт камеры
@@ -643,6 +1078,7 @@ function collectScene() {
     keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3) })),
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
+    pois: pois.map(poiSerialize),
     view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value }
   };
 }
@@ -664,6 +1100,7 @@ function applySceneData(d) {
     applyLight(); applyMaterials();
   }
   if (d.camera) { camera.position.copy(V(d.camera.p)); controls.target.copy(V(d.camera.t)); controls.update(); }
+  if (d.pois) poiLoad(d.pois);
 }
 $('saveScene').onclick = () => {
   const a = document.createElement('a');
@@ -677,19 +1114,20 @@ $('jsonIn').onchange = async e => { await handleFiles([...e.target.files]); e.ta
 
 // Двойной клик — сфокусироваться на точке модели
 const ray = new THREE.Raycaster();
-renderer.domElement.addEventListener('dblclick', e => {
+renderer.domElement.addEventListener('dblclick', e => { if (!placing) focusAt(e.clientX, e.clientY); });
+function focusAt(cx, cy) {
   if (!model || pathT !== null) return;
   const r = renderer.domElement.getBoundingClientRect();
-  ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  ray.setFromCamera(new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
   const hit = ray.intersectObject(model, true)[0];
   if (hit) flyTo(hit.point.clone().add(camera.position.clone().sub(controls.target)), hit.point.clone());
-});
+}
 
 // Скрытие интерфейса
-$('pillL').onclick = () => document.body.classList.toggle('noL');
+$('pillL').onclick = () => document.body.classList.toggle('clean');
 $('pillE').onclick = () => document.body.classList.toggle('clean');
-$('hideD').onclick = () => { document.body.classList.add('noD'); $('pillD').style.display = 'block'; };
-$('pillD').onclick = () => { document.body.classList.remove('noD'); $('pillD').style.display = 'none'; };
+$('hideD').onclick = () => { document.body.classList.add('noD'); document.body.classList.remove('hasDock'); $('pillD').style.display = 'inline-flex'; };
+$('pillD').onclick = () => { document.body.classList.remove('noD'); document.body.classList.add('hasDock'); $('pillD').style.display = 'none'; };
 
 // Drag & drop
 let depth = 0;
@@ -710,6 +1148,7 @@ addEventListener('resize', onResize);
 new ResizeObserver(onResize).observe($('viewer'));
 onResize();
 addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if (e.code === 'KeyH') document.body.classList.toggle('clean');
   if (e.code === 'Space' && action && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT') { e.preventDefault(); $('play').click(); }
 });
@@ -722,6 +1161,259 @@ if (q) (async () => {
     loadBuffer(buf, q.split('/').pop(), data);
   } catch { setStatus('Не удалось открыть ' + q); }
 })();
+
+// ===== Выпадающие списки в стиле интерфейса =====
+const ddMenu = document.createElement('div'); ddMenu.id = 'ddMenu'; ddMenu.setAttribute('role', 'listbox'); document.body.appendChild(ddMenu);
+let ddCur = null;
+const selValue = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+function ddClose() { if (!ddCur) return; ddCur.btn.setAttribute('aria-expanded', 'false'); ddMenu.classList.remove('show'); ddCur = null; }
+function ddOpen(sel, btn) {
+  if (ddCur?.sel === sel) return ddClose();
+  ddClose(); ddCur = { sel, btn, hl: sel.selectedIndex };
+  ddMenu.innerHTML = '';
+  [...sel.options].forEach((o, i) => {
+    const d = document.createElement('div'); d.className = 'dd-opt' + (i === sel.selectedIndex ? ' sel hl' : ''); d.setAttribute('role', 'option');
+    d.innerHTML = ico('check'); d.firstChild.classList.add('ck');
+    const sp = document.createElement('span'); sp.textContent = o.text; d.appendChild(sp);
+    d.onpointerdown = e => e.preventDefault();
+    d.onclick = () => ddPick(i);
+    ddMenu.appendChild(d);
+  });
+  btn.setAttribute('aria-expanded', 'true');
+  ddMenu.classList.add('show');
+  const r = btn.getBoundingClientRect(), mh = Math.min(320, ddMenu.scrollHeight + 2);
+  ddMenu.style.minWidth = Math.max(160, r.width) + 'px';
+  const w = ddMenu.offsetWidth;
+  ddMenu.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+  ddMenu.style.top = (r.bottom + 6 + mh > innerHeight - 8 ? Math.max(8, r.top - 6 - mh) : r.bottom + 6) + 'px';
+  ddMenu.children[sel.selectedIndex]?.scrollIntoView({ block: 'nearest' });
+}
+function ddPick(i) {
+  const { sel, btn } = ddCur; ddClose(); btn.focus();
+  if (sel.selectedIndex !== i) { sel.selectedIndex = i; sel.dispatchEvent(new Event('change', { bubbles: true })); sel.dispatchEvent(new Event('input', { bubbles: true })); }
+  sel._ddRefresh();
+}
+function enhanceSelect(sel) {
+  const wrap = document.createElement('div'); wrap.className = 'dd';
+  if (sel.getAttribute('style')) { wrap.setAttribute('style', sel.getAttribute('style')); sel.removeAttribute('style'); }
+  sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel); sel.classList.add('dd-native');
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dd-btn';
+  btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+  if (sel.getAttribute('aria-label')) btn.setAttribute('aria-label', sel.getAttribute('aria-label'));
+  wrap.appendChild(btn);
+  const lab = document.createElement('span');
+  sel._ddRefresh = () => { lab.textContent = sel.options[sel.selectedIndex]?.text || ''; };
+  btn.append(lab); btn.insertAdjacentHTML('beforeend', ico('chevron'));
+  Object.defineProperty(sel, 'value', { configurable: true, get() { return selValue.get.call(this); }, set(v) { selValue.set.call(this, v); this._ddRefresh(); } });
+  sel.addEventListener('change', sel._ddRefresh);
+  btn.onclick = () => ddOpen(sel, btn);
+  btn.onkeydown = e => {
+    if (ddCur?.sel !== sel) { if (['ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); ddOpen(sel, btn); } return; }
+    const n = sel.options.length;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); ddCur.hl = (ddCur.hl + (e.key === 'ArrowDown' ? 1 : -1) + n) % n;
+      [...ddMenu.children].forEach((c, i) => c.classList.toggle('hl', i === ddCur.hl)); ddMenu.children[ddCur.hl].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ddPick(ddCur.hl); }
+    else if (e.key === 'Escape' || e.key === 'Tab') { e.stopPropagation(); ddClose(); }
+  };
+  sel._ddRefresh();
+}
+document.querySelectorAll('#ui select').forEach(enhanceSelect);
+document.addEventListener('pointerdown', e => { if (ddCur && !ddMenu.contains(e.target) && !ddCur.btn.contains(e.target)) ddClose(); }, true);
+document.addEventListener('scroll', e => { if (ddCur && !ddMenu.contains(e.target)) ddClose(); }, true);
+addEventListener('resize', ddClose);
+
+// ===== Точки интереса (POI) =====
+const POI_EMOJI = ['📍', '⭐', '🏛️', '🏢', '🏭', '🏠', '🏗️', '🌳', '⛲', '🐋', '🎨', '☕', '🍽️', '🛍️', '🅿️', '🚪', '🚻', '♿', 'ℹ️', '📷', '💡', '🎭', '⚓', '🚲'];
+const POI_COLORS = ['#2783DE', '#46A171', '#D5803B', '#E56458', '#8E6AD8', '#DF84A8', '#4FB9C9', '#2C2C2B'];
+const pois = [];
+let poiSel = null, poiActive = null, placing = null, cardImg = 0, tourTimer = 0;
+const pinVec = new THREE.Vector3();
+const vecArr = v => v.toArray().map(n => +n.toFixed(4));
+function poiDefaultCam(point) {
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  const d = Math.min(camera.position.distanceTo(controls.target), Math.max(modelSphere.radius * 0.35, 1));
+  return { p: point.clone().add(dir.multiplyScalar(d)), t: point.clone() };
+}
+function poiSerialize(p) { return { id: p.id, title: p.title, subtitle: p.subtitle, description: p.description, icon: p.icon, color: p.color, photos: p.photos, pos: vecArr(p.pos), cam: { p: vecArr(p.cam.p), t: vecArr(p.cam.t) } }; }
+function poiLoad(list) {
+  const V = a => new THREE.Vector3(...a);
+  pois.length = 0; closeCard(); closeEditor();
+  (list || []).forEach(d => pois.push({ id: d.id || 'poi-' + Math.random().toString(36).slice(2), title: d.title || 'Точка', subtitle: d.subtitle || '', description: d.description || '', icon: d.icon || '📍', color: d.color || POI_COLORS[0], photos: Array.isArray(d.photos) ? d.photos : (d.image ? [d.image] : []), pos: V(d.pos), cam: d.cam ? { p: V(d.cam.p), t: V(d.cam.t) } : { p: V(d.pos).add(new THREE.Vector3(5, 4, 5)), t: V(d.pos) } }));
+  renderPois();
+}
+function renderPois() {
+  const layer = $('pins'); layer.innerHTML = '';
+  const list = $('poiList'); list.innerHTML = '';
+  pois.forEach((p, i) => {
+    const pin = document.createElement('div'); pin.className = 'pin' + (p === poiActive ? ' active' : ''); pin.style.setProperty('--c', p.color);
+    pin.innerHTML = '<div class="head"><span class="em"></span><span class="lbl"></span></div><div class="stem"></div><div class="foot"></div>';
+    pin.querySelector('.em').textContent = p.icon; pin.querySelector('.em').style.background = p.color;
+    pin.querySelector('.lbl').textContent = p.title; pin.querySelector('.foot').style.background = p.color;
+    pin.title = p.subtitle ? p.title + ' — ' + p.subtitle : p.title;
+    pin.onclick = e => { e.stopPropagation(); openPoi(p); };
+    p.el = pin; layer.appendChild(pin);
+    const it = document.createElement('div'); it.className = 'poi-item' + (p === poiActive ? ' active' : '');
+    it.innerHTML = `<span class="em"></span><div class="tx"><div class="t"></div><div class="s"></div></div><button title="Редактировать">${ico('edit')}</button>`;
+    it.querySelector('.em').textContent = p.icon; it.querySelector('.em').style.background = p.color;
+    it.querySelector('.t').textContent = p.title; it.querySelector('.s').textContent = p.subtitle || 'Без подзаголовка';
+    it.onclick = () => openPoi(p);
+    it.querySelector('button').onclick = e => { e.stopPropagation(); openEditor(p); };
+    list.appendChild(it);
+  });
+}
+function updatePins() {
+  if (!pois.length) return;
+  const w = innerWidth, h = innerHeight;
+  for (const p of pois) {
+    if (!p.el) continue;
+    pinVec.copy(p.pos).project(camera);
+    if (pinVec.z > 1 || pinVec.z < -1 || Math.abs(pinVec.x) > 1.2 || Math.abs(pinVec.y) > 1.2) { p.el.style.display = 'none'; continue; }
+    p.el.style.display = '';
+    p.el.style.transform = `translate3d(${((pinVec.x + 1) / 2 * w).toFixed(1)}px,${((1 - pinVec.y) / 2 * h).toFixed(1)}px,0) translate(-50%,-100%)`;
+    p.el.style.zIndex = p === poiActive ? 100000 : Math.round((1 - pinVec.z) * 50000);
+  }
+}
+// Карточка
+function openPoi(p, keepTour) {
+  if (pathT !== null) return;
+  if (!keepTour) stopTour();
+  poiActive = p; cardImg = 0;
+  flyTo(p.cam.p.clone(), p.cam.t.clone());
+  fillCard(); document.body.classList.add('cardOpen'); renderPois();
+}
+function fillCard() {
+  const p = poiActive; if (!p) return;
+  $('cTitle').textContent = p.title; $('cSub').textContent = p.subtitle; $('cDot').style.background = p.color;
+  $('cDesc').textContent = p.description; $('cDesc').style.display = p.description ? '' : 'none';
+  $('cCnt').textContent = `${pois.indexOf(p) + 1} / ${pois.length}`;
+  const n = p.photos.length; $('cGal').hidden = !n;
+  if (n) {
+    cardImg = (cardImg + n) % n; $('cImg').src = p.photos[cardImg];
+    $('cPrevImg').style.display = $('cNextImg').style.display = $('cDots').style.display = n > 1 ? '' : 'none';
+    $('cDots').innerHTML = p.photos.map((_, i) => `<i class="${i === cardImg ? 'on' : ''}"></i>`).join('');
+  }
+}
+function closeCard() { stopTour(); document.body.classList.remove('cardOpen'); poiActive = null; pois.forEach(p => p.el?.classList.remove('active')); document.querySelectorAll('.poi-item.active').forEach(e => e.classList.remove('active')); }
+function stepPoi(d, keepTour) { if (!pois.length) return; const i = poiActive ? pois.indexOf(poiActive) : -1; openPoi(pois[(i + d + pois.length) % pois.length], keepTour); }
+function stopTour() { clearInterval(tourTimer); tourTimer = 0; $('cTour').classList.remove('on'); $('cTour').innerHTML = ico('play'); }
+$('cTour').onclick = () => {
+  if (tourTimer) return stopTour();
+  if (pois.length < 2) return setStatus('Для экскурсии нужно минимум 2 точки');
+  $('cTour').classList.add('on'); $('cTour').innerHTML = ico('pause');
+  tourTimer = setInterval(() => stepPoi(1, true), 7000);
+};
+$('cardClose').onclick = closeCard;
+$('cPrev').onclick = () => stepPoi(-1);
+$('cNext').onclick = () => stepPoi(1);
+$('cPrevImg').onclick = () => { cardImg--; fillCard(); };
+$('cNextImg').onclick = () => { cardImg++; fillCard(); };
+$('cEdit').onclick = () => poiActive && openEditor(poiActive);
+const lb = document.createElement('div'); lb.id = 'lightbox'; lb.innerHTML = '<img alt="">'; document.body.appendChild(lb);
+$('cImg').onclick = () => { lb.firstChild.src = $('cImg').src; lb.classList.add('show'); };
+lb.onclick = () => lb.classList.remove('show');
+// Редактор
+function openEditor(p) {
+  if (matchMedia('(max-width:820px)').matches && document.body.classList.contains('cardOpen')) closeCard();
+  poiSel = p; showTab('poi'); document.body.classList.remove('noL'); $('settingsBtn').classList.add('on');
+  $('poiListView').hidden = true; $('poiEdit').hidden = false;
+  $('edTitle').value = p.title; $('edSub').value = p.subtitle; $('edDesc').value = p.description; $('edUrl').value = '';
+  renderEditorBits(); $('poiEdit').closest('.panes').scrollTop = 0;
+}
+function closeEditor() { cancelPlace(); poiSel = null; $('poiListView').hidden = false; $('poiEdit').hidden = true; }
+function poiChanged() { renderPois(); if (poiActive === poiSel) fillCard(); }
+function renderEditorBits() {
+  const p = poiSel; if (!p) return;
+  const em = $('edEmojis'); em.innerHTML = '';
+  POI_EMOJI.forEach(e => { const b = document.createElement('button'); b.textContent = e; b.className = e === p.icon ? 'on' : ''; b.onclick = () => { p.icon = e; renderEditorBits(); poiChanged(); }; em.appendChild(b); });
+  const cl = $('edColors'); cl.innerHTML = '';
+  POI_COLORS.forEach(c => { const b = document.createElement('button'); b.style.background = c; b.title = c; b.className = c.toLowerCase() === p.color.toLowerCase() ? 'on' : ''; b.onclick = () => { p.color = c; renderEditorBits(); poiChanged(); }; cl.appendChild(b); });
+  const cu = document.createElement('label'); cu.title = 'Свой цвет'; cu.innerHTML = '<input type="color">'; cu.firstChild.value = p.color;
+  cu.firstChild.oninput = e => { p.color = e.target.value; poiChanged(); }; cu.firstChild.onchange = renderEditorBits; cl.appendChild(cu);
+  const ph = $('edPhotos'); ph.innerHTML = '';
+  p.photos.forEach((src, i) => {
+    const d = document.createElement('div'); d.className = 'ph'; d.innerHTML = `<img alt=""><button title="Удалить фото">${ico('close')}</button>`;
+    d.firstChild.src = src; d.querySelector('button').onclick = () => { p.photos.splice(i, 1); renderEditorBits(); poiChanged(); };
+    ph.appendChild(d);
+  });
+  const add = document.createElement('label'); add.className = 'add'; add.htmlFor = 'edPhotoIn'; add.innerHTML = ico('image') + '<span>Добавить</span>'; ph.appendChild(add);
+}
+$('edTitle').oninput = e => { poiSel.title = e.target.value || 'Без названия'; poiChanged(); };
+$('edSub').oninput = e => { poiSel.subtitle = e.target.value; poiChanged(); };
+$('edDesc').oninput = e => { poiSel.description = e.target.value; poiChanged(); };
+function imgToData(file, max = 1600) {
+  return new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); rej(); }; img.src = u;
+  });
+}
+$('edPhotoIn').onchange = async e => {
+  const p = poiSel; if (!p) return;
+  for (const f of e.target.files) { try { p.photos.push(await imgToData(f)); } catch { setStatus('Не удалось прочитать ' + f.name); } }
+  e.target.value = ''; renderEditorBits(); poiChanged();
+};
+$('edUrlAdd').onclick = () => { const u = $('edUrl').value.trim(); if (!u || !poiSel) return; poiSel.photos.push(u); $('edUrl').value = ''; renderEditorBits(); poiChanged(); };
+$('edUrl').onkeydown = e => { if (e.key === 'Enter') $('edUrlAdd').click(); };
+$('edCam').onclick = () => { poiSel.cam = { p: camera.position.clone(), t: controls.target.clone() }; setStatus(`Вид для «${poiSel.title}» сохранён`); };
+$('edGo').onclick = () => poiSel && flyTo(poiSel.cam.p.clone(), poiSel.cam.t.clone());
+$('edMove').onclick = () => startPlace(poiSel);
+$('edDel').onclick = () => { const p = poiSel; if (!p || !confirm(`Удалить точку «${p.title}»?`)) return; if (poiActive === p) closeCard(); pois.splice(pois.indexOf(p), 1); closeEditor(); renderPois(); };
+$('edBack').onclick = $('edDone').onclick = closeEditor;
+toggle('poiShow', v => document.body.classList.toggle('noPins', !v));
+toggle('poiLabels', v => document.body.classList.toggle('noLabels', !v));
+// Размещение точки кликом по модели
+function startPlace(target) {
+  if (!model) return setStatus('Сначала открой модель');
+  placing = { target: target || null }; document.body.classList.add('placing');
+  $('placeTxt').textContent = target ? `Кликни по модели — новое место для «${target.title}»` : 'Кликни по модели, чтобы поставить точку';
+}
+function cancelPlace() { placing = null; document.body.classList.remove('placing'); }
+$('poiAdd').onclick = () => startPlace(null);
+$('placeCancel').onclick = cancelPlace;
+let downXY = null;
+// Тап/клик по холсту: одинаково для мыши, пальца и стилуса
+const _ptrs = new Map(); let _multi = false, _lastTap = null;
+const _cv = renderer.domElement;
+_cv.addEventListener('pointerdown', e => { _ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now() }); if (_ptrs.size > 1) _multi = true; });
+_cv.addEventListener('pointercancel', e => { _ptrs.delete(e.pointerId); if (!_ptrs.size) _multi = false; });
+_cv.addEventListener('pointerup', e => {
+  const d = _ptrs.get(e.pointerId); _ptrs.delete(e.pointerId);
+  const wasMulti = _multi; if (!_ptrs.size) _multi = false;
+  if (!d || wasMulti || e.button > 0) return;
+  const tol = e.pointerType === 'mouse' ? 5 : 12;
+  if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > tol || performance.now() - d.t > 600) return;
+  if (placing) return placeAt(e);
+  if (e.pointerType !== 'mouse') {   // двойной тап — фокус
+    const now = performance.now();
+    if (_lastTap && now - _lastTap.t < 350 && Math.hypot(e.clientX - _lastTap.x, e.clientY - _lastTap.y) < 40) { _lastTap = null; focusAt(e.clientX, e.clientY); }
+    else _lastTap = { t: now, x: e.clientX, y: e.clientY };
+  }
+});
+function placeAt(e) {
+  if (!placing || !model) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  const hit = ray.intersectObject(model, true)[0]; if (!hit) return setStatus('Промах — кликни прямо по модели');
+  const pt = hit.point.clone();
+  if (placing.target) {
+    const p = placing.target, off = pt.clone().sub(p.pos); p.pos.copy(pt); p.cam.p.add(off); p.cam.t.add(off);
+    cancelPlace(); renderPois(); setStatus('Точка перемещена');
+  } else {
+    const p = { id: 'poi-' + Date.now().toString(36), title: 'Точка ' + (pois.length + 1), subtitle: '', description: '', icon: '📍', color: POI_COLORS[pois.length % POI_COLORS.length], photos: [], pos: pt, cam: poiDefaultCam(pt) };
+    pois.push(p); cancelPlace(); renderPois(); openEditor(p); if (!matchMedia('(pointer:coarse)').matches) setTimeout(() => $('edTitle').select(), 50);
+    setStatus('Точка добавлена — заполни описание');
+  }
+}
+addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key === 'Escape') { if (lb.classList.contains('show')) lb.classList.remove('show'); else if (ddCur) ddClose(); else if (placing) cancelPlace(); else closeCard(); }
+  if (document.body.classList.contains('cardOpen') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) stepPoi(e.key === 'ArrowRight' ? 1 : -1);
+});
 
 function animate() {
   requestAnimationFrame(animate);
@@ -748,7 +1440,7 @@ function animate() {
     if (fly.k >= 1) fly = null;
   }
   if (on('timePlay') && isSun() && !(pathT !== null && on('todKeys'))) { todVal = (todVal + Math.min(dt, 0.1) * +$('timeSpeed').value) % 24; $('tod').value = todVal; updateSun(); }
-  placeKey();
+  placeKey(); updatePins();
   skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
   cloudMat.uniforms.uTime.value = performance.now() / 1000;
   if (!fly && pathT === null) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
