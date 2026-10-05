@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v1.1</title>
+<title>My 3D Viewer — v1.3</title>
 <style>
 :root{
   --glass:rgba(255,255,255,.62);--glass-strong:rgba(255,255,255,.78);--stroke:rgba(255,255,255,.55);--hair:rgba(20,20,30,.08);
@@ -149,7 +149,8 @@ body.clean #pillE{display:inline-flex}
 .dd-opt.sel{color:var(--accent);font-weight:600}
 .dd-opt.sel .ck{visibility:visible}
 .dd-opt:hover,.dd-opt.hl{background:var(--ctl)}
-#dock .dd{width:76px;flex:0 0 76px}
+#dock .dd{width:88px;flex:0 0 88px}
+#dock .dd-btn{width:100%;padding:0 8px 0 12px}
 
 /* Поля ввода */
 .inp,textarea.inp{width:100%;font:500 14px/1.4 var(--font);color:var(--text);background:rgba(255,255,255,.55);border:1px solid rgba(20,20,30,.1);border-radius:9px;padding:8px 12px;outline:none;transition:border-color .15s,background .15s}
@@ -345,7 +346,7 @@ body.hasDock #hint{bottom:calc(148px + var(--sab))}
   <div id="fileChip" class="glass">
     <div class="logo"><i data-ic="cube"></i></div>
     <div class="meta"><span class="cap">Модель</span><div id="status">Не загружена</div></div>
-    <label class="file-label" for="file"><i data-ic="folder"></i> Открыть</label><input id="file" type="file" accept=".glb,.gltf,.json" multiple>
+    <label class="file-label" for="file"><i data-ic="folder"></i> Открыть</label><input id="file" type="file" accept=".glb,.gltf,.json,.bin,.png,.jpg,.jpeg,.webp,.ktx2,.hdr,.exr" multiple title="GLB, или GLTF вместе с .bin и текстурами, .json сцены, .hdr/.exr">
   </div>
 
   <aside id="inspector" class="glass">
@@ -361,7 +362,7 @@ body.hasDock #hint{bottom:calc(148px + var(--sab))}
       <div class="pane active" data-pane="light" id="settings">
         <div class="sec">
           <h4>Освещение</h4>
-          <select id="light" aria-label="Освещение"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="classic">Классика</option></select>
+          <select id="light" aria-label="Освещение"><option value="studio">Студия (HDRI)</option><option value="sun">Экстерьер: солнце и небо</option><option value="real">Реализм (мягкие тени)</option><option value="hdri">Свой HDRI (.hdr / .exr)</option><option value="classic">Классика</option></select>
           <div class="field" style="margin-top:12px"><label>Яркость <b id="expVal">1.00</b></label><input id="exposure" type="range" min="0.3" max="2.5" step="0.05" value="1"></div>
         </div>
         <div id="sunCtl" style="display:none">
@@ -379,18 +380,27 @@ body.hasDock #hint{bottom:calc(148px + var(--sab))}
             <div class="field" style="margin-top:12px"><label>Облачность <b id="cloudVal">35%</b></label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35"></div>
           </div>
         </div>
+        <div class="sec">
+          <h4>Материалы и отражения</h4>
+          <div class="field"><label>Цветопередача</label><select id="tone" aria-label="Цветопередача"><option value="aces">Кино (ACES)</option><option value="neutral">Точные цвета PBR (Neutral)</option><option value="agx">Мягкая (AgX)</option><option value="none">Без обработки</option></select></div>
+          <div class="field"><label>Отражения и свет окружения <b id="envTxt">1.00</b></label><input id="envInt" type="range" min="0" max="3" step="0.05" value="1"></div>
+          <div class="field"><label>Поворот окружения <b id="envRotTxt">0°</b></label><input id="envRot" type="range" min="0" max="360" step="1" value="0"></div>
+          <button id="hdrBtn" class="wide" style="margin-top:12px"><i data-ic="folder"></i> Загрузить свой HDRI…</button><input id="hdrIn" type="file" accept=".hdr,.exr">
+          <div class="chips" style="margin-top:8px"><button id="hdrBg" class="on" style="grid-column:span 2" title="Выключи, чтобы HDRI только освещал и отражался, а фон был нейтральным">Показывать HDRI как фон</button></div>
+          <p class="hint-s" id="hdrName">HDRI (.hdr / .exr) даёт реалистичные отражения на металле, стекле и лаке.</p>
+        </div>
       </div>
 
       <!-- СЦЕНА -->
       <div class="pane" data-pane="scene">
         <div class="sec">
           <h4>Окружение</h4>
-          <div class="field"><label>Фон</label><select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option></select></div>
+          <div class="field"><label>Фон</label><select id="bg"><option value="dark">Тёмный (размытый)</option><option value="env">Студия (размытая)</option><option value="sky">Небо</option><option value="hdri">Свой HDRI</option></select></div>
           <div class="field"><label>Материалы</label><select id="mat"><option value="orig">Оригинал</option><option value="clay">Clay (без текстур)</option><option value="wire">Каркас</option><option value="normal">Нормали</option></select></div>
         </div>
         <div class="sec">
           <h4>Показывать</h4>
-          <div class="chips"><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button></div>
+          <div class="chips"><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="fileLights" title="Источники света, сохранённые в GLB" style="grid-column:span 2">Свет из файла</button></div>
         </div>
       </div>
 
@@ -534,6 +544,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Sky } from 'three/addons/objects/Sky.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
@@ -726,7 +741,7 @@ function updateSun(force) {
   // Реализм: смягчаем дневной пик, чтобы белые поверхности не пересвечивались
   const realM = $('light').value === 'real', noon = realM ? D.smoothstep(el, 15, 50) * wx.sun : 0;
   if (el > -3) key.intensity *= 1 - 0.4 * noon;
-  scene.environmentIntensity = 1 - 0.35 * noon;
+  scene.environmentIntensity = envK() * (1 - 0.35 * noon);
   if (bloomPass) { bloomPass.threshold = D.lerp(1.1, 4.0, day); bloomPass.strength = D.lerp(0.25, 0.1, day); }
   // дымка: цвет горизонта по времени и погоде
   if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0001);
@@ -769,11 +784,12 @@ function applyLight() {
   usePost = $('light').value === 'real'; if (usePost) ensureComposer();
   if (!sun) scene.fog = null;
   $('sunCtl').style.display = sun ? 'block' : 'none';
-  scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : envRT?.texture ?? null;
+  scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : m === 'hdri' ? (hdrTex || envTex) : envRT?.texture ?? null;
   if (sun) updateSun(true);
   else {
-    scene.environmentIntensity = 1;
-    hemi.intensity = m === 'studio' ? 0.25 : 2; key.intensity = m === 'studio' ? 0.8 : 3; fill.intensity = m === 'studio' ? 0.3 : 1.2;
+    scene.environmentIntensity = envK();
+    const soft = m === 'studio' || m === 'hdri';
+    hemi.intensity = soft ? 0.25 : 2; key.intensity = soft ? 0.8 : 3; fill.intensity = soft ? 0.3 : 1.2;
     key.color.set(0xffffff); curKeyDir.copy(keyDir); placeKey();
   }
   applyBg(); updateGround();
@@ -781,15 +797,44 @@ function applyLight() {
 function applyBg() {
   const v = $('bg').value; skyRig.visible = v === 'sky'; updateGround();
   if (v === 'sky') { scene.background = null; updateSun(); }
+  else if (v === 'hdri' && hdrTex && $('hdrBg').classList.contains('on')) { scene.background = hdrTex; scene.backgroundBlurriness = 0; scene.backgroundIntensity = 1; }
   else { scene.background = envTex; scene.backgroundBlurriness = v === 'env' ? 0.7 : 0.85; scene.backgroundIntensity = v === 'env' ? 1 : 0.16; }
 }
 function setExposure(v) { $('exposure').value = v; renderer.toneMappingExposure = v; }
 $('light').onchange = () => {
-  const sun = isSun();
+  const v = $('light').value, sun = isSun();
+  if (v === 'hdri' && !hdrTex) { $('light').value = 'studio'; $('hdrIn').click(); return; }
   if (sun) { $('bg').value = 'sky'; setExposure(0.7); }
-  else { if ($('bg').value === 'sky') $('bg').value = 'dark'; setExposure(1); }
+  else { if ($('bg').value === 'sky') $('bg').value = 'dark'; if (v === 'hdri') $('bg').value = 'hdri'; setExposure(1); }
   applyLight();
 };
+// PBR: интенсивность и поворот окружения, цветопередача, свой HDRI
+let hdrTex = null, hdrRT = null;
+function envK() { return +$('envInt').value; }
+$('envInt').oninput = () => { $('envTxt').textContent = envK().toFixed(2); if (isSun()) updateSun(); else scene.environmentIntensity = envK(); };
+$('envRot').oninput = () => { const d = +$('envRot').value, r = THREE.MathUtils.degToRad(d); scene.environmentRotation.y = r; scene.backgroundRotation.y = r; $('envRotTxt').textContent = Math.round(d) + '°'; };
+const TONES = { aces: THREE.ACESFilmicToneMapping, neutral: THREE.NeutralToneMapping, agx: THREE.AgXToneMapping, none: THREE.NoToneMapping };
+$('tone').onchange = () => { renderer.toneMapping = TONES[$('tone').value] ?? THREE.ACESFilmicToneMapping; };
+$('hdrBtn').onclick = () => $('hdrIn').click();
+$('hdrBg').onclick = e => {
+  const v = e.currentTarget.classList.toggle('on');
+  if (v && hdrTex) $('bg').value = 'hdri';
+  applyBg();
+};
+$('hdrIn').onchange = async e => { await handleFiles([...e.target.files]); e.target.value = ''; };
+async function loadHDRI(file) {
+  setStatus('Загрузка HDRI…');
+  const url = URL.createObjectURL(file);
+  try {
+    const tex = await (/\.exr$/i.test(file.name) ? new EXRLoader() : new HDRLoader()).loadAsync(url);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    const rt = pmrem.fromEquirectangular(tex);
+    hdrRT?.dispose(); hdrRT = rt; hdrTex = rt.texture; tex.dispose();
+    $('light').value = 'hdri'; $('bg').value = 'hdri'; setExposure(1);
+    applyLight(); setStatus('HDRI: ' + file.name); $('hdrName').textContent = 'Загружен: ' + file.name;
+  } catch (e) { console.error(e); setStatus('Ошибка HDRI'); alert('Не удалось загрузить HDRI (.hdr или .exr, equirectangular).'); }
+  finally { URL.revokeObjectURL(url); }
+}
 $('bg').onchange = applyBg;
 $('exposure').oninput = e => renderer.toneMappingExposure = +e.target.value;
 applyLight();
@@ -809,6 +854,23 @@ $('mat').onchange = applyMaterials;
 
 // Модель и анимации
 const loader = new GLTFLoader();
+const LIBS = 'https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/libs/';
+loader.setDRACOLoader(new DRACOLoader().setDecoderPath(LIBS + 'draco/gltf/'));
+loader.setKTX2Loader(new KTX2Loader().setTranscoderPath(LIBS + 'basis/').detectSupport(renderer));
+loader.setMeshoptDecoder(MeshoptDecoder);
+const fileLights = [];
+function enhanceMaterials(root) {
+  const aniso = renderer.capabilities.getMaxAnisotropy();
+  fileLights.length = 0;
+  root.traverse(c => {
+    if (c.isLight) { fileLights.push(c); c.visible = on('fileLights'); if (c.shadow) c.castShadow = false; return; }
+    if (!c.isMesh) return;
+    const mats = Array.isArray(c.material) ? c.material : [c.material];
+    mats.forEach(m => { for (const k in m) if (m[k]?.isTexture) { m[k].anisotropy = aniso; m[k].needsUpdate = true; } });
+    c.castShadow = !mats.some(m => m.transparent || m.transmission > 0);
+    c.receiveShadow = true;
+  });
+}
 let model = null, mixer = null, action = null, clips = [], playing = true, loop = true, scrubbing = false;
 const clock = new THREE.Clock();
 const setStatus = t => $('status').textContent = t;
@@ -902,15 +964,18 @@ function disposeModel(o) {
 }
 
 let curName = "scene.glb";
-async function loadBuffer(buf, name, sceneData) {
+async function loadBuffer(buf, name, sceneData, extra = []) {
   curName = name; keys.length = 0; renderKeys(); poiLoad([]);
   clearAnimations();
   if (model) { scene.remove(model); disposeModel(model); origMats.clear(); model = null; }
   setStatus(`Загрузка: ${name}…`);
+  const urls = new Map(extra.map(f => [f.name, URL.createObjectURL(f)]));
+  loader.manager.setURLModifier(u => (u.startsWith('data:') || u.startsWith('blob:')) ? u : urls.get(decodeURIComponent(u.split('/').pop().split('?')[0])) || u);
   try {
     const gltf = await loader.parseAsync(buf, '');
     model = gltf.scene; scene.add(model); window.__hasModel = true;
-    model.traverse(c => { if (c.isMesh) { origMats.set(c, c.material); c.castShadow = !c.material.transparent; c.receiveShadow = true; } });
+    model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
+    enhanceMaterials(model);
     applyMaterials();
     clips = gltf.animations || [];
     fitCamera(model);
@@ -934,18 +999,24 @@ async function loadBuffer(buf, name, sceneData) {
   } catch (err) {
     console.error(err);
     setStatus('Ошибка загрузки — F12 → Console');
-    alert('Не получилось загрузить модель. Проверь, что это GLB (для .gltf с внешними файлами используй GLB) и файл не повреждён.');
+    alert('Не получилось загрузить модель. Если это .gltf — выбери его сразу вместе с .bin и текстурами. Иначе проверь, что файл не повреждён.');
+  } finally {
+    loader.manager.setURLModifier(undefined); urls.forEach(u => URL.revokeObjectURL(u));
   }
 }
 
 async function handleFiles(files) {
   const model = files.find(f => /\.(glb|gltf)$/i.test(f.name));
   const json = files.find(f => /\.json$/i.test(f.name));
+  const hdri = files.find(f => /\.(hdr|exr)$/i.test(f.name));
+  const extra = files.filter(f => f !== model && f !== json && f !== hdri);
   let data = null;
   if (json) { try { data = JSON.parse(await json.text()); } catch { return alert('Не удалось прочитать JSON'); } }
-  if (model) return loadBuffer(await model.arrayBuffer(), model.name, data);
+  if (hdri) await loadHDRI(hdri);
+  if (model) return loadBuffer(await model.arrayBuffer(), model.name, data, extra);
+  if (hdri && !data) return;
   if (data) { if (!window.__hasModel) return alert('Сначала открой модель (или выбери GLB и JSON вместе)'); applySceneData(data); setStatus('Сцена загружена: ' + json.name); }
-  else alert('Нужен .GLB/.GLTF и, при желании, .json со сценой');
+  else alert('Нужен .GLB/.GLTF (для .gltf — вместе с .bin и текстурами), при желании .json со сценой и .hdr/.exr');
 }
 $('file').addEventListener('change', async e => { await handleFiles([...e.target.files]); e.target.value = ''; });
 $('reset').onclick = () => model && fitCamera(model);
@@ -980,6 +1051,7 @@ toggle('axesBtn', on => axes.visible = on);
 toggle('rotBtn', on => controls.autoRotate = on);
 toggle('shadowBtn', setShadows);
 toggle('groundBtn', updateGround);
+toggle('fileLights', v => fileLights.forEach(l => l.visible = v));
 $('inertia').onchange = () => controls.dampingFactor = +$('inertia').value;
 controls.dampingFactor = +$('inertia').value;
 toggle('timePlay', () => {});
@@ -1079,7 +1151,7 @@ function collectScene() {
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
     pois: pois.map(poiSerialize),
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value }
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
   };
 }
 function applySceneData(d) {
@@ -1091,7 +1163,12 @@ function applySceneData(d) {
   });
   if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); $('todKeys').classList.toggle('on', d.path.todKeys !== false); if ([...$('ease').options].some(o => o.value === d.path.ease)) $('ease').value = d.path.ease; }
   if (d.view) {
-    for (const k of ['light', 'bg', 'mat', 'weather', 'inertia']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
+    for (const k of ['light', 'bg', 'mat', 'weather', 'inertia', 'tone']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
+    if (!hdrTex) { if ($('light').value === 'hdri') $('light').value = 'studio'; if ($('bg').value === 'hdri') $('bg').value = 'dark'; }
+    $('tone').onchange();
+    for (const k of ['envInt', 'envRot']) if (d.view[k] != null) { $(k).value = d.view[k]; $(k).oninput(); }
+    if (d.view.hdrBg != null) $('hdrBg').classList.toggle('on', !!d.view.hdrBg);
+    if (d.view.fileLights != null) { $('fileLights').classList.toggle('on', !!d.view.fileLights); fileLights.forEach(l => l.visible = !!d.view.fileLights); }
     for (const k of ['tod', 'az', 'cloud']) if (d.view[k] != null) $(k).value = d.view[k];
     todVal = +$('tod').value; controls.dampingFactor = +$('inertia').value;
     if (d.view.ground != null) $('groundBtn').classList.toggle('on', d.view.ground);
