@@ -1,0 +1,86 @@
+{
+ "noma": 1,
+ "title": "Экосистема",
+ "subtitle": "да",
+ "accent": "#8864a6",
+ "cover": "",
+ "cta": {
+  "label": "",
+  "url": "https://t.me/Valdes220"
+ },
+ "model": "mats.glb",
+ "scene": {
+  "version": 1,
+  "model": "mats.glb",
+  "camera": {
+   "p": [
+    -3.6935,
+    0.6184,
+    3.0934
+   ],
+   "t": [
+    0.5046,
+    0.1602,
+    0.283
+   ]
+  },
+  "keys": [],
+  "slots": [
+   null,
+   null,
+   null
+  ],
+  "path": {
+   "sync": true,
+   "loop": false,
+   "todKeys": true,
+   "ease": "smooth"
+  },
+  "pois": [
+   {
+    "id": "poi-muxa3c0h",
+    "title": "сасат",
+    "subtitle": "",
+    "description": "",
+    "icon": "📍",
+    "color": "#2783DE",
+    "photos": [],
+    "pos": [
+     -0.0003,
+     0.9995,
+     -0.0047
+    ],
+    "cam": {
+     "p": [
+      -3.6935,
+      0.6184,
+      3.0934
+     ],
+     "t": [
+      0.5046,
+      0.1602,
+      0.283
+     ]
+    }
+   }
+  ],
+  "view": {
+   "light": "real",
+   "bg": "sky",
+   "mat": "orig",
+   "exposure": 0.7,
+   "tod": 15.25,
+   "az": 200,
+   "cloud": 0.77,
+   "shadows": true,
+   "ground": true,
+   "weather": "clear",
+   "inertia": "0.05",
+   "tone": "aces",
+   "envInt": 1,
+   "envRot": 0,
+   "fileLights": false,
+   "hdrBg": true
+  }
+ }
+}
