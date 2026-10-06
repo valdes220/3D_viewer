@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>My 3D Viewer — v1.6</title>
+<title>My 3D Viewer — v1.7</title>
 <!-- Логотип: положи файлы рядом с index.html в репозитории -->
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -360,6 +360,36 @@ body.fpLock canvas{cursor:none}
 #joy .knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.25);pointer-events:none}
 body.fp.touch #joy{display:block}
 @media(max-width:820px){#fpHud .txt{display:none}#fpHud{padding:6px;top:calc(8px + var(--sat))}body.fp #fileChip{display:none}}
+/* ===== v1.7: телефон / сенсор ===== */
+#fpHud .sb{display:none;width:40px;padding:0;font:500 22px/1 var(--font)}
+body.touch #fpHud .sb{display:inline-flex;align-items:center;justify-content:center}
+body.touch #fpHud .txt{display:none}
+body.touch #fpHud{padding:6px;gap:6px;top:calc(8px + var(--sat))}
+body.touch #fpHud .spd{min-width:66px;text-align:center}
+body.fp.touch #fileChip{display:none}
+#dock .dd.clipdd{flex:0 1 170px;width:auto;min-width:90px}
+#dock .dd.clipdd .dd-btn{padding:0 8px 0 12px}
+/* компактный плеер в 2 строки на узких/низких экранах */
+@media(max-width:600px),(max-height:520px){
+  #dock{flex-wrap:wrap;gap:6px 6px;padding:6px 8px}
+  #play{order:1}
+  #dock .dd.clipdd{order:2;flex:1 1 auto}
+  #dock .dd.spdd{order:3;width:70px;flex:0 0 70px;margin-left:auto}
+  #loop{order:4}#hideD{order:5}
+  #timeline{order:6;flex:1 1 60%}
+  #time{order:7;min-width:0;font-size:12px}
+  body.hasDock #hint{bottom:calc(196px + var(--sab))}
+}
+/* джойстик не налезает на плеер (портрет) */
+body.fp.touch.hasDock:not(.noD) #joy{bottom:calc(196px + var(--sab))}
+/* ландшафт: джойстик в левом нижнем углу, панели сдвигаются правее */
+@media(max-height:520px) and (min-width:560px){
+  body.fp.touch #joy,body.fp.touch.hasDock:not(.noD) #joy{left:calc(12px + var(--sal));bottom:calc(12px + var(--sab));width:120px;height:120px}
+  body.fp.touch #toolbar,body.fp.touch #dock{left:calc(148px + var(--sal))}
+  body.fp.touch #dock{width:min(480px,calc(100% - 156px - var(--sal) - var(--sar)))}
+  body.fp.touch:not(.noL) #dock{width:min(480px,calc(100% - 504px - var(--sal) - var(--sar)))}
+  body.hasDock:not(.noD) #poiCard{max-height:calc(100% - 240px - var(--sat) - var(--sab))}
+}
 
 /* ===== Справка ===== */
 #help{position:fixed;top:0;right:0;bottom:0;left:0;z-index:80;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(10,10,14,.35);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -534,11 +564,12 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;border-radius:6px;backgr
     <button id="play"><i data-ic="pause"></i></button>
     <input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Время анимации">
     <span id="time">0.00 / 0.00</span>
+    <select id="clipSel" aria-label="Анимация" style="display:none"></select>
     <select id="speed" aria-label="Скорость"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
     <button id="loop" class="on" title="Повтор"><i data-ic="repeat"></i></button><button id="hideD" title="Скрыть плеер"><i data-ic="close"></i></button>
   </div>
 
-  <div id="fpHud" class="glass"><span class="txt"><b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>F</b> полёт · <b>Esc</b> выход</span><span id="fpSpeed" class="spd" title="Скорость: колесо мыши">1.5 м/с</span><button id="fpFly" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
+  <div id="fpHud" class="glass"><span class="txt"><b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>F</b> полёт · <b>Esc</b> выход</span><button id="spdDn" class="sb" title="Медленнее" aria-label="Медленнее">−</button><span id="fpSpeed" class="spd" title="Скорость: колесо мыши">1.5 м/с</span><button id="spdUp" class="sb" title="Быстрее" aria-label="Быстрее">+</button><button id="fpFly" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
   <div id="fpCross"></div>
   <div id="joy" class="glass" aria-label="Джойстик ходьбы"><div class="knob"></div></div>
 
@@ -566,7 +597,7 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;border-radius:6px;backgr
         <dl><dt>1 палец</dt><dd>вращение</dd><dt>2 пальца</dt><dd>масштаб и сдвиг</dd><dt>Двойной тап</dt><dd>подлететь к точке</dd></dl></section>
       <section><h3><i data-ic="walk"></i>От первого лица</h3>
         <p>Кнопка <i data-ic="walk" data-s="16"></i> в нижней панели — камера плавно «спускается» на уровень глаз человека ростом 170 см.</p>
-        <dl><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / стрелки</dt><dd>ходьба</dd><dt>Колесо мыши</dt><dd>скорость ходьбы — плавно от 0.3 до 40 м/с</dd><dt>«Лёгкая графика»</dt><dd>кнопка ⚡ в нижней панели: упрощённый рендер, чтобы летало даже на слабом железе. Работает и в обычном обзоре, запоминается</dd><dt>Мышь</dt><dd>осмотр. Клик по сцене захватывает мышь, <kbd>Esc</kbd> отпускает</dd><dt><kbd>F</kbd></dt><dd>полёт без гравитации и стен; <kbd>E</kbd>/<kbd>Space</kbd> вверх, <kbd>Q</kbd>/<kbd>C</kbd> вниз</dd><dt><kbd>Esc</kbd> или кнопка</dt><dd>выход в обычный обзор</dd><dt>Телефон</dt><dd>джойстик слева — ходьба (до края — бег), палец по экрану — осмотр</dd></dl></section>
+        <dl><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / стрелки</dt><dd>ходьба</dd><dt>Колесо мыши</dt><dd>скорость ходьбы — плавно от 0.3 до 40 м/с</dd><dt>«Лёгкая графика»</dt><dd>кнопка ⚡ в нижней панели: упрощённый рендер, чтобы летало даже на слабом железе. Работает и в обычном обзоре, запоминается</dd><dt>Мышь</dt><dd>осмотр. Клик по сцене захватывает мышь, <kbd>Esc</kbd> отпускает</dd><dt><kbd>F</kbd></dt><dd>полёт без гравитации и стен; <kbd>E</kbd>/<kbd>Space</kbd> вверх, <kbd>Q</kbd>/<kbd>C</kbd> вниз</dd><dt><kbd>Esc</kbd> или кнопка</dt><dd>выход в обычный обзор</dd><dt>Телефон</dt><dd>джойстик слева — ходьба (до края — бег), палец по экрану — осмотр, кнопки <b>−</b> / <b>+</b> вверху — скорость</dd></dl></section>
       <section><h3><i data-ic="help"></i>Горячие клавиши</h3>
         <dl><dt><kbd>H</kbd></dt><dd>чистый экран: остаются модель и точки интереса</dd><dt><kbd>Space</kbd></dt><dd>пауза / воспроизведение анимации</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>предыдущая / следующая точка, когда открыта карточка</dd><dt><kbd>Esc</kbd></dt><dd>закрыть карточку, меню, справку, отменить постановку точки</dd></dl></section>
       <section><h3><i data-ic="tune"></i>Нижняя панель</h3>
@@ -962,7 +993,7 @@ const clock = new THREE.Clock();
 const setStatus = t => $('status').textContent = t;
 
 function clearAnimations() {
-  $('animationList').innerHTML = '';
+  $('animationList').innerHTML = ''; $('clipSel').innerHTML = ''; $('clipSel').parentNode.style.display = 'none';
   $('animations').style.display = $('dock').style.display = 'none';
   $('tabAnim').hidden = true; document.body.classList.remove('hasDock'); if ($('tabAnim').classList.contains('active')) showTab('light');
   mixer?.stopAllAction(); mixer = action = null; clips = [];
@@ -978,8 +1009,6 @@ function playAnimation(i, btn) {
   action.clampWhenFinished = true;
   action.play();
   playing = true; setBtn($('play'), 'pause');
-  document.querySelectorAll('.anim').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
   setStatus(`Анимация: ${clips[i].name || 'Animation ' + (i + 1)}`);
 }
 
@@ -1073,16 +1102,11 @@ async function loadBuffer(buf, name, sceneData, extra = []) {
     if (clips.length) {
       mixer = new THREE.AnimationMixer(model);
       mixer.timeScale = +$('speed').value;
-      clips.forEach((clip, i) => {
-        const b = document.createElement('button');
-        b.className = 'anim';
-        setBtn(b, 'play', clip.name || 'Animation ' + (i + 1));
-        b.onclick = () => playAnimation(i, b);
-        $('animationList').appendChild(b);
-      });
-      $('animations').style.display = 'block';
-      $('dock').style.display = 'flex'; $('tabAnim').hidden = false; document.body.classList.add('hasDock');
-      $('animationList').firstChild.click();
+      const cs = $('clipSel'); cs.innerHTML = '';
+      clips.forEach((clip, i) => cs.add(new Option(clip.name || 'Анимация ' + (i + 1), i)));
+      cs.parentNode.style.display = clips.length > 1 ? '' : 'none';
+      $('dock').style.display = 'flex'; document.body.classList.add('hasDock');
+      cs.value = '0'; playAnimation(0);
       setStatus(`${name} · ${clips.length} анимац.`);
     } else setStatus(`${name} · анимаций нет`);
   } catch (err) {
@@ -1383,6 +1407,8 @@ function enhanceSelect(sel) {
   sel._ddRefresh();
 }
 document.querySelectorAll('#ui select').forEach(enhanceSelect);
+$('clipSel').parentNode.classList.add('clipdd'); $('speed').parentNode.classList.add('spdd');
+$('clipSel').addEventListener('change', e => playAnimation(+e.target.value));
 document.addEventListener('pointerdown', e => { if (ddCur && !ddMenu.contains(e.target) && !ddCur.btn.contains(e.target)) ddClose(); }, true);
 document.addEventListener('scroll', e => { if (ddCur && !ddMenu.contains(e.target)) ddClose(); }, true);
 addEventListener('resize', ddClose);
@@ -1670,7 +1696,7 @@ function enterFP() {
   fpEuler.set(fp.pitch, fp.yaw, 0);
   fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(P.x, g + EYE, P.z), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
   fp.on = true; controls.enabled = false; controls.autoRotate = false;
-  if (matchMedia('(max-width:820px)').matches) { document.body.classList.add('noL'); $('settingsBtn').classList.remove('on'); }
+  if (matchMedia('(max-width:820px), (pointer:coarse)').matches || document.body.classList.contains('touch')) { document.body.classList.add('noL'); $('settingsBtn').classList.remove('on'); }
   document.body.classList.add('fp'); $('fpBtn').classList.add('on');
   setFly(false); showSpeed(); setStatus('От первого лица · WASD / стрелки · колесо — скорость');
 }
@@ -1750,6 +1776,12 @@ function setLite(v) {
 try { if (localStorage.getItem('viewerLite') === '1') setLite(true); } catch (e) {}
 $('liteBtn').onclick = () => { setLite(!fp.lite); setStatus(fp.lite ? 'Лёгкая графика: включена' : 'Лёгкая графика: выключена'); };
 let liteShadowT = 0;
+function nudgeSpeed(k) { fp.speed = THREE.MathUtils.clamp(fp.speed * k, SPEED_MIN, SPEED_MAX); showSpeed(true); }
+$('spdDn').onclick = () => nudgeSpeed(1 / 1.5); $('spdUp').onclick = () => nudgeSpeed(1.5);
+// На телефоне — только «Файлы», без камеры (картинки в accept заставляют Android предлагать камеру)
+const isTouchDev = () => document.body.classList.contains('touch') || matchMedia('(pointer:coarse)').matches;
+$('file').addEventListener('click', () => { $('file').accept = isTouchDev() ? '.glb,.gltf,.bin,.json,.ktx2,model/gltf-binary,model/gltf+json,application/octet-stream,application/json' : '.glb,.gltf,.json,.bin,.png,.jpg,.jpeg,.webp,.ktx2,.hdr,.exr'; });
+$('hdrIn').addEventListener('click', () => { $('hdrIn').accept = isTouchDev() ? '.hdr,.exr,application/octet-stream' : '.hdr,.exr'; });
 // Клавиатура
 const FP_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyQ', 'KeyE', 'KeyC']);
 addEventListener('keydown', e => {
