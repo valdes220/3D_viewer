@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>NOMA — статистика туров</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f6;color:#1d1d1f;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.w{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:#6b6b73;margin:0 0 18px}
+.panel{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.form{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px}
+input{height:42px;border:1px solid #d9d9df;border-radius:10px;padding:0 12px;font:inherit;min-width:0}
+button{height:42px;border:0;border-radius:10px;background:#2783de;color:#fff;font:600 15px/1 inherit;padding:0 18px;cursor:pointer}
+button.alt{background:#e9e9ee;color:#1d1d1f}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:12px 0 4px}
+.k{background:#f7f7fa;border-radius:12px;padding:12px 14px}
+.k b{display:block;font-size:26px;line-height:1.15}
+.k span{font-size:12.5px;color:#6b6b73}
+.k.hot b{color:#2783de}
+h2{font-size:19px;margin:0 0 4px}
+h3{font-size:14px;margin:18px 0 8px;color:#6b6b73;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.row{display:flex;align-items:center;gap:10px;margin:5px 0;font-size:14px}
+.row .n{flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .bar{flex:1;height:10px;border-radius:5px;background:#eceef2;overflow:hidden}
+.row .bar i{display:block;height:100%;background:#2783de;border-radius:5px}
+.row .v{flex:0 0 34px;text-align:right;font-weight:600}
+.days{display:flex;align-items:flex-end;gap:3px;height:80px;margin-top:6px}
+.days i{flex:1;background:#2783de;border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
+.empty{color:#9a9aa3;font-size:14px}
+.err{background:#fdecea;color:#b3261e;border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.note{font-size:12.5px;color:#6b6b73;margin-top:10px}
+@media(max-width:700px){.form{grid-template-columns:1fr}.cols{grid-template-columns:1fr}}
+@media print{.noprint{display:none}body{background:#fff}.panel{box-shadow:none;border:1px solid #ddd;break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>Статистика туров</h1>
+  <p class="sub">Данные из твоей Google Таблицы (скрипт <b>metrics-apps-script.gs</b>).</p>
+  <div class="panel noprint">
+    <div class="form">
+      <input id="src" type="text" placeholder="Адрес приёма (…/exec)">
+      <input id="key" type="password" placeholder="Пароль (SECRET)">
+      <input id="tour" type="text" placeholder="ID тура (пусто — все)">
+      <button id="go">Показать</button>
+    </div>
+    <div class="note">Адрес и пароль хранятся только в этом браузере. Отчёт можно сохранить в PDF: Ctrl+P → «Сохранить как PDF».</div>
+  </div>
+  <div id="out"></div>
+  <p class="noprint"><button class="alt" id="print" style="display:none">Печать / PDF</button></p>
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function mmss(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  var q = new URLSearchParams(location.search);
+  try {
+    $('src').value = q.get('src') || localStorage.getItem('nomaSrc') || '';
+    $('key').value = q.get('key') || localStorage.getItem('nomaKey') || '';
+    $('tour').value = q.get('tour') || '';
+  } catch (e) {}
+  function bars(list, empty) {
+    if (!list || !list.length) return '<div class="empty">' + (empty || 'Пока нет данных') + '</div>';
+    var max = list[0][1] || 1;
+    return list.map(function (r) {
+      return '<div class="row"><span class="n" title="' + esc(r[0]) + '">' + esc(r[0]) + '</span><span class="bar"><i style="width:' + Math.max(3, r[1] / max * 100) + '%"></i></span><span class="v">' + r[1] + '</span></div>';
+    }).join('');
+  }
+  function kpi(v, label, hot) { return '<div class="k' + (hot ? ' hot' : '') + '"><b>' + v + '</b><span>' + label + '</span></div>'; }
+  function render(data) {
+    var ids = Object.keys(data), h = '';
+    if (!ids.length) { $('out').innerHTML = '<div class="panel empty">Событий пока нет. Открой тур по обычной ссылке (не в режиме редактора) и обнови отчёт.</div>'; return; }
+    ids.forEach(function (id) {
+      var t = data[id], maxDay = 1;
+      (t.days || []).forEach(function (d) { if (d[1] > maxDay) maxDay = d[1]; });
+      h += '<div class="panel"><h2>Тур «' + esc(id) + '»</h2>';
+      h += '<div class="kpi">' + kpi(t.opens, 'открытий тура') + kpi(t.visitors, 'уникальных посетителей') + kpi(mmss(t.avgSec), 'среднее время в туре') +
+        kpi(t.started, 'начали тур с гидом') + kpi(t.completion + '%', 'досмотрели до конца') + kpi(t.pdfTotal, 'открытий PDF') +
+        kpi(t.leadOpen, 'открыли форму заявки') + kpi(t.leads, 'отправили заявку', true) + '</div>';
+      h += '<div class="cols"><div><h3>Популярные точки</h3>' + bars(t.pois) + '<h3>Планировки (PDF)</h3>' + bars(t.pdf) + '<h3>Заявки по каналам</h3>' + bars(t.leadCh) + '</div>';
+      h += '<div><h3>Устройства</h3>' + bars(t.dev) + '<h3>Откуда пришли</h3>' + bars(t.ref) + '<h3>Метки utm_source</h3>' + bars(t.src, 'Без меток') + '</div></div>';
+      h += '<h3>Открытия по дням (последние 30)</h3><div class="days">' + (t.days || []).map(function (d) { return '<i title="' + esc(d[0]) + ': ' + d[1] + '" style="height:' + Math.max(4, d[1] / maxDay * 100) + '%"></i>'; }).join('') + '</div>';
+      if (t.errors) h += '<div class="note">Технических сбоев за период: ' + t.errors + ' (ошибки загрузки, потеря графики, отправки заявок).</div>';
+      h += '</div>';
+    });
+    $('out').innerHTML = h; $('print').style.display = '';
+  }
+  function load() {
+    var src = $('src').value.trim(), key = $('key').value.trim(), tour = $('tour').value.trim();
+    if (!src || !key) { $('out').innerHTML = '<div class="err">Укажи адрес приёма и пароль.</div>'; return; }
+    try { localStorage.setItem('nomaSrc', src); localStorage.setItem('nomaKey', key); } catch (e) {}
+    $('out').innerHTML = '<div class="panel empty">Загружаю…</div>';
+    fetch(src + (src.indexOf('?') < 0 ? '?' : '&') + 'action=summary&key=' + encodeURIComponent(key) + (tour ? '&tour=' + encodeURIComponent(tour) : ''))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.ok) throw new Error(j.error === 'bad key' ? 'Неверный пароль или SECRET в скрипте не изменён' : (j.error || 'ошибка'));
+        render(j.data || {});
+      })
+      .catch(function (e) { $('out').innerHTML = '<div class="err">Не удалось получить данные: ' + esc(e.message || e) + '. Проверь адрес (…/exec), доступ «Все» в развёртывании и интернет.</div>'; });
+  }
+  $('go').onclick = load; $('print').onclick = function () { window.print(); };
+  if ($('src').value && $('key').value) load();
+})();
+</script>
+</body>
+</html>

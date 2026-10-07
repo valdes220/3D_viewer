@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>NOMA — интерактивные 3D-туры</title>
-<meta name="generator" content="NOMA 3D Tours v2.3">
+<meta name="generator" content="NOMA 3D Tours v2.4">
 <!-- Логотип: положи файлы рядом с index.html в репозитории -->
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -12,6 +12,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f4f5f7">
+<meta name="description" content="Интерактивные 3D-туры: осмотр объекта онлайн, планировки, заявка в пару касаний.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NOMA — интерактивные 3D-туры">
+<meta property="og:description" content="Осмотрите объект онлайн в 3D, посмотрите планировки и оставьте заявку.">
 <meta name="apple-mobile-web-app-title" content="3D Viewer">
 <style>
 :root{
@@ -566,6 +570,32 @@ body.hasSite #siteBtn{display:inline-flex}
 #lead .tel{background:var(--ctl);color:var(--text)}
 #lead .big:hover{filter:brightness(1.06)}
 #lead .big svg.ic{width:20px;height:20px}
+/* ===== v2.4 ===== */
+#lead .consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:12.5px;line-height:1.45;color:var(--muted);cursor:pointer}
+#lead .consent input{width:20px;height:20px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--accent)}
+#lead .consent a,#lead .consent .lnkb{color:var(--accent);text-decoration:underline;cursor:pointer;background:none;border:0;padding:0;font:inherit;display:inline;height:auto}
+#lead .go{background:var(--accent)}
+#lead .big[disabled]{opacity:.55;cursor:default}
+#lead .or{margin:6px 0 0;font-size:12px;color:var(--muted);text-align:center}
+#lead .err{margin:12px 0 0;font-size:13px;color:#c0392b}
+#lead .ok{text-align:center;padding:10px 0 4px}
+#lead .ok svg.ic{width:44px;height:44px;color:var(--accent)}
+#lead .ok b{display:block;font-size:20px;margin:8px 0 4px}
+#lead .ok p{margin:0 0 16px;color:var(--muted);font-size:14px}
+#policy{position:fixed;top:0;right:0;bottom:0;left:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,10,14,.35)}
+#policy.show{display:flex}
+#policy .box{position:relative;width:min(560px,100%);max-height:100%;overflow:auto;padding:22px 20px;background:rgba(255,255,255,.97);color:var(--text)}
+#policy h2{margin:0 0 12px;font-size:19px;padding-right:44px}
+#policy p{margin:0 0 10px;font-size:13.5px;line-height:1.5}
+#policyClose{position:absolute;top:12px;right:12px;width:36px;padding:0;border-radius:50%}
+#statsNote{position:fixed;left:12px;right:12px;bottom:calc(12px + var(--sab,0px));margin:0 auto;max-width:600px;z-index:95;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;font-size:12.5px;line-height:1.4;color:var(--text)}
+#statsNote.show{display:flex}
+#statsNote span{flex:1 1 220px}
+#statsNote button{height:34px;padding:0 14px;font-size:13px}
+#ctxLost{position:fixed;top:calc(16px + var(--sat,0px));left:50%;transform:translateX(-50%);z-index:95;display:none;padding:10px 16px;font-size:13px;border-radius:12px;color:var(--text)}
+#ctxLost.show{display:block}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;margin-top:10px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -764,16 +794,36 @@ body.hasSite #siteBtn{display:inline-flex}
           <div class="field"><label>WhatsApp (номер)</label><input id="tLeadWa" class="inp" type="tel" placeholder="+7 999 123-45-67"></div>
           <div class="field"><label>Telegram (имя пользователя)</label><input id="tLeadTg" class="inp" type="text" placeholder="username"></div>
           <div class="field"><label>Телефон для звонка</label><input id="tLeadTel" class="inp" type="tel" placeholder="+7 …"></div>
-          <p class="hint-s">Клиент оставляет имя и телефон — открывается WhatsApp или Telegram с готовым текстом заявки. Без сервера. Достаточно одного канала.</p>
+          <div class="field"><label>Почта для заявок</label><input id="tLeadMail" class="inp" type="text" placeholder="sales@company.ru"></div>
+          <div class="field"><label>Ключ Web3Forms <span style="font-weight:400">(приём заявок на почту)</span></label><input id="tLeadKey" class="inp" type="text" placeholder="xxxxxxxx-xxxx-…"></div>
+          <p class="hint-s">Заявка с формы уходит на почту, к которой привязан ключ (бесплатно: web3forms.com → «Create Access Key», до 250 заявок в месяц). Без ключа форма предложит письмо через почтовое приложение. WhatsApp, Telegram и телефон остаются как быстрые каналы. Web3Forms — зарубежный сервис: для коммерческих клиентов из РФ позже заменим приём заявок на свой сервер.</p>
+        </div>
+        <div class="sec">
+          <h4>Юридическое</h4>
+          <div class="field"><label>Оператор данных (компания / ИП)</label><input id="tLegOp" class="inp" type="text" maxlength="120" placeholder="ООО «Название»"></div>
+          <div class="field"><label>Ссылка на политику конфиденциальности</label><input id="tLegUrl" class="inp" type="text" placeholder="https://…"></div>
+          <p class="hint-s">Перед отправкой заявки клиент отмечает согласие на обработку данных. Если ссылки нет, откроется встроенный шаблон политики — перед запуском замени его документом, согласованным с юристом.</p>
+        </div>
+        <div class="sec">
+          <h4>Аналитика</h4>
+          <div class="field"><label>Счётчик Яндекс.Метрики (номер)</label><input id="tYm" class="inp" type="text" inputmode="numeric" placeholder="12345678"></div>
+          <div class="field"><label>Адрес приёма статистики (Google Таблица)</label><input id="tHook" class="inp" type="text" placeholder="https://script.google.com/macros/s/…/exec"></div>
+          <label class="chk"><input type="checkbox" id="tNote" checked> Показывать уведомление о статистике</label>
+          <p class="hint-s">Считаются: открытия, время в туре, остановки, клики по точкам, PDF, ссылки, заявки. Отчёт — файл <b>stats.html</b>. В режиме редактора статистика не собирается.</p>
         </div>
         <div class="sec">
           <h4>Публикация</h4>
           <div class="field"><label>ID тура (имя папки, латиница)</label><input id="tId" class="inp" type="text" maxlength="40" placeholder="house"></div>
+          <div class="field"><label>Пароль редактора <span style="font-weight:400">(необязательно)</span></label><input id="tLock" class="inp" type="password" autocomplete="new-password" placeholder="пусто — не менять, «-» — снять"></div>
           <button id="tPreview" class="wide" style="margin-top:12px"><i data-ic="eye"></i> Посмотреть как клиент</button>
           <button id="tSave" class="primary wide" style="margin-top:6px"><i data-ic="save"></i> Скачать tour.json</button>
           <p class="hint-s" style="margin-bottom:0">Положи в репозиторий папку <b>tours/<span class="tIdv">house</span>/</b> с файлами:</p><ul id="tFiles"></ul><p class="hint-s">Ссылка для клиента:</p>
           <div class="tlink"><input id="tLink" class="inp" type="text" readonly><button id="tCopy" title="Скопировать ссылку"><i data-ic="copy"></i></button></div>
-          <p class="hint-s">Редактировать опубликованный тур: та же ссылка + <b>&amp;edit</b></p>
+          <p class="hint-s">Ссылка для мессенджеров (с обложкой в превью):</p>
+          <div class="tlink"><input id="tShare" class="inp" type="text" readonly><button id="tShareCopy" title="Скопировать ссылку"><i data-ic="copy"></i></button></div>
+          <button id="tPrevPage" class="wide" style="margin-top:8px"><i data-ic="file"></i> Скачать страницу-превью (index.html)</button>
+          <p class="hint-s">Положи её в <b>tours/<span class="tIdv">house</span>/</b> рядом с tour.json и обложкой — Telegram и WhatsApp покажут карточку с картинкой. Раздавай эту ссылку. Мессенджеры запоминают превью: после смены обложки оно обновится не сразу.</p>
+          <p class="hint-s">Редактировать опубликованный тур: та же ссылка + <b>&amp;edit</b>. Пароль лишь защищает от случайных заходов: файл модели при публикации на статическом хостинге остаётся скачиваемым.</p>
         </div>
       </div>
       <div class="pane" data-pane="anim">
@@ -860,17 +910,30 @@ body.hasSite #siteBtn{display:inline-flex}
     <button id="leadClose" title="Закрыть (Esc)"><i data-ic="close"></i></button>
     <h2 id="leadTitle">Оставить заявку</h2>
     <p class="sub" id="leadSub"></p>
-    <div class="field"><label>Ваше имя</label><input id="lName" class="inp" type="text" maxlength="60" autocomplete="name"></div>
-    <div class="field"><label>Телефон</label><input id="lPhone" class="inp" type="tel" maxlength="30" autocomplete="tel" placeholder="+7 …"></div>
-    <div class="field"><label>Комментарий</label><textarea id="lMsg" class="inp" rows="3" maxlength="400" style="min-height:70px"></textarea></div>
-    <div class="send">
-      <button id="lWa" class="big wa"><i data-ic="chat"></i> Написать в WhatsApp</button>
-      <button id="lTg" class="big tg"><i data-ic="send"></i> Написать в Telegram</button>
-      <a id="lTel" class="big tel" href="#"><i data-ic="phone"></i> Позвонить</a>
+    <div id="lForm">
+      <div class="field"><label>Ваше имя</label><input id="lName" class="inp" type="text" maxlength="60" autocomplete="name"></div>
+      <div class="field"><label>Телефон</label><input id="lPhone" class="inp" type="tel" maxlength="30" autocomplete="tel" placeholder="+7 …"></div>
+      <div class="field"><label>Комментарий</label><textarea id="lMsg" class="inp" rows="3" maxlength="400" style="min-height:70px"></textarea></div>
+      <label class="consent"><input type="checkbox" id="lConsent"><span id="lConsentTxt"></span></label>
+      <div class="send">
+        <button id="lSend" class="big go"><i data-ic="send"></i> Отправить заявку</button>
+        <p class="or" id="lOr">или напишите сразу</p>
+        <button id="lWa" class="big wa"><i data-ic="chat"></i> Написать в WhatsApp</button>
+        <button id="lTg" class="big tg"><i data-ic="send"></i> Написать в Telegram</button>
+        <a id="lMail" class="big tel" href="#"><i data-ic="chat"></i> Написать на почту</a>
+        <a id="lTel" class="big tel" href="#"><i data-ic="phone"></i> Позвонить</a>
+      </div>
+      <p class="err" id="lErr" style="display:none"></p>
+      <p class="hint-s" id="lHint"></p>
     </div>
-    <p class="hint-s" id="lHint">Откроется чат с готовым текстом — останется нажать «Отправить».</p>
+    <div class="ok" id="lOk" style="display:none"><i data-ic="send"></i><b>Заявка отправлена</b><p>Спасибо! Мы свяжемся с вами в ближайшее время.</p><button id="lOkClose" class="big tel">Закрыть</button></div>
   </div>
 </div>
+<div id="policy" role="dialog" aria-modal="true">
+  <div class="box glass"><button id="policyClose" title="Закрыть (Esc)"><i data-ic="close"></i></button><h2>Политика обработки персональных данных</h2><div id="policyBody"></div></div>
+</div>
+<div id="statsNote" class="glass"><span>Мы анонимно считаем просмотры и клики в этом туре, чтобы улучшать его. Личные данные для этого не собираются.</span><button id="snOk" class="primary">Понятно</button><button id="snOff">Отключить</button></div>
+<div id="ctxLost" class="glass">Графика приостановлена системой — восстанавливаем…</div>
 <div id="drop"><div class="dropbox glass"><div style="margin-bottom:10px;color:#2783DE"><i data-ic="cube" data-s="44"></i></div>Отпусти, чтобы открыть <b>.GLB</b></div></div>
 
 
@@ -890,15 +953,63 @@ body.hasSite #siteBtn{display:inline-flex}
     d.innerHTML = '<div><b>' + title + '</b>' + text + '</div>';
     document.body.appendChild(d);
   }
+  // Запасной режим без 3D: карточки объекта из tour.json (старый синтаксис намеренно)
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function okU(u) { return /^(https?:|tel:|mailto:)/i.test(u || ''); }
+  function absU(f, base) { if (!f) return ''; if (/^(https?:|data:|blob:)/i.test(f) || f.indexOf('//') === 0) return f; try { return new URL(f, base).href; } catch (e) { return f; } }
+  function getJSON(url, ok, fail) {
+    try { var x = new XMLHttpRequest(); x.open('GET', url); x.onload = function () { if (x.status >= 200 && x.status < 300) { try { ok(JSON.parse(x.responseText)); } catch (e) { fail(); } } else fail(); }; x.onerror = fail; x.send(); } catch (e) { fail(); }
+  }
+  function renderFb(t, base, reason) {
+    if (document.getElementById('fb')) return;
+    var sp = document.getElementById('splash'); if (sp) sp.style.display = 'none';
+    var cp = document.getElementById('compat'); if (cp && cp.parentNode) cp.parentNode.removeChild(cp);
+    var acc = /^#?[0-9a-f]{6}$/i.test(t.accent || '') ? '#' + String(t.accent).replace('#', '') : '#2783de';
+    var l = t.lead || {}, wa = String(l.wa || '').replace(/\D/g, ''), tg = String(l.tg || '').replace(/^.*t\.me\//i, '').replace(/^@/, '').replace(/[^\w]/g, ''), tel = String(l.tel || '').replace(/[^\d+]/g, '');
+    var css = '#fb{position:fixed;top:0;right:0;bottom:0;left:0;z-index:120;overflow:auto;background:#f4f4f6;color:#1d1d1f;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-overflow-scrolling:touch}#fb .w{max-width:720px;margin:0 auto;padding:16px 16px 40px}#fb .hero{height:220px;border-radius:16px;background:#ddd center/cover no-repeat;margin-bottom:14px}#fb h1{font-size:26px;margin:0 0 4px}#fb .sub{color:#6b6b73;margin:0 0 14px}#fb .note{background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;color:#555;margin-bottom:14px}#fb .btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}#fb .b{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;border-radius:12px;background:#fff;color:#1d1d1f;text-decoration:none;font:600 15px/1 sans-serif;border:0;cursor:pointer}#fb .b.p{background:' + acc + ';color:#fff}#fb .card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:14px}#fb .card img{display:block;width:100%;max-height:260px;object-fit:cover}#fb .cb{padding:14px 16px}#fb h2{font-size:19px;margin:0 0 2px}#fb .chip{display:inline-block;margin:6px 6px 0 0;padding:4px 10px;border-radius:8px;background:#eef3fb;color:' + acc + ';font-weight:650}#fb dl{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:10px 0 0;font-size:14px}#fb dt{color:#6b6b73}#fb dd{margin:0;font-weight:600;text-align:right}#fb p{margin:8px 0 0;font-size:14.5px;color:#444}';
+    var h = '<style>' + css + '</style><div class="w">';
+    var cover = absU(t.cover, base);
+    if (cover) h += '<div class="hero" style="background-image:url(&quot;' + esc(cover) + '&quot;)"></div>';
+    h += '<h1>' + esc(t.title || 'Интерактивный 3D-тур') + '</h1>' + (t.subtitle ? '<p class="sub">' + esc(t.subtitle) + '</p>' : '');
+    h += '<div class="note">3D-режим сейчас недоступен' + (reason ? ' (' + esc(reason) + ')' : '') + '. Ниже — информация об объекте. Попробуйте открыть ссылку в другом браузере или на другом устройстве.</div><div class="btns">';
+    if (wa.length >= 7) h += '<a class="b p" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">WhatsApp</a>';
+    if (tg) h += '<a class="b p" target="_blank" rel="noopener" href="https://t.me/' + tg + '">Telegram</a>';
+    if (tel.length >= 5) h += '<a class="b p" href="tel:' + esc(tel) + '">Позвонить</a>';
+    if (t.site && okU(t.site.url)) h += '<a class="b" target="_blank" rel="noopener" href="' + esc(t.site.url) + '">' + esc(t.site.label || 'Сайт проекта') + '</a>';
+    if (t.cta && okU(t.cta.url)) h += '<a class="b" target="_blank" rel="noopener" href="' + esc(t.cta.url) + '">' + esc(t.cta.label || 'Связаться') + '</a>';
+    h += '<button class="b" onclick="location.reload()">Повторить</button></div>';
+    var pois = (t.scene && t.scene.pois) || [];
+    for (var i = 0; i < pois.length; i++) {
+      var p = pois[i], ph = p.photos && p.photos[0] ? absU(p.photos[0], base) : '';
+      h += '<div class="card">' + (ph ? '<img alt="" src="' + esc(ph) + '">' : '') + '<div class="cb"><h2>' + esc(p.title || '') + '</h2>' + (p.subtitle ? '<div style="color:#6b6b73;font-size:14px">' + esc(p.subtitle) + '</div>' : '');
+      if (p.price) h += '<span class="chip">' + esc(p.price) + '</span>'; if (p.area) h += '<span class="chip">' + esc(p.area) + '</span>';
+      if (p.description) h += '<p>' + esc(p.description) + '</p>';
+      if (p.specs) { var rows = String(p.specs).split('\n'), dl = ''; for (var k = 0; k < rows.length; k++) { var r = rows[k].replace(/^\s+|\s+$/g, ''); if (!r) continue; var c = r.indexOf(':'); dl += c > 0 ? '<dt>' + esc(r.slice(0, c)) + '</dt><dd>' + esc(r.slice(c + 1)) + '</dd>' : '<dd style="grid-column:1/-1;text-align:left">' + esc(r) + '</dd>'; } if (dl) h += '<dl>' + dl + '</dl>'; }
+      if (p.plan && p.plan.file) h += '<p><a class="b p" target="_blank" rel="noopener" href="' + esc(absU(p.plan.file, base)) + '">' + esc(p.plan.label || 'Планировка (PDF)') + '</a></p>';
+      if (p.link && okU(p.link.url)) h += '<p><a class="b" target="_blank" rel="noopener" href="' + esc(p.link.url) + '">' + esc(p.link.label || 'Подробнее') + '</a></p>';
+      h += '</div></div>';
+    }
+    h += '</div>';
+    var d = document.createElement('div'); d.id = 'fb'; d.innerHTML = h; document.body.appendChild(d);
+  }
+  function fallbackTour(reason, onFail) {
+    var m = /[?&]tour=([^&]+)/.exec(location.search);
+    if (!m || /[?&]edit(&|=|$)/.test(location.search)) return false;
+    var id = decodeURIComponent(m[1]).replace(/[^\w\-\/\.]/g, ''), url = /\.json$/i.test(id) ? id : 'tours/' + id + '/tour.json', abs;
+    try { abs = new URL(url, location.href).href; } catch (e) { return false; }
+    getJSON(abs, function (t) { renderFb(t, abs.replace(/[^\/]*$/, ''), reason); }, function () { if (onFail) onFail(); });
+    return true;
+  }
+  window.__fallbackTour = function (reason) { if (!fallbackTour(reason)) { var b = document.getElementById('ctxLost'); if (b) b.textContent = 'Графика недоступна. Обновите страницу.'; } };
   window.__compatShow = show;
   var need = 'Нужен Chrome / Edge 91+, Safari 15+ (iOS 15+), Firefox 90+ или Яндекс Браузер свежей версии.';
   if (reason) {
-    document.addEventListener('DOMContentLoaded', function () { show('Браузер устарел', 'Причина: ' + reason + '.<br>' + need); });
+    document.addEventListener('DOMContentLoaded', function () { var msg = function () { show('Браузер устарел', 'Причина: ' + reason + '.<br>' + need); }; if (!fallbackTour(reason, msg)) msg(); });
     return;
   }
   // Если 3D-движок не стартовал (нет интернета / блокировка CDN / ошибка) — сообщаем
   setTimeout(function () {
-    if (!window.__viewerReady) show('Не удалось запустить вьювер', 'Проверь подключение к интернету (движок three.js грузится с cdn.jsdelivr.net) и обнови страницу.<br>' + need);
+    if (!window.__viewerReady) { var msg2 = function () { show('Не удалось запустить вьювер', 'Проверь подключение к интернету (движок three.js грузится с cdn.jsdelivr.net) и обнови страницу.<br>' + need); }; if (!fallbackTour('3D-движок не запустился', msg2)) msg2(); }
   }, 20000);
 })();
 </script>
@@ -1660,7 +1771,7 @@ addEventListener('keydown', e => {
 // ===== NOMA: тур по ссылке, режим зрителя, бренд =====
 const isViewer = () => document.body.classList.contains('viewer');
 const QP = new URLSearchParams(location.search), TOUR = QP.get('tour'), EDIT = QP.has('edit');
-let brand = { title: '', subtitle: '', accent: '', cover: '', cta: { label: '', url: '' }, site: { label: '', url: '' }, lead: { label: '', wa: '', tg: '', tel: '' }, id: '' }, tourBase = '';
+let brand = { title: '', subtitle: '', accent: '', cover: '', cta: { label: '', url: '' }, site: { label: '', url: '' }, lead: { label: '', wa: '', tg: '', tel: '', email: '', key: '' }, legal: { operator: '', policy: '' }, analytics: { ym: '', hook: '', note: true }, id: '' }, tourBase = '', lockHash = '';
 function hexRGB(h) { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function setAccent(h) {
   const c = hexRGB(h), st = document.documentElement.style;
@@ -1668,7 +1779,7 @@ function setAccent(h) {
   st.setProperty('--accent', '#' + h.replace('#', '')); st.setProperty('--accent-soft', `rgba(${c.join(',')},.12)`);
 }
 function applyBrand(t = {}, fromFields) {
-  brand = { title: t.title || '', subtitle: t.subtitle || '', accent: t.accent || '', cover: t.cover || '', cta: { label: t.cta?.label || '', url: t.cta?.url || '' }, site: { label: t.site?.label || '', url: t.site?.url || '' }, lead: { label: t.lead?.label || '', wa: t.lead?.wa || '', tg: t.lead?.tg || '', tel: t.lead?.tel || '' }, id: t.id || brand.id || '' };
+  brand = { title: t.title || '', subtitle: t.subtitle || '', accent: t.accent || '', cover: t.cover || '', cta: { label: t.cta?.label || '', url: t.cta?.url || '' }, site: { label: t.site?.label || '', url: t.site?.url || '' }, lead: { label: t.lead?.label || '', wa: t.lead?.wa || '', tg: t.lead?.tg || '', tel: t.lead?.tel || '', email: t.lead?.email || '', key: t.lead?.key || '' }, legal: { operator: t.legal?.operator || '', policy: t.legal?.policy || '' }, analytics: { ym: String(t.analytics?.ym || ''), hook: t.analytics?.hook || '', note: t.analytics?.note !== false }, id: t.id || brand.id || '' };
   const title = brand.title || 'Интерактивный 3D-тур';
   document.title = brand.title ? brand.title + ' — NOMA' : 'NOMA — интерактивные 3D-туры';
   $('brandTitle').textContent = title; $('brandSub').textContent = brand.subtitle || 'Интерактивный 3D-тур · NOMA';
@@ -1683,6 +1794,8 @@ function applyBrand(t = {}, fromFields) {
     $('tCtaL').value = brand.cta.label; $('tCtaU').value = brand.cta.url; $('tId').value = brand.id;
     $('tSiteL').value = brand.site.label; $('tSiteU').value = brand.site.url;
     $('tLeadL').value = brand.lead.label; $('tLeadWa').value = brand.lead.wa; $('tLeadTg').value = brand.lead.tg; $('tLeadTel').value = brand.lead.tel;
+    $('tLeadMail').value = brand.lead.email; $('tLeadKey').value = brand.lead.key; $('tLegOp').value = brand.legal.operator; $('tLegUrl').value = brand.legal.policy;
+    $('tYm').value = brand.analytics.ym; $('tHook').value = brand.analytics.hook; $('tNote').checked = brand.analytics.note;
     if (hexRGB(brand.accent)) $('tAccent').value = '#' + brand.accent.replace('#', '');
   }
   updateTourLink();
@@ -1691,9 +1804,11 @@ function brandFromFields() {
   applyBrand({ title: $('tTitle').value.trim(), subtitle: $('tSub').value.trim(), accent: brand.accent, cover: $('tCover').value.trim(),
     cta: { label: $('tCtaL').value.trim(), url: $('tCtaU').value.trim() }, id: $('tId').value.trim(),
     site: { label: $('tSiteL').value.trim(), url: $('tSiteU').value.trim() },
-    lead: { label: $('tLeadL').value.trim(), wa: $('tLeadWa').value.trim(), tg: $('tLeadTg').value.trim(), tel: $('tLeadTel').value.trim() } }, true);
+    lead: { label: $('tLeadL').value.trim(), wa: $('tLeadWa').value.trim(), tg: $('tLeadTg').value.trim(), tel: $('tLeadTel').value.trim(), email: $('tLeadMail').value.trim(), key: $('tLeadKey').value.trim() },
+    legal: { operator: $('tLegOp').value.trim(), policy: $('tLegUrl').value.trim() },
+    analytics: { ym: $('tYm').value.replace(/\D/g, ''), hook: $('tHook').value.trim(), note: $('tNote').checked } }, true);
 }
-['tTitle', 'tSub', 'tCover', 'tCtaL', 'tCtaU', 'tSiteL', 'tSiteU', 'tLeadL', 'tLeadWa', 'tLeadTg', 'tLeadTel'].forEach(id => $(id).addEventListener('input', brandFromFields));
+['tTitle', 'tSub', 'tCover', 'tCtaL', 'tCtaU', 'tSiteL', 'tSiteU', 'tLeadL', 'tLeadWa', 'tLeadTg', 'tLeadTel', 'tLeadMail', 'tLeadKey', 'tLegOp', 'tLegUrl', 'tYm', 'tHook', 'tNote'].forEach(id => $(id).addEventListener('input', brandFromFields));
 $('tAccent').addEventListener('input', e => { brand.accent = e.target.value; brandFromFields(); });
 $('tId').addEventListener('input', e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_\-]/g, ''); brandFromFields(); });
 function updateTourLink() {
@@ -1702,18 +1817,54 @@ function updateTourLink() {
   const files = [['tour.json', 'настройки тура'], [curName || 'модель.glb', 'модель']];
   if (hdrTex && hdrSrc) files.push([hdrSrc, 'HDRI']);
   if (brand.cover) files.push([brand.cover, 'обложка']);
+  files.push(['index.html', 'страница-превью для ссылок (по желанию)']);
   try { pois.forEach(p => { const f = p.plan?.file; if (f && !/^(https?:)?\/\//i.test(f) && !files.some(x => x[0] === f)) files.push([f, 'планировка — ' + p.title]); }); } catch {}
   $('tFiles').innerHTML = files.map(f => `<li><b></b> — ${f[1]}</li>`).join('');
   [...$('tFiles').children].forEach((li, i) => li.firstChild.textContent = files[i][0]);
   $('tLink').value = location.origin + location.pathname + '?tour=' + id;
+  $('tShare').value = new URL('tours/' + id + '/', location.href).href;
 }
 $('tCopy').onclick = async () => {
   try { await navigator.clipboard.writeText($('tLink').value); setStatus('Ссылка скопирована'); }
   catch { $('tLink').select(); document.execCommand?.('copy'); setStatus('Ссылка скопирована'); }
 };
-$('tSave').onclick = () => {
+const sha256 = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(x => x.toString(16).padStart(2, '0')).join('');
+async function lockValue() {
+  const v = $('tLock').value; if (v === '-') return (lockHash = '');
+  if (v) { if (!window.crypto?.subtle) { alert('Для пароля нужен https или localhost'); return lockHash; } return (lockHash = await sha256('noma:' + v)); }
+  return lockHash;
+}
+async function editorGate() {
+  if (!lockHash) return true;
+  const pw = prompt('Редактор защищён паролем. Введи пароль:'); let ok = false;
+  try { ok = !!pw && !!window.crypto?.subtle && (await sha256('noma:' + pw)) === lockHash; } catch {}
+  if (!ok) { const u = new URL(location.href); u.searchParams.delete('edit'); location.replace(u.href); }
+  return ok;
+}
+$('tShareCopy').onclick = async () => { try { await navigator.clipboard.writeText($('tShare').value); } catch { $('tShare').select(); document.execCommand?.('copy'); } setStatus('Ссылка скопирована'); };
+$('tPrevPage').onclick = () => {
+  const id = brand.id || 'house', page = location.pathname.split('/').pop(), viewer = '../../' + (page && page !== 'index.html' ? page : '');
+  const esc = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const title = brand.title || 'Интерактивный 3D-тур', desc = brand.subtitle || 'Осмотрите объект онлайн в 3D, посмотрите планировки и оставьте заявку.';
+  const pageURL = new URL('tours/' + id + '/', location.href).href;
+  const img = brand.cover ? (/^(https?:)?\/\//i.test(brand.cover) ? brand.cover : new URL('tours/' + id + '/' + brand.cover, location.href).href) : '';
+  const html = `<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(desc)}">
+<meta property="og:type" content="website"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(pageURL)}">
+${img ? `<meta property="og:image" content="${esc(img)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(img)}">` : '<meta name="twitter:card" content="summary">'}
+<meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}">
+<meta http-equiv="refresh" content="0;url=${viewer}?tour=${id}">
+</head><body style="font:16px sans-serif;padding:24px"><script>var q=location.search.slice(1);location.replace('${viewer}?tour=${id}'+(q?'&'+q:'')+location.hash);<\/script>
+<noscript><a href="${viewer}?tour=${id}">Открыть 3D-тур «${esc(title)}»</a></noscript></body></html>`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' })); a.download = 'index.html'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  setStatus(`Страница-превью → положи в tours/${id}/ (рядом с tour.json). Ссылка для рассылки: ${pageURL}` + (img ? '' : '. Добавь обложку — без неё превью будет без картинки'));
+};
+$('tSave').onclick = async () => {
   if (!window.__hasModel) return alert('Сначала открой модель');
-  const out = { noma: 1, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
+  const out = { noma: 1, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, legal: brand.legal, analytics: brand.analytics, lock: (await lockValue()) || undefined, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
   a.download = 'tour.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -1789,7 +1940,10 @@ if (TOUR) (async () => {
     if (!r.ok) throw new Error('tour');
     const t = await r.json();
     tourBase = new URL('.', abs).href;
+    lockHash = t.lock || '';
+    if (EDIT && !(await editorGate())) return;
     applyBrand({ ...t, id: /\.json/i.test(TOUR) ? '' : TOUR });
+    statsInit();
     setSplashCover(); showCoverPrev();
     if (!t.model) throw new Error('nomodel');
     if (t.hdri) {
@@ -1797,10 +1951,13 @@ if (TOUR) (async () => {
       catch { console.warn('HDRI не найден:', t.hdri); }
     }
     await openRemote(new URL(t.model, tourBase).href, t.scene || null);
+    track('model_ready', { sec: Math.round((Date.now() - ST.t0) / 1000) });
     if (!EDIT && pois.filter(p => !p.skip).length >= 2) splashWelcome(); else splashHide();
     if (EDIT) setStatus(`Тур «${brand.title || TOUR}» открыт для редактирования`);
   } catch (e) {
     console.error(e);
+    track('load_error', { m: String(e.message).slice(0, 60) });
+    if (!EDIT && !['file', 'tour', 'nomodel'].includes(e.message) && window.__fallbackTour) window.__fallbackTour('не удалось загрузить модель');
     splashError(e.message === 'file' ? LOCAL_MSG : e.message === 'tour' ? `Тур <b>${TOUR}</b> не найден.<br>Проверь, что в репозитории есть файл <b>${url}</b>.`
       : e.message === 'nomodel' ? 'В tour.json не указана модель.' : 'Не удалось загрузить модель тура.<br>Проверь имя файла модели в tour.json и что он лежит рядом.');
   }
@@ -1821,6 +1978,68 @@ else {
 }
 updateTourLink();
 
+// ===== Аналитика (Яндекс.Метрика и/или Google-таблица) =====
+const ST = { q: [], sid: Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4), vid: '', t0: Date.now(), vis: 0, since: Date.now(), maxStop: 0, stops: new Set(), done: false, inited: false, off: false };
+function statsOn() { return !!TOUR && !EDIT && ST.inited && !ST.off && !!(brand.analytics.ym || brand.analytics.hook); }
+function trackBase() {
+  const u = new URLSearchParams(location.search); let ref = ''; try { ref = document.referrer ? new URL(document.referrer).hostname : ''; } catch {}
+  return { tour: brand.id || TOUR, sid: ST.sid, vid: ST.vid, dev: matchMedia('(pointer:coarse)').matches ? 'mobile' : 'desktop', w: innerWidth, ref, us: u.get('utm_source') || '', um: u.get('utm_medium') || '', uc: u.get('utm_campaign') || '', v: '2.4' };
+}
+function track(ev, prm) {
+  try {
+    if (!statsOn()) return;
+    ST.q.push({ ts: new Date().toISOString(), ev, p: prm || {} });
+    if (brand.analytics.ym && window.ym) window.ym(+brand.analytics.ym, 'reachGoal', ev, prm || {});
+    if (ST.q.length >= 12) statsFlush();
+  } catch {}
+}
+function statsFlush() {
+  try {
+    if (!ST.q.length) return;
+    if (!brand.analytics.hook) { ST.q = []; return; }
+    const body = JSON.stringify({ base: trackBase(), events: ST.q.splice(0) });
+    if (navigator.sendBeacon && navigator.sendBeacon(brand.analytics.hook, new Blob([body], { type: 'text/plain;charset=UTF-8' }))) return;
+    fetch(brand.analytics.hook, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body });
+  } catch {}
+}
+function activeSec() { return Math.round((ST.vis + (ST.since ? Date.now() - ST.since : 0)) / 1000); }
+function sendEnd() { if (!statsOn()) return; track('session_end', { sec: activeSec(), stops: ST.stops.size, max: ST.maxStop, done: ST.done ? 1 : 0 }); statsFlush(); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (ST.since) { ST.vis += Date.now() - ST.since; ST.since = 0; } sendEnd(); } else ST.since = Date.now(); });
+addEventListener('pagehide', sendEnd);
+setInterval(statsFlush, 10000);
+function statsInit() {
+  if (ST.inited || !TOUR || EDIT) return;
+  let pref = ''; try { pref = localStorage.getItem('nomaStats') || ''; } catch {}
+  if (pref === 'off') { ST.off = true; return; }
+  if (!(brand.analytics.ym || brand.analytics.hook)) return;
+  try { ST.vid = localStorage.getItem('nomaVid') || ''; if (!ST.vid) { ST.vid = Math.random().toString(36).slice(2, 12); localStorage.setItem('nomaVid', ST.vid); } } catch {}
+  const id = +brand.analytics.ym;
+  if (id) {
+    (function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); }; m[i].l = 1 * new Date(); k = e.createElement(t); a = e.getElementsByTagName(t)[0]; k.async = 1; k.src = r; a.parentNode.insertBefore(k, a); })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+    window.ym(id, 'init', { clickmap: false, trackLinks: false, accurateTrackBounce: true, webvisor: false });
+  }
+  ST.inited = true;
+  if (brand.analytics.note && pref !== 'ok') { $('statsNote').classList.add('show'); setTimeout(() => $('statsNote').classList.remove('show'), 20000); }
+  track('tour_open');
+}
+$('snOk').onclick = () => { try { localStorage.setItem('nomaStats', 'ok'); } catch {} $('statsNote').classList.remove('show'); };
+$('snOff').onclick = () => { try { localStorage.setItem('nomaStats', 'off'); } catch {} ST.off = true; ST.q = []; $('statsNote').classList.remove('show'); };
+$('siteBtn').addEventListener('click', () => track('site_click'));
+$('cta').addEventListener('click', () => track('cta_click'));
+
+// ===== Устойчивость графики =====
+let ctxLost = false, ctxTimer = 0;
+renderer.domElement.addEventListener('webglcontextlost', e => {
+  e.preventDefault(); ctxLost = true; $('ctxLost').textContent = 'Графика приостановлена системой — восстанавливаем…'; $('ctxLost').classList.add('show'); track('ctx_lost');
+  clearTimeout(ctxTimer);
+  ctxTimer = setTimeout(() => {
+    if (!ctxLost) return;
+    if (window.__fallbackTour && TOUR && !EDIT) { $('ctxLost').classList.remove('show'); window.__fallbackTour('графика остановилась и не восстановилась'); }
+    else $('ctxLost').textContent = 'Графика остановилась. Обновите страницу.';
+  }, 7000);
+});
+renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; clearTimeout(ctxTimer); $('ctxLost').classList.remove('show'); track('ctx_restored'); });
+
 // ===== Тур с гидом =====
 const G = { on: false, playing: false, ended: false, i: 0, elapsed: 0, stops: [] };
 let todAnim = null;
@@ -1828,6 +2047,7 @@ const fmtH = h => { let m = Math.round((((h % 24) + 24) % 24) * 60); return Stri
 const animToken = i => clips[i]?.name || '#' + i;
 const animIndex = n => n.startsWith('#') && !clips.some(c => c.name === n) ? +n.slice(1) : clips.findIndex(c => c.name === n);
 function startGuided(from = 0) {
+  if (from === 0) track('tour_start');
   const st = pois.filter(p => !p.skip);
   if (st.length < 2) return setStatus('Для тура нужно минимум 2 точки с отметкой «Остановка тура»');
   if (fp.on) exitFP();
@@ -1843,6 +2063,7 @@ function goStop(k) {
   G.i = Math.max(0, Math.min(G.stops.length - 1, k)); G.elapsed = 0;
   if (G.ended) { G.ended = false; setPlaying(true); }
   const p = G.stops[G.i];
+  ST.stops.add(G.i); ST.maxStop = Math.max(ST.maxStop, G.i + 1); track('stop', { i: G.i + 1, t: p.title });
   openPoi(p, true);
   if (p.tod != null && isSun()) { let d = ((p.tod - todVal + 36) % 24) - 12; todAnim = { a: todVal, d, k: 0 }; }
   if (p.anim && mixer) { const idx = p.anim.map(animIndex).filter(i => i >= 0 && i < clips.length); if (idx.length) playClips(new Set(idx)); }
@@ -1856,7 +2077,7 @@ function setPlaying(v) {
   $('tbPlay').title = G.ended ? 'Пройти тур заново' : v ? 'Пауза' : 'Продолжить';
 }
 function endGuided() {
-  G.ended = true; setPlaying(false);
+  G.ended = true; setPlaying(false); ST.done = true; track('tour_complete', { sec: activeSec() });
   $('tbCnt').parentNode.classList.add('end');
   $('tbCnt').textContent = 'Тур завершён'; if (leadOn()) $('leadFab').classList.add('pulse'); $('tbTitle').textContent = leadOn() ? `Понравилось? Нажмите «${brand.lead.label || 'Оставить заявку'}» вверху справа` : brand.cta?.url ? `Есть вопросы — нажмите «${brand.cta.label || 'Связаться'}»` : 'Осмотритесь самостоятельно';
 }
@@ -2032,7 +2253,7 @@ function updatePins() {
 function openPoi(p, keepTour) {
   if (pathT !== null) return;
   if (!keepTour) { if (G.on && G.stops.includes(p)) return goStop(G.stops.indexOf(p)); stopTour(); }
-  poiActive = p; cardImg = 0;
+  poiActive = p; cardImg = 0; if (!G.on) track('poi_open', { t: p.title });
   flyTo(p.cam.p.clone(), p.cam.t.clone());
   fillCard(); document.body.classList.add('cardOpen'); renderPois();
 }
@@ -2041,7 +2262,7 @@ const okUrl = u => /^(https?:|tel:|mailto:|tg:|whatsapp:|viber:)/i.test(u || '')
 const waDigits = s => (s || '').replace(/\D/g, '');
 const tgName = s => (s || '').replace(/^.*t\.me\//i, '').replace(/^@/, '').replace(/[^\w]/g, '');
 const planLocal = new Map();
-function leadOn() { const l = brand.lead || {}; return waDigits(l.wa).length >= 7 || !!tgName(l.tg) || waDigits(l.tel).length >= 5; }
+function leadOn() { const l = brand.lead || {}; return waDigits(l.wa).length >= 7 || !!tgName(l.tg) || waDigits(l.tel).length >= 5 || !!l.key || /@/.test(l.email || ''); }
 function planURL(f) { return planLocal.get(f) || (/^(https?:)?\/\//i.test(f) ? f : tourBase ? new URL(f, tourBase).href : f); }
 function specsParse(t) { return (t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ['', l]; }); }
 function pauseTour() { if (G.on && G.playing) setPlaying(false); }
@@ -2063,42 +2284,107 @@ function fillSales(p) {
   });
   const ac = $('cActs'); ac.innerHTML = '';
   if (leadOn()) { const b = actBtn('button', 'req', 'chat', brand.lead.label || 'Оставить заявку'); b.onclick = () => openLead(p); ac.appendChild(b); }
-  if (p.plan?.file) { const a = actBtn('a', 'pdf', 'file', p.plan.label || 'Планировка (PDF)'); a.href = planURL(p.plan.file); a.target = '_blank'; a.rel = 'noopener'; a.onclick = pauseTour; ac.appendChild(a); }
-  if (okUrl(p.link?.url)) { const a = actBtn('a', 'lnk', 'link', p.link.label || 'Подробнее'); a.href = p.link.url; a.target = '_blank'; a.rel = 'noopener'; a.onclick = pauseTour; ac.appendChild(a); }
+  if (p.plan?.file) { const a = actBtn('a', 'pdf', 'file', p.plan.label || 'Планировка (PDF)'); a.href = planURL(p.plan.file); a.target = '_blank'; a.rel = 'noopener'; a.onclick = () => { pauseTour(); track('pdf_open', { t: p.title, f: p.plan.file }); }; ac.appendChild(a); }
+  if (okUrl(p.link?.url)) { const a = actBtn('a', 'lnk', 'link', p.link.label || 'Подробнее'); a.href = p.link.url; a.target = '_blank'; a.rel = 'noopener'; a.onclick = () => { pauseTour(); track('link_click', { t: p.title, u: p.link.url }); }; ac.appendChild(a); }
 }
-// Заявка в WhatsApp / Telegram (без сервера)
-const leadEl = $('lead'); let leadCtx = null;
+// Заявка: почта (Web3Forms) + WhatsApp / Telegram. Согласие на обработку данных обязательно.
+const leadEl = $('lead'); let leadCtx = null, leadBusy = false;
+function tourUrl() { const u = new URL(location.href); u.searchParams.delete('edit'); u.hash = ''; return u.href; }
+function renderConsent() {
+  const t = $('lConsentTxt'); t.textContent = '';
+  const op = brand.legal.operator || brand.title || 'организатору тура';
+  t.append('Я даю согласие оператору «' + op + '» на обработку моих персональных данных (имя, телефон, комментарий) для связи со мной по объекту. ');
+  let pol;
+  if (/^https?:/i.test(brand.legal.policy || '')) { pol = document.createElement('a'); pol.href = brand.legal.policy; pol.target = '_blank'; pol.rel = 'noopener'; }
+  else { pol = document.createElement('button'); pol.type = 'button'; pol.className = 'lnkb'; pol.onclick = e => { e.preventDefault(); openPolicy(); }; }
+  pol.textContent = 'Политика обработки данных'; t.append(pol);
+}
+function openPolicy() {
+  const op = brand.legal.operator || brand.title || 'Организатор тура', l = brand.lead || {}, contact = [l.email, l.tel].filter(Boolean).join(', ') || 'указанным на этой странице';
+  const P = [
+    ['Оператор', op + '. Контакты для обращений: ' + contact + '.'],
+    ['Какие данные', 'имя, номер телефона и текст комментария, которые вы указываете в форме, а также обезличенные данные о просмотре тура (тип устройства, действия в туре), если включена статистика.'],
+    ['Зачем', 'чтобы связаться с вами по выбранному объекту, ответить на вопросы и подготовить предложение.'],
+    ['Основание', 'ваше согласие, которое вы даёте, отмечая галочку перед отправкой заявки.'],
+    ['Что делаем с данными', 'получаем, записываем, храним, используем для связи с вами, передаём сервису приёма заявок (электронная почта оператора), удаляем после достижения цели.'],
+    ['Срок', 'до достижения цели обработки или до отзыва согласия.'],
+    ['Ваши права', 'вы можете запросить сведения о своих данных, их уточнение или удаление и отозвать согласие — напишите по контактам выше.']
+  ];
+  const b = $('policyBody'); b.innerHTML = '';
+  P.forEach(([h, t]) => { const p = document.createElement('p'), s = document.createElement('b'); s.textContent = h + '. '; p.append(s, t); b.appendChild(p); });
+  $('policy').classList.add('show');
+}
+$('policyClose').onclick = () => $('policy').classList.remove('show');
+$('policy').onclick = e => { if (e.target === $('policy')) $('policy').classList.remove('show'); };
 function openLead(p) {
-  leadCtx = p || null; pauseTour();
-  const l = brand.lead, wa = waDigits(l.wa).length >= 7, tg = !!tgName(l.tg), tel = waDigits(l.tel).length >= 5;
+  leadCtx = p || null; pauseTour(); track('lead_open', { t: p ? p.title : '' });
+  const l = brand.lead, wa = waDigits(l.wa).length >= 7, tg = !!tgName(l.tg), tel = waDigits(l.tel).length >= 5, mail = /@/.test(l.email || ''), canSend = !!l.key;
   $('leadTitle').textContent = l.label || 'Оставить заявку';
   $('leadSub').textContent = p ? 'Объект: ' + p.title + (p.price ? ' · ' + p.price : '') : (brand.title || '');
   $('leadSub').style.display = $('leadSub').textContent ? '' : 'none';
+  $('lSend').style.display = canSend ? '' : 'none';
+  $('lOr').style.display = canSend && (wa || tg || tel || mail) ? '' : 'none';
   $('lWa').style.display = wa ? '' : 'none'; $('lTg').style.display = tg ? '' : 'none'; $('lTel').style.display = tel ? '' : 'none';
+  $('lMail').style.display = !canSend && mail ? '' : 'none';
   $('lTel').href = tel ? 'tel:' + l.tel.replace(/[^\d+]/g, '') : '#';
-  $('lHint').textContent = 'Откроется чат с готовым текстом — останется нажать «Отправить».';
+  $('lHint').textContent = canSend ? 'Заявка придёт менеджеру на почту, мы свяжемся с вами.' : 'Откроется чат или письмо с готовым текстом — останется нажать «Отправить».';
+  $('lErr').style.display = 'none'; $('lConsent').checked = false; renderConsent();
+  $('lForm').style.display = ''; $('lOk').style.display = 'none';
   $('leadFab').classList.remove('pulse'); leadEl.classList.add('show');
   if (!matchMedia('(pointer:coarse)').matches) $('lName').focus();
 }
 function closeLead() { leadEl.classList.remove('show'); }
+function leadGuard(needPhone) {
+  const er = $('lErr'), fail = m => { er.textContent = m; er.style.display = ''; return false; };
+  if (!$('lConsent').checked) return fail('Отметьте согласие на обработку персональных данных.');
+  if (needPhone && waDigits($('lPhone').value).length < 7) return fail('Укажите телефон, чтобы мы могли связаться с вами.');
+  er.style.display = 'none'; return true;
+}
 function leadText() {
   const n = $('lName').value.trim(), ph = $('lPhone').value.trim(), m = $('lMsg').value.trim(), p = leadCtx;
-  const u = new URL(location.href); u.searchParams.delete('edit'); u.hash = '';
   const L = ['Здравствуйте! Заявка с 3D-тура' + (brand.title ? ' «' + brand.title + '»' : '') + '.'];
   if (p) L.push('Интересует: ' + p.title + [p.area, p.price].filter(Boolean).map(x => ' · ' + x).join(''));
   if (n) L.push('Имя: ' + n); if (ph) L.push('Телефон: ' + ph); if (m) L.push('Комментарий: ' + m);
-  L.push(u.href); return L.join('\n');
+  L.push('Согласие на обработку персональных данных: да'); L.push(tourUrl()); return L.join('\n');
 }
-$('lWa').onclick = () => { window.open('https://wa.me/' + waDigits(brand.lead.wa) + '?text=' + encodeURIComponent(leadText()), '_blank', 'noopener'); };
+async function sendLeadEmail() {
+  const p = leadCtx;
+  const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({
+    access_key: brand.lead.key, subject: 'Заявка с 3D-тура' + (brand.title ? ' «' + brand.title + '»' : '') + (p ? ' — ' + p.title : ''), from_name: 'NOMA 3D-тур',
+    name: $('lName').value.trim() || 'Не указано', phone: $('lPhone').value.trim(), comment: $('lMsg').value.trim(),
+    object: p ? p.title : '', price: p?.price || '', area: p?.area || '', tour_url: tourUrl(),
+    consent: 'Да, ' + new Date().toISOString() + ', оператор: ' + (brand.legal.operator || brand.title || ''), botcheck: '' }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.success === false) throw new Error(j.message || 'HTTP ' + r.status);
+}
+$('lSend').onclick = async () => {
+  if (leadBusy || !leadGuard(true)) return;
+  leadBusy = true; const b = $('lSend'), html = b.innerHTML; b.disabled = true; b.textContent = 'Отправляем…';
+  try { await sendLeadEmail(); track('lead_submit', { ch: 'email', t: leadCtx ? leadCtx.title : '' }); $('lForm').style.display = 'none'; $('leadSub').style.display = 'none'; $('lOk').style.display = ''; }
+  catch (e) { console.error(e); track('lead_error', { m: String(e.message || e).slice(0, 80) }); const er = $('lErr'); er.textContent = 'Не удалось отправить. Проверьте интернет или напишите нам напрямую — кнопки ниже.'; er.style.display = ''; }
+  finally { leadBusy = false; b.disabled = false; b.innerHTML = html; }
+};
+$('lOkClose').onclick = closeLead;
+$('lWa').onclick = () => { if (!leadGuard(false)) return; track('lead_submit', { ch: 'wa', t: leadCtx ? leadCtx.title : '' }); window.open('https://wa.me/' + waDigits(brand.lead.wa) + '?text=' + encodeURIComponent(leadText()), '_blank', 'noopener'); };
 $('lTg').onclick = () => {
-  const t = leadText(); try { navigator.clipboard.writeText(t).catch(() => {}); } catch {}
+  if (!leadGuard(false)) return;
+  const t = leadText(); track('lead_submit', { ch: 'tg', t: leadCtx ? leadCtx.title : '' }); try { navigator.clipboard.writeText(t).catch(() => {}); } catch {}
   window.open('https://t.me/' + tgName(brand.lead.tg) + '?text=' + encodeURIComponent(t), '_blank', 'noopener');
   $('lHint').textContent = 'Если текст не появился в чате — он скопирован, просто вставь его.';
+};
+$('lMail').onclick = e => {
+  if (!leadGuard(false)) { e.preventDefault(); return; }
+  track('lead_submit', { ch: 'mailto', t: leadCtx ? leadCtx.title : '' });
+  e.currentTarget.href = 'mailto:' + brand.lead.email.trim() + '?subject=' + encodeURIComponent('Заявка с 3D-тура' + (brand.title ? ' «' + brand.title + '»' : '')) + '&body=' + encodeURIComponent(leadText());
 };
 $('leadFab').onclick = () => openLead(document.body.classList.contains('cardOpen') ? poiActive : null);
 $('leadClose').onclick = closeLead;
 leadEl.onclick = e => { if (e.target === leadEl) closeLead(); };
-addEventListener('keydown', e => { if (e.key === 'Escape' && leadEl.classList.contains('show')) { e.stopImmediatePropagation(); closeLead(); } }, true);
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('policy').classList.contains('show')) { e.stopImmediatePropagation(); $('policy').classList.remove('show'); }
+  else if (leadEl.classList.contains('show')) { e.stopImmediatePropagation(); closeLead(); }
+}, true);
 function fillCard() {
   const p = poiActive; if (!p) return;
   fillSales(p);
@@ -2367,6 +2653,7 @@ function setFly(v) {
 function enterFP() {
   if (G.on) closeCard();
   if (!model || fp.on) return;
+  track('walk_start');
   if (pathT !== null) stopPath();
   fly = null; closeCard(); cancelPlace();
   fp.minY = new THREE.Box3().setFromObject(model).min.y;
@@ -2464,6 +2751,18 @@ function setLite(v) {
   try { localStorage.setItem('viewerLite', v ? '1' : '0'); } catch (e) {}
 }
 try { if (localStorage.getItem('viewerLite') === '1') setLite(true); } catch (e) {}
+// слабое устройство: лёгкая графика сразу (без запоминания — можно выключить кнопкой)
+try { if (localStorage.getItem('viewerLite') === null && ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2))) { fp.lite = true; $('liteBtn').classList.add('on'); applyLiteGfx(true); } } catch (e) {}
+let fpsAcc = 0, fpsN = 0, fpsGrace = 0, fpsOk = 0, fpsDone = false;
+function autoLiteWatch(dt) {
+  if (fpsDone || fp.lite || document.hidden || !window.__hasModel) return;
+  if ((fpsGrace += dt) < 6 || dt > 0.5) return;
+  fpsAcc += dt; fpsN++;
+  if (fpsAcc < 4) return;
+  const fps = fpsN / fpsAcc; fpsAcc = fpsN = 0;
+  if (fps < 22) { fpsDone = true; setLite(true); setStatus('Включена лёгкая графика для плавной работы. Вернуть — кнопка «Лёгкая графика».'); track('auto_lite', { fps: Math.round(fps) }); }
+  else if (++fpsOk >= 2) fpsDone = true;
+}
 $('liteBtn').onclick = () => { setLite(!fp.lite); setStatus(fp.lite ? 'Лёгкая графика: включена' : 'Лёгкая графика: выключена'); };
 let liteShadowT = 0;
 function nudgeSpeed(k) { fp.speed = THREE.MathUtils.clamp(fp.speed * k, SPEED_MIN, SPEED_MAX); showSpeed(true); }
@@ -2541,6 +2840,8 @@ function updateClip() {
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
+  if (ctxLost) return;
+  autoLiteWatch(dt);
   if (mixer && playing) mixer.update(dt);
   guidedTick(dt);
   if (action && !scrubbing) {
