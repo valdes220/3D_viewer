@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>NOMA — интерактивные 3D-туры</title>
-<meta name="generator" content="NOMA 3D Tours v1.9">
+<meta name="generator" content="NOMA 3D Tours v2.3">
 <!-- Логотип: положи файлы рядом с index.html в репозитории -->
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -461,11 +461,116 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
 #splash .sp-foot{position:absolute;left:0;right:0;bottom:calc(18px + var(--sab));display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;opacity:.55}
 #splash .sp-foot .nlogo{width:14px;height:14px;display:inline-block}
 @media(max-width:600px){#splash h1{font-size:24px}#splash .sp-logo{width:60px;height:60px}}
+
+/* ===== v2.0 Тур с гидом ===== */
+body:not(.hasTour) #tourBtn{display:none}
+#tourBar{left:50%;transform:translateX(-50%);bottom:calc(16px + var(--sab));width:min(640px,calc(100% - 32px));padding:8px 10px 10px;display:none;flex-direction:column;gap:6px}
+body.touring #tourBar{display:flex}
+body.touring #toolbar,body.touring #dock,body.touring #pillD,body.touring #hint{display:none!important}
+#tSegs{display:flex;gap:4px;padding:0 2px}
+#tSegs .seg{flex:1;min-width:0;height:16px;padding:0;background:none;border-radius:0;display:flex;align-items:center}
+#tSegs .seg:hover{background:none}#tSegs .seg:active{transform:none}
+#tSegs .seg i{display:block;position:relative;width:100%;height:4px;border-radius:2px;background:var(--ctl-h);overflow:hidden}
+#tSegs .seg i b{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:2px}
+#tSegs .seg.done i b{width:100%}
+#tSegs .seg:hover i{background:rgba(118,118,128,.32)}
+.tb-row{display:flex;align-items:center;gap:6px}
+.tb-row>button{width:40px;padding:0;flex-shrink:0}
+#tbExit{width:auto;padding:0 12px;gap:6px}
+.tb-txt{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;padding:0 6px;white-space:nowrap;overflow:hidden}
+#tbCnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
+#tbTitle{overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:14px}
+body.touring #poiCard .cfoot{display:none}
+@media(max-width:600px){#tbExit .t{display:none}#tbExit{width:40px;padding:0}}
+@media(max-width:820px){
+  #tourBar{width:calc(100% - 16px);bottom:calc(8px + var(--sab))}
+  body.touring #poiCard{bottom:calc(104px + var(--sab));max-height:50vh;max-height:50dvh}
+}
+@media(max-height:520px) and (min-width:560px){
+  #tourBar{left:calc(8px + var(--sal));transform:none;bottom:calc(8px + var(--sab));width:min(560px,calc(100% - 16px))}
+  body:not(.noL) #tourBar{width:min(560px,calc(100% - 376px))}
+  body.touring #poiCard{bottom:auto;max-height:calc(100% - 172px - var(--sat) - var(--sab))}
+}
+#splash .sp-go{display:none;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+#splash.welcome .sp-go{display:flex}
+#splash.welcome .sp-bar,#splash.welcome .sp-pct{display:none}
+#splash .sp-go button{height:50px;padding:0 24px;border-radius:25px;border:0;font:600 15px/1 var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+#spStart{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+#spStart svg{width:20px;height:20px}
+#spFree{background:rgba(127,127,127,.16);color:inherit}
+#splash.cover #spFree{background:rgba(255,255,255,.2);color:#fff}
+#splash .sp-meta{display:none;margin-top:12px;font-size:13px;opacity:.6}
+#splash.welcome .sp-meta{display:block}
+.camstate.small{margin-top:6px}
+
+/* ===== v2.1 ===== */
+body.viewer #help .e,body:not(.viewer) #help .g{display:none}
+.tb-txt.end{flex-direction:column;align-items:flex-start;gap:1px;white-space:normal;line-height:1.25}
+.tb-txt.end #tbTitle{font-size:13px;font-weight:500;color:var(--muted);white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tb-txt.end #tbCnt{font-size:13px;font-weight:600;color:var(--text)}
+.poi-item .mv{width:28px!important}
+.poi-item .mv:disabled,.krow .mv:disabled{opacity:.25;pointer-events:none}
+.poi-item .s.off{color:#c0392b}
+.krow .mv{width:28px;padding:0!important;flex-shrink:0}
+.cover-row{display:flex;gap:6px}.cover-row .inp{flex:1;min-width:0}.cover-row button{flex:0 0 auto}
+#tCoverPrev{display:none;margin-top:8px;width:100%;aspect-ratio:16/9;border-radius:10px;background:#ddd center/cover no-repeat;position:relative}
+#tCoverPrev.on{display:block}
+#tFiles{margin:8px 0 0;padding-left:18px;font-size:12px;color:var(--muted);line-height:1.6}
+#tFiles b{color:var(--text)}
+
+/* ===== v2.2 ===== */
+body.viewer #reset{display:none!important}
+#splash .sp-meta{display:none!important}
+.krow{border-left:4px solid var(--kc,transparent);padding-left:6px;border-radius:4px}
+.krow .go{gap:8px}
+.krow .kdot{width:10px;height:10px;border-radius:50%;background:var(--kc);flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+/* ===== v2.3 Продажи: заявка, планировка PDF, характеристики ===== */
+#actions{right:calc(16px + var(--sar,0px));top:calc(16px + var(--sat,0px));display:none;align-items:center;gap:8px;z-index:20}
+body.viewer.hasLead #actions,body.viewer.hasSite #actions{display:flex}
+body.fp #actions{display:none!important}
+#leadFab{display:none;height:44px;padding:0 20px;border-radius:22px;background:var(--accent);color:#fff;font:600 15px/1 var(--font);box-shadow:0 8px 24px rgba(0,0,0,.22);gap:8px}
+body.hasLead #leadFab{display:inline-flex}
+#leadFab:hover{background:var(--accent);filter:brightness(1.08)}
+#leadFab.pulse{animation:fabp 1.6s ease-in-out 3}
+@keyframes fabp{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.22),0 0 0 0 var(--accent-soft)}50%{box-shadow:0 8px 24px rgba(0,0,0,.22),0 0 0 16px transparent}}
+#siteBtn{display:none;height:44px;padding:0 16px;border-radius:22px;align-items:center;justify-content:center;gap:8px;color:var(--text);text-decoration:none;font:600 14px/1 var(--font);white-space:nowrap}
+body.hasSite #siteBtn{display:inline-flex}
+#siteBtn:hover{background:var(--glass-strong)}
+@media(max-width:820px){
+  #actions{top:calc(64px + var(--sat,0px));right:calc(8px + var(--sar,0px))}
+  #siteBtn{width:44px;padding:0}#siteBtn .t{display:none}
+}
+.cmeta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.cmeta:empty,.cspecs:empty,.cacts:empty{display:none}
+.cmeta .chip{padding:5px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font:650 14px/1.2 var(--font)}
+.cmeta .chip.pr{font-size:17px}
+.cspecs{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:13.5px;padding-top:12px;border-top:1px solid var(--hair)}
+.cspecs dt{color:var(--muted)}
+.cspecs dd{margin:0;font-weight:600;text-align:right}
+.cacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.cacts a,.cacts button{height:42px;padding:0 14px;border-radius:11px;font:600 14px/1 var(--font);display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;white-space:nowrap;border:0;cursor:pointer}
+.cacts .req{background:var(--accent);color:#fff;flex:1 1 100%}
+.cacts .req:hover{background:var(--accent);filter:brightness(1.08)}
+.cacts .pdf{background:var(--text);color:#fff;flex:1 1 auto}
+.cacts .lnk{background:var(--ctl);color:var(--text);flex:1 1 auto}
+.cacts .lnk:hover{background:var(--ctl-h)}
+#lead{position:fixed;top:0;right:0;bottom:0;left:0;z-index:85;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,10,14,.35);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#lead.show{display:flex}
+#lead .box{position:relative;width:min(420px,100%);max-height:100%;overflow:auto;padding:22px 20px 18px;color:var(--text);background:rgba(255,255,255,.93);-webkit-overflow-scrolling:touch}
+#lead h2{margin:0 0 4px;font-size:21px;font-weight:650;padding-right:44px}
+#lead .sub{margin:0 0 16px;font-size:13px;color:var(--muted)}
+#leadClose{position:absolute;top:12px;right:12px;width:36px;padding:0;border-radius:50%}
+#lead .send{display:grid;gap:8px;margin-top:18px}
+#lead .big{height:50px;border-radius:12px;font:600 15px/1 var(--font);color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;width:100%}
+#lead .wa{background:#25D366}#lead .tg{background:#229ED9}
+#lead .tel{background:var(--ctl);color:var(--text)}
+#lead .big:hover{filter:brightness(1.06)}
+#lead .big svg.ic{width:20px;height:20px}
 </style>
 </head>
 <body>
 <div id="viewer"></div>
-<div id="splash"><div class="sp-box"><div class="sp-logo"><span class="nlogo"></span></div><h1 id="spTitle">NOMA</h1><p id="spSub">Интерактивный 3D-тур</p><div class="sp-bar ind" id="spBar"><i id="spFill"></i></div><div class="sp-pct" id="spPct">Загрузка…</div><div class="sp-err" id="spErr"></div></div><div class="sp-foot"><span class="nlogo"></span>Создано в NOMA</div></div>
+<div id="splash"><div class="sp-box"><div class="sp-logo"><span class="nlogo"></span></div><h1 id="spTitle">NOMA</h1><p id="spSub">Интерактивный 3D-тур</p><div class="sp-bar ind" id="spBar"><i id="spFill"></i></div><div class="sp-pct" id="spPct">Загрузка…</div><div class="sp-err" id="spErr"></div><div class="sp-go"><button id="spStart"><i data-ic="play"></i>Начать тур</button><button id="spFree">Осмотреть самостоятельно</button></div><div class="sp-meta" id="spMeta"></div></div><div class="sp-foot"><span class="nlogo"></span>Создано в NOMA</div></div>
 <script>(function(){var p=new URLSearchParams(location.search);if(p.get('tour')||p.get('model')){document.getElementById('splash').className='show';if(p.get('tour')&&!p.has('edit'))document.body.classList.add('viewer','noL');}})();</script>
 <div id="ui">
   <div id="pins"></div>
@@ -473,7 +578,7 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
   <article id="poiCard" class="glass" aria-live="polite">
     <button id="cardClose" title="Закрыть (Esc)"><i data-ic="close"></i></button>
     <div class="gallery" id="cGal"><img id="cImg" alt=""><button class="nav l" id="cPrevImg"><i data-ic="left"></i></button><button class="nav r" id="cNextImg"><i data-ic="right"></i></button><div class="dots" id="cDots"></div></div>
-    <div class="cbody"><div class="ctag"><i id="cDot"></i><span id="cSub"></span></div><h2 id="cTitle"></h2><p class="cdesc" id="cDesc"></p></div>
+    <div class="cbody"><div class="ctag"><i id="cDot"></i><span id="cSub"></span></div><h2 id="cTitle"></h2><div class="cmeta" id="cMeta"></div><p class="cdesc" id="cDesc"></p><dl class="cspecs" id="cSpecs"></dl><div class="cacts" id="cActs"></div></div>
     <div class="cfoot"><span class="cnt" id="cCnt">1 / 1</span><button id="cPrev" title="Предыдущая (←)"><i data-ic="left"></i></button><button id="cTour" title="Экскурсия по точкам"><i data-ic="play"></i></button><button id="cNext" title="Следующая (→)"><i data-ic="right"></i></button><button id="cEdit" title="Редактировать"><i data-ic="edit"></i> Изменить</button></div>
   </article>
   <div id="fileChip" class="glass">
@@ -482,6 +587,8 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
     <a id="cta" target="_blank" rel="noopener" href="#">Связаться</a>
     <label class="file-label" for="file"><i data-ic="folder"></i> Открыть</label><input id="file" type="file" accept=".glb,.gltf,.json,.bin,.png,.jpg,.jpeg,.webp,.ktx2,.hdr,.exr" multiple title="GLB, или GLTF вместе с .bin и текстурами, .json сцены, .hdr/.exr">
   </div>
+
+  <div id="actions"><a id="siteBtn" class="glass" target="_blank" rel="noopener" href="#"><i data-ic="globe"></i><span class="t" id="siteLab">Сайт проекта</span></a><button id="leadFab"><i data-ic="chat"></i><span id="leadFabTxt">Оставить заявку</span></button></div>
 
   <aside id="inspector" class="glass">
     <div class="tabs" role="tablist">
@@ -599,10 +706,32 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
             <div class="row" style="margin-top:8px"><input id="edUrl" class="inp" type="url" placeholder="или ссылка на фото…" style="flex:1"><button id="edUrlAdd" style="flex:0 0 auto">Добавить</button></div>
           </div>
           <div class="sec">
+            <h4>Продажа</h4>
+            <div class="field"><label>Цена</label><input id="edPrice" class="inp" type="text" maxlength="40" placeholder="12,4 млн ₽"></div>
+            <div class="field"><label>Площадь</label><input id="edArea" class="inp" type="text" maxlength="30" placeholder="86 м²"></div>
+            <div class="field"><label>Характеристики <span style="font-weight:400">по строке: «Название: значение»</span></label><textarea id="edSpecs" class="inp" rows="4" placeholder="Спальни: 3&#10;Этаж: 4 из 9&#10;Отделка: чистовая"></textarea></div>
+          </div>
+          <div class="sec">
+            <h4>Планировка и ссылки</h4>
+            <div class="field"><label>PDF с планировкой</label><div class="cover-row"><input id="edPlan" class="inp" type="text" placeholder="plan-3k.pdf или https://…"><button id="edPlanPick" title="Выбрать PDF"><i data-ic="file"></i> Выбрать</button><button id="edPlanClr" title="Убрать PDF"><i data-ic="close"></i></button></div><input id="edPlanIn" type="file" accept="application/pdf,.pdf"></div>
+            <div class="field"><label>Название кнопки PDF</label><input id="edPlanL" class="inp" type="text" maxlength="30" placeholder="Планировка (PDF)"></div>
+            <div class="field"><label>Своя кнопка — текст</label><input id="edLinkL" class="inp" type="text" maxlength="30" placeholder="Забронировать"></div>
+            <div class="field"><label>Своя кнопка — ссылка</label><input id="edLinkU" class="inp" type="text" placeholder="https://… · tel:+7… · https://t.me/…"></div>
+            <p class="hint-s">PDF положи в папку тура рядом с tour.json — в карточке появится кнопка. Ссылка может вести на сайт, бронирование, Telegram…</p>
+          </div>
+          <div class="sec">
             <h4>Камера и положение</h4>
             <div class="row"><button id="edCam"><i data-ic="photo"></i> Запомнить вид</button><button id="edGo" style="flex:0 0 auto" title="Подлететь к точке"><i data-ic="play"></i></button></div>
             <p class="camstate">Поставь камеру так, как точка должна выглядеть при клике, и нажми «Запомнить вид».</p>
             <button id="edMove" class="wide" style="margin-top:8px"><i data-ic="target"></i> Переставить точку</button>
+          </div>
+          <div class="sec">
+            <h4>Тур с гидом</h4>
+            <div class="chips"><button id="edInTour" class="on" style="grid-column:span 2">Остановка тура</button></div>
+            <div class="field" style="margin-top:12px"><label>Длительность остановки <b id="edStayV">8 с</b></label><input id="edStay" type="range" min="3" max="30" step="1" value="8"></div>
+            <div class="field"><label>Время суток <b id="edTodV">не менять</b></label><div class="row"><button id="edTod">Запомнить текущее</button><button id="edTodClr" style="flex:0 0 44px" title="Не менять"><i data-ic="close"></i></button></div></div>
+            <div class="field" id="edAnimF"><label>Анимация на остановке</label><select id="edAnim" aria-label="Анимация на остановке"><option value="">Не менять</option></select></div>
+            <p class="camstate small">Порядок остановок — как в списке точек. Время суток работает при освещении «Солнце».</p>
           </div>
           <div class="sec"><button id="edDone" class="primary wide"><i data-ic="check"></i> Готово</button></div>
         </div>
@@ -615,7 +744,7 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
           <div class="field"><label>Название объекта</label><input id="tTitle" class="inp" type="text" maxlength="80" placeholder="Дом у озера"></div>
           <div class="field"><label>Подзаголовок</label><input id="tSub" class="inp" type="text" maxlength="120" placeholder="Коттедж 180 м² · Подмосковье"></div>
           <div class="field"><label>Цвет акцента</label><input id="tAccent" class="inp" type="color" value="#2783de"></div>
-          <div class="field"><label>Обложка заставки <span style="font-weight:400">необязательно</span></label><input id="tCover" class="inp" type="text" placeholder="cover.jpg — файл в папке тура"></div>
+          <div class="field"><label>Обложка заставки <span style="font-weight:400">необязательно</span></label><div class="cover-row"><input id="tCover" class="inp" type="text" placeholder="cover.jpg"><button id="tCoverPick" title="Выбрать картинку"><i data-ic="image"></i> Выбрать</button><button id="tCoverClr" title="Убрать обложку" style="width:36px;padding:0"><i data-ic="close"></i></button></div><input id="tCoverIn" type="file" accept="image/jpeg,image/webp,image/png" hidden><div id="tCoverPrev"></div><p class="hint-s">JPG или WebP, <b>1920×1080</b> (16:9), до ~500 КБ. Главное держи в центре — на телефоне края обрезаются. Файл положи в папку тура рядом с tour.json.</p></div>
         </div>
         <div class="sec">
           <h4>Кнопка связи</h4>
@@ -624,11 +753,25 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
           <p class="hint-s">Пустая ссылка — кнопки не будет.</p>
         </div>
         <div class="sec">
+          <h4>Сайт проекта</h4>
+          <div class="field"><label>Текст кнопки</label><input id="tSiteL" class="inp" type="text" maxlength="30" placeholder="Сайт проекта"></div>
+          <div class="field"><label>Ссылка</label><input id="tSiteU" class="inp" type="text" placeholder="https://…"></div>
+          <p class="hint-s">Кнопка с глобусом вверху справа. Пустая ссылка — кнопки не будет.</p>
+        </div>
+        <div class="sec">
+          <h4>Заявки</h4>
+          <div class="field"><label>Текст кнопки</label><input id="tLeadL" class="inp" type="text" maxlength="30" placeholder="Оставить заявку"></div>
+          <div class="field"><label>WhatsApp (номер)</label><input id="tLeadWa" class="inp" type="tel" placeholder="+7 999 123-45-67"></div>
+          <div class="field"><label>Telegram (имя пользователя)</label><input id="tLeadTg" class="inp" type="text" placeholder="username"></div>
+          <div class="field"><label>Телефон для звонка</label><input id="tLeadTel" class="inp" type="tel" placeholder="+7 …"></div>
+          <p class="hint-s">Клиент оставляет имя и телефон — открывается WhatsApp или Telegram с готовым текстом заявки. Без сервера. Достаточно одного канала.</p>
+        </div>
+        <div class="sec">
           <h4>Публикация</h4>
           <div class="field"><label>ID тура (имя папки, латиница)</label><input id="tId" class="inp" type="text" maxlength="40" placeholder="house"></div>
           <button id="tPreview" class="wide" style="margin-top:12px"><i data-ic="eye"></i> Посмотреть как клиент</button>
           <button id="tSave" class="primary wide" style="margin-top:6px"><i data-ic="save"></i> Скачать tour.json</button>
-          <p class="hint-s">Положи в репозиторий папку <b>tours/<span class="tIdv">house</span>/</b> с файлами <b>tour.json</b> и <b id="tModel">модель.glb</b> (+ обложка). Ссылка для клиента:</p>
+          <p class="hint-s" style="margin-bottom:0">Положи в репозиторий папку <b>tours/<span class="tIdv">house</span>/</b> с файлами:</p><ul id="tFiles"></ul><p class="hint-s">Ссылка для клиента:</p>
           <div class="tlink"><input id="tLink" class="inp" type="text" readonly><button id="tCopy" title="Скопировать ссылку"><i data-ic="copy"></i></button></div>
           <p class="hint-s">Редактировать опубликованный тур: та же ссылка + <b>&amp;edit</b></p>
         </div>
@@ -648,14 +791,16 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
     <button id="loop" class="on" title="Повтор"><i data-ic="repeat"></i></button><button id="hideD" title="Скрыть плеер"><i data-ic="close"></i></button>
   </div>
 
-  <div id="fpHud" class="glass"><span class="txt"><b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>F</b> полёт · <b>Esc</b> выход</span><button id="spdDn" class="sb" title="Медленнее" aria-label="Медленнее">−</button><span id="fpSpeed" class="spd" title="Скорость: колесо мыши">1.5 м/с</span><button id="spdUp" class="sb" title="Быстрее" aria-label="Быстрее">+</button><button id="fpFly" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
+  <div id="fpHud" class="glass"><span class="txt"><b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>Alt</b> курсор · <b>F</b> полёт · <b>Esc</b> выход</span><button id="spdDn" class="sb" title="Медленнее" aria-label="Медленнее">−</button><span id="fpSpeed" class="spd" title="Скорость: колесо мыши">1.5 м/с</span><button id="spdUp" class="sb" title="Быстрее" aria-label="Быстрее">+</button><button id="fpFly" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
   <div id="fpCross"></div>
   <div id="joy" class="glass" aria-label="Джойстик ходьбы"><div class="knob"></div></div>
 
+  <div id="tourBar" class="glass" aria-label="Тур с гидом"><div id="tSegs"></div><div class="tb-row"><button id="tbPrev" title="Предыдущая остановка"><i data-ic="left"></i></button><button id="tbPlay" class="primary" title="Пауза / продолжить"><i data-ic="pause"></i></button><button id="tbNext" title="Следующая остановка"><i data-ic="right"></i></button><div class="tb-txt"><span id="tbCnt">1 / 1</span><b id="tbTitle"></b></div><button id="tbExit" title="Выйти из тура (Esc)"><i data-ic="close"></i><span class="t">Свободный осмотр</span></button></div></div>
   <button id="pvExit"><i data-ic="close"></i> Вернуться в редактор</button>
   <nav id="toolbar" class="glass">
     <button id="reset" data-tip="Сбросить камеру"><i data-ic="refresh"></i></button>
     <button id="quickPath" data-tip="Пролёт камеры"><i data-ic="play"></i></button>
+    <button id="tourBtn" data-tip="Тур с гидом"><i data-ic="flag"></i></button>
     <button id="fpBtn" data-tip="От первого лица"><i data-ic="walk"></i></button>
     <button id="liteBtn" data-tip="Лёгкая графика"><i data-ic="bolt"></i></button>
     <button id="pillD" data-tip="Плеер анимации" style="display:none"><i data-ic="film"></i></button>
@@ -669,30 +814,61 @@ body.previewing #fpHud{top:calc(60px + var(--sat))}
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="box glass">
-    <header><h2 id="helpTitle">Как пользоваться вьювером</h2><button id="helpClose" title="Закрыть (Esc)"><i data-ic="close"></i></button></header>
+    <header><h2 id="helpTitle"><span class="g">Как пользоваться 3D-туром</span><span class="e">Справка редактора NOMA</span></h2><button id="helpClose" title="Закрыть (Esc)"><i data-ic="close"></i></button></header>
     <div class="body">
-      <section><h3><i data-ic="cube"></i>Обзор модели — мышь</h3>
-        <dl><dt>Левая кнопка</dt><dd>вращение вокруг модели</dd><dt>Колесо</dt><dd>приближение к курсору</dd><dt>Правая кнопка</dt><dd>сдвиг (панорама)</dd><dt>Двойной клик</dt><dd>плавно подлететь к точке модели</dd></dl></section>
-      <section><h3><i data-ic="cube"></i>Обзор модели — сенсорный экран</h3>
-        <dl><dt>1 палец</dt><dd>вращение</dd><dt>2 пальца</dt><dd>масштаб и сдвиг</dd><dt>Двойной тап</dt><dd>подлететь к точке</dd></dl></section>
-      <section><h3><i data-ic="walk"></i>От первого лица</h3>
-        <p>Кнопка <i data-ic="walk" data-s="16"></i> в нижней панели — камера плавно «спускается» на уровень глаз человека ростом 170 см.</p>
-        <dl><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / стрелки</dt><dd>ходьба</dd><dt>Колесо мыши</dt><dd>скорость ходьбы — плавно от 0.3 до 40 м/с</dd><dt>«Лёгкая графика»</dt><dd>кнопка ⚡ в нижней панели: упрощённый рендер, чтобы летало даже на слабом железе. Работает и в обычном обзоре, запоминается</dd><dt>Мышь</dt><dd>осмотр. Клик по сцене захватывает мышь, <kbd>Esc</kbd> отпускает</dd><dt><kbd>F</kbd></dt><dd>полёт без гравитации и стен; <kbd>E</kbd>/<kbd>Space</kbd> вверх, <kbd>Q</kbd>/<kbd>C</kbd> вниз</dd><dt><kbd>Esc</kbd> или кнопка</dt><dd>выход в обычный обзор</dd><dt>Телефон</dt><dd>джойстик слева — ходьба (до края — бег), палец по экрану — осмотр, кнопки <b>−</b> / <b>+</b> вверху — скорость</dd></dl></section>
-      <section><h3><i data-ic="help"></i>Горячие клавиши</h3>
-        <dl><dt><kbd>H</kbd></dt><dd>чистый экран: остаются модель и точки интереса</dd><dt><kbd>Space</kbd></dt><dd>пауза / воспроизведение анимации</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>предыдущая / следующая точка, когда открыта карточка</dd><dt><kbd>Esc</kbd></dt><dd>закрыть карточку, меню, справку, отменить постановку точки</dd></dl></section>
-      <section><h3><i data-ic="tune"></i>Нижняя панель</h3>
-        <dl><dt><i data-ic="refresh" data-s="16"></i></dt><dd>показать модель целиком</dd><dt><i data-ic="play" data-s="16"></i></dt><dd>пролёт камеры по ключам</dd><dt><i data-ic="walk" data-s="16"></i></dt><dd>режим от первого лица</dd><dt><i data-ic="tune" data-s="16"></i></dt><dd>панель настроек</dd><dt><i data-ic="help" data-s="16"></i></dt><dd>эта справка</dd><dt><i data-ic="eye" data-s="16"></i></dt><dd>чистый экран</dd><dt><i data-ic="full" data-s="16"></i></dt><dd>полный экран</dd></dl></section>
-      <section><h3><i data-ic="sun"></i>Вкладка «Свет»</h3>
-        <ul><li><b>Освещение:</b> Студия, Экстерьер (солнце и небо), Реализм (мягкие тени и затенение — самый красивый и самый тяжёлый), свой HDRI, Классика.</li><li><b>Солнце и время</b> (для экстерьера): время суток, ход времени, направление солнца, погода и облачность.</li><li><b>Материалы и отражения:</b> цветопередача (для точных PBR-цветов — Neutral), сила и поворот отражений, загрузка HDRI, галка «Показывать HDRI как фон».</li></ul></section>
-      <section><h3><i data-ic="layers"></i>Вкладка «Сцена»</h3>
-        <ul><li><b>Фон</b> и <b>режим материалов</b>: оригинал, Clay, каркас, нормали.</li><li><b>Показывать:</b> тени, землю, сетку, оси, свет из файла GLB.</li></ul></section>
-      <section><h3><i data-ic="photo"></i>Вкладка «Камера»</h3>
-        <ul><li><b>Инерция</b> и автовращение.</li><li><b>Сохранённые виды:</b> <i data-ic="save" data-s="14"></i>, затем номер слота — записать; номер — перелететь.</li><li><b>Пролёт:</b> ставь ключи кнопкой «Ключ», задавай секунды между ними и время суток в каждом ключе, выбирай характер движения.</li><li><b>Записать видео</b> — пишет только 3D-картинку, без интерфейса.</li></ul></section>
-      <section><h3><i data-ic="pin"></i>Вкладка «Точки»</h3>
-        <ul><li>«Добавить точку» → клик по модели. Дальше название, описание, значок, цвет и фотографии.</li><li>«Запомнить вид» — так камера встанет при клике по точке.</li><li>Клик по точке открывает карточку; ▶ в карточке — экскурсия по всем точкам.</li></ul></section>
-      <section><h3><i data-ic="folder"></i>Файлы и сохранение</h3>
-        <ul><li><b>Открыть</b> или перетащить в окно: .glb; .gltf вместе с .bin и текстурами; сжатые Draco / Meshopt / KTX2; HDRI .hdr / .exr; сцена .cam.json.</li><li><b>Сохранить сцену</b> (вкладка «Камера») — в .cam.json попадут камера, ключи, виды, точки с фото и все настройки света. Сам HDRI не сохраняется — открывай его вместе с моделью и JSON.</li></ul></section>
+      <section class="g"><h3><i data-ic="flag"></i>Тур с гидом</h3>
+        <p>«▶ Начать тур» — камера сама проведёт по объекту, на каждой остановке — карточка с описанием и фото.</p>
+        <dl><dt><i data-ic="left" data-s="16"></i> <i data-ic="right" data-s="16"></i></dt><dd>предыдущая / следующая остановка</dd><dt><i data-ic="pause" data-s="16"></i></dt><dd>пауза и продолжение</dd><dt>Полоски сверху</dt><dd>переход к любой остановке</dd><dt>«Свободный осмотр»</dt><dd>выйти из тура и смотреть самостоятельно</dd><dt><i data-ic="flag" data-s="16"></i></dt><dd>запустить тур снова (нижняя панель)</dd></dl>
+        <p>Покрутите камеру — тур встанет на паузу.</p></section>
+      <section><h3><i data-ic="cube"></i>Осмотр — мышь</h3>
+        <dl><dt>Левая кнопка</dt><dd>вращение вокруг объекта</dd><dt>Колесо</dt><dd>приближение к курсору</dd><dt>Правая кнопка</dt><dd>сдвиг (панорама)</dd><dt>Двойной клик</dt><dd>плавно подлететь к месту</dd></dl></section>
+      <section><h3><i data-ic="cube"></i>Осмотр — сенсорный экран</h3>
+        <dl><dt>1 палец</dt><dd>вращение</dd><dt>2 пальца</dt><dd>масштаб и сдвиг</dd><dt>Двойной тап</dt><dd>подлететь к месту</dd></dl></section>
+      <section class="g"><h3><i data-ic="pin"></i>Точки интереса</h3>
+        <p>Нажмите на метку — откроется карточка с описанием и фотографиями. Фото открывается крупно по нажатию. <kbd>←</kbd> <kbd>→</kbd> — соседние точки.</p></section>
+      <section><h3><i data-ic="walk"></i>Прогулка от первого лица</h3>
+        <p>Кнопка <i data-ic="walk" data-s="16"></i> — камера опускается на уровень глаз человека ростом 170 см.</p>
+        <dl><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / стрелки</dt><dd>ходьба</dd><dt>Мышь</dt><dd>осмотр. Клик по сцене захватывает курсор</dd><dt><kbd>Alt</kbd></dt><dd>показать / спрятать курсор, не выходя из прогулки</dd><dt>Колесо мыши</dt><dd>скорость ходьбы, от 0.3 до 40 м/с</dd><dt><kbd>F</kbd></dt><dd>полёт: <kbd>E</kbd>/<kbd>Space</kbd> вверх, <kbd>Q</kbd>/<kbd>C</kbd> вниз</dd><dt><kbd>Esc</kbd></dt><dd>выход из прогулки (полный экран сохраняется)</dd><dt><kbd>R</kbd></dt><dd>встать на пол, если провалились или застряли</dd><dt>Телефон</dt><dd>джойстик слева — ходьба (до края — бег), палец по экрану — осмотр, <b>−</b> / <b>+</b> вверху — скорость</dd></dl></section>
+      <section class="g"><h3><i data-ic="chat"></i>Планировка и заявка</h3>
+        <p>В карточке — цена, характеристики и кнопка с PDF-планировкой. «Оставить заявку» откроет WhatsApp или Telegram с готовым текстом, достаточно нажать «Отправить».</p></section>
+      <section class="g"><h3><i data-ic="tune"></i>Нижняя панель</h3>
+        <dl><dt><i data-ic="flag" data-s="16"></i></dt><dd>тур с гидом</dd><dt><i data-ic="walk" data-s="16"></i></dt><dd>прогулка</dd><dt><i data-ic="bolt" data-s="16"></i></dt><dd>лёгкая графика — для слабых устройств</dd><dt><i data-ic="film" data-s="16"></i></dt><dd>плеер анимации (если скрыт)</dd><dt><i data-ic="eye" data-s="16"></i></dt><dd>чистый экран</dd><dt><i data-ic="full" data-s="16"></i></dt><dd>полный экран</dd></dl></section>
+      <section class="g"><h3><i data-ic="help"></i>Горячие клавиши</h3>
+        <dl><dt><kbd>G</kbd></dt><dd>полный экран</dd><dt><kbd>H</kbd></dt><dd>чистый экран</dd><dt><kbd>Space</kbd></dt><dd>пауза анимации</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>соседняя точка / остановка</dd><dt><kbd>Esc</kbd></dt><dd>закрыть карточку, выйти из тура</dd></dl>
+        <p>В полном экране выход — <kbd>G</kbd>, кнопка <i data-ic="full" data-s="16"></i> или удерживать <kbd>Esc</kbd>.</p></section>
+      <section class="e"><h3><i data-ic="help"></i>Горячие клавиши</h3>
+        <dl><dt><kbd>G</kbd></dt><dd>полный экран (выход — <kbd>G</kbd> или удерживать <kbd>Esc</kbd>)</dd><dt><kbd>H</kbd></dt><dd>чистый экран</dd><dt><kbd>Space</kbd></dt><dd>пауза анимации</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>соседняя точка / остановка тура</dd><dt><kbd>Esc</kbd></dt><dd>закрыть карточку, меню, выйти из тура, отменить постановку точки</dd></dl></section>
+      <section class="e"><h3><i data-ic="tune"></i>Нижняя панель</h3>
+        <dl><dt><i data-ic="refresh" data-s="16"></i></dt><dd>показать модель целиком</dd><dt><i data-ic="play" data-s="16"></i></dt><dd>пролёт камеры по ключам</dd><dt><i data-ic="flag" data-s="16"></i></dt><dd>тур с гидом (от 2 остановок)</dd><dt><i data-ic="walk" data-s="16"></i></dt><dd>прогулка</dd><dt><i data-ic="bolt" data-s="16"></i></dt><dd>лёгкая графика</dd><dt><i data-ic="tune" data-s="16"></i></dt><dd>панель настроек</dd><dt><i data-ic="eye" data-s="16"></i></dt><dd>чистый экран</dd><dt><i data-ic="full" data-s="16"></i></dt><dd>полный экран</dd></dl></section>
+      <section class="e"><h3><i data-ic="sun"></i>«Свет» и «Сцена»</h3>
+        <ul><li><b>Освещение:</b> Студия, Экстерьер (солнце и небо), Реализм (самый красивый и тяжёлый), свой HDRI, Классика.</li><li><b>Солнце:</b> время суток, ход времени, направление, погода.</li><li><b>Отражения:</b> цветопередача, сила и поворот окружения, загрузка HDRI (.hdr / .exr), «HDRI как фон».</li><li><b>Сцена:</b> фон, режим материалов, тени, земля, сетка, свет из GLB.</li></ul></section>
+      <section class="e"><h3><i data-ic="photo"></i>«Камера»</h3>
+        <ul><li><b>Сохранённые виды:</b> <i data-ic="save" data-s="16"></i>, затем номер слота.</li><li><b>Пролёт:</b> «Ключ» добавляет текущий вид. У ключа — секунды, время суток <i data-ic="clock" data-s="16"></i>, порядок <i data-ic="up" data-s="16"></i><i data-ic="down" data-s="16"></i>, удаление.</li><li><b>Записать видео</b> — только 3D-картинка, без интерфейса.</li></ul></section>
+      <section class="e"><h3><i data-ic="pin"></i>«Точки» и тур с гидом</h3>
+        <ul><li>«Добавить точку» → клик по модели, дальше название, описание, значок, цвет, фото, «Запомнить вид».</li><li><b>Порядок</b> точек = порядок остановок тура, меняется стрелками <i data-ic="up" data-s="16"></i><i data-ic="down" data-s="16"></i> в списке.</li><li><b>Тур с гидом</b> в редакторе точки: «Остановка тура», длительность, время суток, анимация на остановке.</li></ul></section>
+      <section class="e"><h3><i data-ic="flag"></i>«Тур» — публикация</h3>
+        <ul><li>Название, подзаголовок, цвет, обложка заставки, кнопка связи, ID тура.</li><li><b>Обложка:</b> JPG или WebP, 1920×1080 (16:9), до ~500 КБ. Главное — в центре кадра: на телефоне края обрезаются.</li><li>«Посмотреть как клиент» — предпросмотр с заставкой. «Скачать tour.json».</li><li>Папка <b>tours/ID/</b>: tour.json + модель + HDRI (если есть) + обложка. Ссылка: <b>?tour=ID</b>, редактирование — <b>?tour=ID&amp;edit</b>.</li></ul></section>
+      <section class="e"><h3><i data-ic="chat"></i>Продажа: PDF, заявка, сайт</h3>
+        <ul><li><b>Точка → «Продажа»:</b> цена, площадь, характеристики (по строке «Название: значение»).</li><li><b>«Планировка и ссылки»:</b> PDF из файла или ссылка + своя кнопка (бронирование, сайт, Telegram…). Файл PDF положи в папку тура рядом с tour.json.</li><li><b>Вкладка «Тур» → «Заявки»:</b> WhatsApp, Telegram, телефон. Кнопка появится вверху справа и в карточках точек. «Сайт проекта» — отдельная кнопка с глобусом.</li></ul></section>
+      <section class="e"><h3><i data-ic="folder"></i>Файлы и локальный запуск</h3>
+        <ul><li><b>Открыть</b> или перетащить: .glb; .gltf с .bin и текстурами; Draco / Meshopt / KTX2; HDRI; .cam.json или tour.json.</li><li><b>Сохранить сцену</b> («Камера») — .cam.json со всеми настройками и точками.</li><li>Туры локально: <b>start-noma.bat</b> (Windows) / <b>start-noma-mac.command</b> → http://localhost:8080/?tour=ID. Двойной клик по index.html туры не откроет.</li></ul></section>
     </div>
+  </div>
+</div>
+<div id="lead" role="dialog" aria-modal="true" aria-labelledby="leadTitle">
+  <div class="box glass">
+    <button id="leadClose" title="Закрыть (Esc)"><i data-ic="close"></i></button>
+    <h2 id="leadTitle">Оставить заявку</h2>
+    <p class="sub" id="leadSub"></p>
+    <div class="field"><label>Ваше имя</label><input id="lName" class="inp" type="text" maxlength="60" autocomplete="name"></div>
+    <div class="field"><label>Телефон</label><input id="lPhone" class="inp" type="tel" maxlength="30" autocomplete="tel" placeholder="+7 …"></div>
+    <div class="field"><label>Комментарий</label><textarea id="lMsg" class="inp" rows="3" maxlength="400" style="min-height:70px"></textarea></div>
+    <div class="send">
+      <button id="lWa" class="big wa"><i data-ic="chat"></i> Написать в WhatsApp</button>
+      <button id="lTg" class="big tg"><i data-ic="send"></i> Написать в Telegram</button>
+      <a id="lTel" class="big tel" href="#"><i data-ic="phone"></i> Позвонить</a>
+    </div>
+    <p class="hint-s" id="lHint">Откроется чат с готовым текстом — останется нажать «Отправить».</p>
   </div>
 </div>
 <div id="drop"><div class="dropbox glass"><div style="margin-bottom:10px;color:#2783DE"><i data-ic="cube" data-s="44"></i></div>Отпусти, чтобы открыть <b>.GLB</b></div></div>
@@ -754,6 +930,9 @@ const SVG = {
   play: 'M8 5v14l11-7z', pause: 'M6 19h4V5H6v14zm8-14v14h4V5h-4z', stop: 'M6 6h12v12H6z', rec: 'M12 6a6 6 0 100 12 6 6 0 000-12z',
   plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', close: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
   trash: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z', menu: 'M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
+  up: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z',
+  down: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z',
+  flag: 'M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z',
   copy: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
   eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z',
   full: 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z',
@@ -776,7 +955,13 @@ const SVG = {
   walk: 'M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7',
   pin: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z',
   layers: 'M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z',
-  film: 'M10 16.5l6-4.5-6-4.5v9zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z'
+  film: 'M10 16.5l6-4.5-6-4.5v9zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z',
+  globe: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.987 7.987 0 015.08 16zm2.95-8H5.08a7.987 7.987 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 01-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z',
+  chat: 'M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z',
+  send: 'M2.01 21L23 12 2.01 3 2 10l15 2-15 2z',
+  file: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13z',
+  link: 'M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z',
+  phone: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'
 };
 const ico = (n, sz) => `<svg class="ic" viewBox="0 0 24 24" fill="currentColor"${sz ? ` style="width:${sz}px;height:${sz}px"` : ''}><path d="${SVG[n]}"/></svg>`;
 function setBtn(el, n, text) {
@@ -1007,7 +1192,7 @@ $('light').onchange = () => {
   applyLight();
 };
 // PBR: интенсивность и поворот окружения, цветопередача, свой HDRI
-let hdrTex = null, hdrRT = null;
+let hdrTex = null, hdrRT = null, hdrSrc = '';
 function envK() { return +$('envInt').value; }
 $('envInt').oninput = () => { $('envTxt').textContent = envK().toFixed(2); if (isSun()) updateSun(); else scene.environmentIntensity = envK(); };
 $('envRot').oninput = () => { const d = +$('envRot').value, r = THREE.MathUtils.degToRad(d); scene.environmentRotation.y = r; scene.backgroundRotation.y = r; $('envRotTxt').textContent = Math.round(d) + '°'; };
@@ -1029,7 +1214,7 @@ async function loadHDRI(file) {
     const rt = pmrem.fromEquirectangular(tex);
     hdrRT?.dispose(); hdrRT = rt; hdrTex = rt.texture; tex.dispose();
     $('light').value = 'hdri'; $('bg').value = 'hdri'; setExposure(1);
-    applyLight(); setStatus('HDRI: ' + file.name); $('hdrName').textContent = 'Загружен: ' + file.name;
+    hdrSrc = file.name; applyLight(); setStatus('HDRI: ' + file.name); $('hdrName').textContent = 'Загружен: ' + file.name; updateTourLink?.();
   } catch (e) { console.error(e); setStatus('Ошибка HDRI'); alert('Не удалось загрузить HDRI (.hdr или .exr, equirectangular).'); }
   finally { URL.revokeObjectURL(url); }
 }
@@ -1305,15 +1490,20 @@ function renderKeys() {
   const box = $('keyList'); box.innerHTML = '';
   keys.forEach((k, i) => {
     const r = document.createElement('div'); r.className = 'krow';
-    r.innerHTML = `<button class="go">Ключ ${i + 1} · ${fmtT(k.tod)}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="tk" title="Записать текущее время суток в ключ">${ico('clock')}</button><button class="del">${ico('close')}</button>`;
+    if (!k.c) k.c = KEY_COLORS[i % KEY_COLORS.length]; r.style.setProperty('--kc', k.c);
+    r.innerHTML = `<button class="go"><i class="kdot"></i>Ключ ${i + 1} · ${fmtT(k.tod)}</button>${i ? `<input type="number" min="0.2" step="0.5" value="${k.d}"><span>с</span>` : ''}<button class="tk" title="Записать текущее время суток в ключ">${ico('clock')}</button><button class="del">${ico('close')}</button>`;
     r.querySelector('.go').onclick = () => { flyTo(k.p.clone(), k.t.clone()); if (isSun()) setTod(k.tod); };
     r.querySelector('.tk').onclick = () => { k.tod = todVal; renderKeys(); };
     r.querySelector('input')?.addEventListener('change', e => k.d = Math.max(0.2, +e.target.value || 3));
     r.querySelector('.del').onclick = () => { keys.splice(i, 1); renderKeys(); };
+    const mk = (d, ic, t, dis) => { const b = document.createElement('button'); b.className = 'mv'; b.title = t; b.innerHTML = ico(ic); b.disabled = dis; b.onclick = () => { const j = i + d; [keys[i], keys[j]] = [keys[j], keys[i]]; if (!keys[0].d) keys[0].d = 3; renderKeys(); }; return b; };
+    r.querySelector('.del').before(mk(-1, 'up', 'Раньше', i === 0), mk(1, 'down', 'Позже', i === keys.length - 1));
     box.appendChild(r);
   });
 }
-$('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: controls.target.clone(), d: 3, tod: todVal }); renderKeys(); setStatus(`Ключ ${keys.length} добавлен`); };
+const KEY_COLORS = ['#7f9cc4', '#c49a86', '#8fb98c', '#b19ac6', '#cdb877', '#7fb8b6', '#c98f9f', '#9aa0a8', '#a3b06f', '#c7a56b'];
+function nextKeyColor() { return KEY_COLORS.find(c => !keys.some(k => k.c === c)) || KEY_COLORS[keys.length % KEY_COLORS.length]; }
+$('addKey').onclick = () => { keys.push({ p: camera.position.clone(), t: controls.target.clone(), d: 3, tod: todVal, c: nextKeyColor() }); renderKeys(); setStatus(`Ключ ${keys.length} добавлен`); };
 $('clearKeys').onclick = () => { keys.length = 0; renderKeys(); };
 toggle('sync', () => {}); toggle('pathLoop', () => {}); toggle('todKeys', () => {});
 function syncAnim() {
@@ -1383,7 +1573,7 @@ function collectScene() {
   return {
     version: 1, model: curName,
     camera: { p: vec(camera.position), t: vec(controls.target) },
-    keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3) })),
+    keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3), c: k.c })),
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
     pois: pois.map(poiSerialize),
@@ -1392,7 +1582,7 @@ function collectScene() {
 }
 function applySceneData(d) {
   const V = a => new THREE.Vector3(...a);
-  keys.length = 0; (d.keys || []).forEach(k => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3, tod: k.tod ?? todVal }));
+  keys.length = 0; (d.keys || []).forEach((k, i) => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3, tod: k.tod ?? todVal, c: k.c || KEY_COLORS[i % KEY_COLORS.length] }));
   renderKeys();
   document.querySelectorAll('.slot').forEach((b, i) => {
     const s = d.slots?.[i]; slots[i] = s ? { p: V(s.p), t: V(s.t) } : null; b.classList.toggle('on', !!s);
@@ -1463,13 +1653,14 @@ onResize();
 addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if (e.code === 'KeyH') document.body.classList.toggle('clean');
+  if (e.code === 'KeyG' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && $('fs').style.display !== 'none') $('fs').click();
   if (e.code === 'Space' && action && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT') { e.preventDefault(); $('play').click(); }
 });
 
 // ===== NOMA: тур по ссылке, режим зрителя, бренд =====
 const isViewer = () => document.body.classList.contains('viewer');
 const QP = new URLSearchParams(location.search), TOUR = QP.get('tour'), EDIT = QP.has('edit');
-let brand = { title: '', subtitle: '', accent: '', cover: '', cta: { label: '', url: '' }, id: '' }, tourBase = '';
+let brand = { title: '', subtitle: '', accent: '', cover: '', cta: { label: '', url: '' }, site: { label: '', url: '' }, lead: { label: '', wa: '', tg: '', tel: '' }, id: '' }, tourBase = '';
 function hexRGB(h) { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function setAccent(h) {
   const c = hexRGB(h), st = document.documentElement.style;
@@ -1477,7 +1668,7 @@ function setAccent(h) {
   st.setProperty('--accent', '#' + h.replace('#', '')); st.setProperty('--accent-soft', `rgba(${c.join(',')},.12)`);
 }
 function applyBrand(t = {}, fromFields) {
-  brand = { title: t.title || '', subtitle: t.subtitle || '', accent: t.accent || '', cover: t.cover || '', cta: { label: t.cta?.label || '', url: t.cta?.url || '' }, id: t.id || brand.id || '' };
+  brand = { title: t.title || '', subtitle: t.subtitle || '', accent: t.accent || '', cover: t.cover || '', cta: { label: t.cta?.label || '', url: t.cta?.url || '' }, site: { label: t.site?.label || '', url: t.site?.url || '' }, lead: { label: t.lead?.label || '', wa: t.lead?.wa || '', tg: t.lead?.tg || '', tel: t.lead?.tel || '' }, id: t.id || brand.id || '' };
   const title = brand.title || 'Интерактивный 3D-тур';
   document.title = brand.title ? brand.title + ' — NOMA' : 'NOMA — интерактивные 3D-туры';
   $('brandTitle').textContent = title; $('brandSub').textContent = brand.subtitle || 'Интерактивный 3D-тур · NOMA';
@@ -1486,24 +1677,34 @@ function applyBrand(t = {}, fromFields) {
   const okUrl = /^(https?:|tel:|mailto:|tg:|whatsapp:|viber:)/i.test(brand.cta.url);
   $('cta').textContent = brand.cta.label || 'Связаться'; $('cta').href = okUrl ? brand.cta.url : '#';
   document.body.classList.toggle('hasCta', okUrl);
+  applySales();
   if (!fromFields) {
     $('tTitle').value = brand.title; $('tSub').value = brand.subtitle; $('tCover').value = brand.cover;
     $('tCtaL').value = brand.cta.label; $('tCtaU').value = brand.cta.url; $('tId').value = brand.id;
+    $('tSiteL').value = brand.site.label; $('tSiteU').value = brand.site.url;
+    $('tLeadL').value = brand.lead.label; $('tLeadWa').value = brand.lead.wa; $('tLeadTg').value = brand.lead.tg; $('tLeadTel').value = brand.lead.tel;
     if (hexRGB(brand.accent)) $('tAccent').value = '#' + brand.accent.replace('#', '');
   }
   updateTourLink();
 }
 function brandFromFields() {
   applyBrand({ title: $('tTitle').value.trim(), subtitle: $('tSub').value.trim(), accent: brand.accent, cover: $('tCover').value.trim(),
-    cta: { label: $('tCtaL').value.trim(), url: $('tCtaU').value.trim() }, id: $('tId').value.trim() }, true);
+    cta: { label: $('tCtaL').value.trim(), url: $('tCtaU').value.trim() }, id: $('tId').value.trim(),
+    site: { label: $('tSiteL').value.trim(), url: $('tSiteU').value.trim() },
+    lead: { label: $('tLeadL').value.trim(), wa: $('tLeadWa').value.trim(), tg: $('tLeadTg').value.trim(), tel: $('tLeadTel').value.trim() } }, true);
 }
-['tTitle', 'tSub', 'tCover', 'tCtaL', 'tCtaU'].forEach(id => $(id).addEventListener('input', brandFromFields));
+['tTitle', 'tSub', 'tCover', 'tCtaL', 'tCtaU', 'tSiteL', 'tSiteU', 'tLeadL', 'tLeadWa', 'tLeadTg', 'tLeadTel'].forEach(id => $(id).addEventListener('input', brandFromFields));
 $('tAccent').addEventListener('input', e => { brand.accent = e.target.value; brandFromFields(); });
 $('tId').addEventListener('input', e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_\-]/g, ''); brandFromFields(); });
 function updateTourLink() {
   const id = brand.id || 'house';
   document.querySelectorAll('.tIdv').forEach(e => e.textContent = id);
-  $('tModel').textContent = curName || 'модель.glb';
+  const files = [['tour.json', 'настройки тура'], [curName || 'модель.glb', 'модель']];
+  if (hdrTex && hdrSrc) files.push([hdrSrc, 'HDRI']);
+  if (brand.cover) files.push([brand.cover, 'обложка']);
+  try { pois.forEach(p => { const f = p.plan?.file; if (f && !/^(https?:)?\/\//i.test(f) && !files.some(x => x[0] === f)) files.push([f, 'планировка — ' + p.title]); }); } catch {}
+  $('tFiles').innerHTML = files.map(f => `<li><b></b> — ${f[1]}</li>`).join('');
+  [...$('tFiles').children].forEach((li, i) => li.firstChild.textContent = files[i][0]);
   $('tLink').value = location.origin + location.pathname + '?tour=' + id;
 }
 $('tCopy').onclick = async () => {
@@ -1512,12 +1713,32 @@ $('tCopy').onclick = async () => {
 };
 $('tSave').onclick = () => {
   if (!window.__hasModel) return alert('Сначала открой модель');
-  const out = { noma: 1, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, model: curName, scene: collectScene() };
+  const out = { noma: 1, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
   a.download = 'tour.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   setStatus(`tour.json сохранён → положи в tours/${brand.id || 'house'}/ вместе с ${curName}`);
 };
+// Обложка: выбор файла (в tour.json пишется только имя файла)
+let coverLocal = '';
+function coverURL() { return coverLocal || (brand.cover && tourBase ? new URL(brand.cover, tourBase).href : ''); }
+function showCoverPrev() { const u = coverURL(); $('tCoverPrev').classList.toggle('on', !!u); $('tCoverPrev').style.backgroundImage = u ? `url("${u}")` : ''; }
+$('tCoverPick').onclick = () => $('tCoverIn').click();
+$('tCoverIn').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (coverLocal) URL.revokeObjectURL(coverLocal);
+  coverLocal = URL.createObjectURL(f); $('tCover').value = f.name; brandFromFields(); showCoverPrev();
+  const img = new Image(); img.onload = () => {
+    const kb = Math.round(f.size / 1024), warn = [];
+    if (img.width < 1280) warn.push('маловато по размеру (лучше 1920×1080)');
+    if (Math.abs(img.width / img.height - 16 / 9) > 0.15) warn.push('пропорции не 16:9 — края обрежутся');
+    if (kb > 800) warn.push(`тяжёлая (${kb} КБ) — сожми до ~500 КБ`);
+    setStatus(`Обложка ${f.name}: ${img.width}×${img.height}, ${kb} КБ` + (warn.length ? ' — ' + warn.join('; ') : ' ✓'));
+  }; img.src = coverLocal;
+};
+$('tCoverClr').onclick = () => { if (coverLocal) URL.revokeObjectURL(coverLocal); coverLocal = ''; $('tCover').value = ''; brandFromFields(); showCoverPrev(); };
+$('tCover').addEventListener('change', () => { coverLocal = ''; showCoverPrev(); });
+function setSplashCover() { const u = coverURL(); splash.style.backgroundImage = u ? `url("${u}")` : ''; splash.classList.toggle('cover', !!u); }
 // Предпросмотр «как клиент» прямо из редактора
 let pvWasOpen = false;
 function setPreview(v) {
@@ -1527,7 +1748,7 @@ function setPreview(v) {
   $('settingsBtn').classList.toggle('on', !document.body.classList.contains('noL'));
   closeCard?.();
 }
-$('tPreview').onclick = () => setPreview(true);
+$('tPreview').onclick = () => { setPreview(true); setSplashCover(); splash.className = 'show' + (coverURL() ? ' cover' : ''); splashWelcome(); };
 $('pvExit').onclick = () => setPreview(false);
 
 // Заставка с прогрессом
@@ -1555,25 +1776,32 @@ async function openRemote(modelUrl, data) {
   await loadBuffer(buf, decodeURIComponent(modelUrl.split('/').pop().split('?')[0]), data, [], new URL('.', modelUrl).href);
   if (!window.__hasModel) throw new Error('model');
 }
+const LOCAL_FILE = location.protocol === 'file:';
+const LOCAL_MSG = 'Тур открыт как файл с диска — браузер так не даёт загрузить модель.<br>Запусти <b>start-noma.bat</b> (Windows) или <b>start-noma-mac.command</b> (Mac) из папки сайта<br>и открой ссылку <b>http://localhost:8080/?tour=…</b>';
 if (TOUR) (async () => {
   const url = /\.json(\?|$)/i.test(TOUR) ? TOUR : `tours/${TOUR.replace(/[^\w\-\/]/g, '')}/tour.json`;
   if (!EDIT) document.body.classList.add('viewer', 'noL');
   $('settingsBtn').classList.toggle('on', !document.body.classList.contains('noL'));
   try {
+    if (LOCAL_FILE) throw new Error('file');
     const abs = new URL(url, location.href).href;
     const r = await fetch(abs, { cache: 'no-cache' });
     if (!r.ok) throw new Error('tour');
     const t = await r.json();
     tourBase = new URL('.', abs).href;
     applyBrand({ ...t, id: /\.json/i.test(TOUR) ? '' : TOUR });
-    if (t.cover) { splash.style.backgroundImage = `url("${new URL(t.cover, tourBase).href}")`; splash.classList.add('cover'); }
+    setSplashCover(); showCoverPrev();
     if (!t.model) throw new Error('nomodel');
+    if (t.hdri) {
+      try { $('spPct').textContent = 'Загрузка HDRI…'; const hr = await fetch(new URL(t.hdri, tourBase).href); if (!hr.ok) throw 0; await loadHDRI(new File([await hr.blob()], t.hdri.split('/').pop())); }
+      catch { console.warn('HDRI не найден:', t.hdri); }
+    }
     await openRemote(new URL(t.model, tourBase).href, t.scene || null);
-    splashHide();
+    if (!EDIT && pois.filter(p => !p.skip).length >= 2) splashWelcome(); else splashHide();
     if (EDIT) setStatus(`Тур «${brand.title || TOUR}» открыт для редактирования`);
   } catch (e) {
     console.error(e);
-    splashError(e.message === 'tour' ? `Тур <b>${TOUR}</b> не найден.<br>Проверь, что в репозитории есть файл <b>${url}</b>.`
+    splashError(e.message === 'file' ? LOCAL_MSG : e.message === 'tour' ? `Тур <b>${TOUR}</b> не найден.<br>Проверь, что в репозитории есть файл <b>${url}</b>.`
       : e.message === 'nomodel' ? 'В tour.json не указана модель.' : 'Не удалось загрузить модель тура.<br>Проверь имя файла модели в tour.json и что он лежит рядом.');
   }
 })();
@@ -1582,15 +1810,108 @@ else {
   if (q) (async () => {
     $('spTitle').textContent = decodeURIComponent(q.split('/').pop()); $('spSub').textContent = '3D-модель';
     try {
+      if (LOCAL_FILE) throw new Error('file');
       let data = null;
       try { const j = await fetch(q.replace(/\.(glb|gltf)$/i, '.cam.json')); if (j.ok) data = await j.json(); } catch {}
       if (data?.noma) { applyBrand(data); data = data.scene || null; }
       await openRemote(new URL(q, location.href).href, data);
       splashHide();
-    } catch (e) { console.error(e); splashError('Не удалось открыть ' + q); setStatus('Не удалось открыть ' + q); }
+    } catch (e) { console.error(e); splashError(LOCAL_FILE ? LOCAL_MSG : 'Не удалось открыть ' + q); setStatus('Не удалось открыть ' + q); }
   })();
 }
 updateTourLink();
+
+// ===== Тур с гидом =====
+const G = { on: false, playing: false, ended: false, i: 0, elapsed: 0, stops: [] };
+let todAnim = null;
+const fmtH = h => { let m = Math.round((((h % 24) + 24) % 24) * 60); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const animToken = i => clips[i]?.name || '#' + i;
+const animIndex = n => n.startsWith('#') && !clips.some(c => c.name === n) ? +n.slice(1) : clips.findIndex(c => c.name === n);
+function startGuided(from = 0) {
+  const st = pois.filter(p => !p.skip);
+  if (st.length < 2) return setStatus('Для тура нужно минимум 2 точки с отметкой «Остановка тура»');
+  if (fp.on) exitFP();
+  if (pathT !== null) stopPath();
+  G.stops = st; G.on = true; document.body.classList.add('touring');
+  const box = $('tSegs'); box.innerHTML = '';
+  st.forEach((p, k) => { const b = document.createElement('button'); b.className = 'seg'; b.title = `${k + 1}. ${p.title}`; b.innerHTML = '<i><b></b></i>'; b.onclick = () => goStop(k); box.appendChild(b); });
+  goStop(from); setPlaying(true);
+  setStatus('Тур с гидом');
+}
+function goStop(k) {
+  if (!G.on) return;
+  G.i = Math.max(0, Math.min(G.stops.length - 1, k)); G.elapsed = 0;
+  if (G.ended) { G.ended = false; setPlaying(true); }
+  const p = G.stops[G.i];
+  openPoi(p, true);
+  if (p.tod != null && isSun()) { let d = ((p.tod - todVal + 36) % 24) - 12; todAnim = { a: todVal, d, k: 0 }; }
+  if (p.anim && mixer) { const idx = p.anim.map(animIndex).filter(i => i >= 0 && i < clips.length); if (idx.length) playClips(new Set(idx)); }
+  $('tbCnt').parentNode.classList.remove('end');
+  $('tbCnt').textContent = `${G.i + 1} / ${G.stops.length}`; $('tbTitle').textContent = p.title;
+  [...$('tSegs').children].forEach((b, j) => { b.classList.toggle('done', j < G.i); b.firstChild.firstChild.style.width = j < G.i ? '100%' : '0'; });
+}
+function setPlaying(v) {
+  G.playing = v;
+  $('tbPlay').innerHTML = ico(G.ended ? 'refresh' : v ? 'pause' : 'play');
+  $('tbPlay').title = G.ended ? 'Пройти тур заново' : v ? 'Пауза' : 'Продолжить';
+}
+function endGuided() {
+  G.ended = true; setPlaying(false);
+  $('tbCnt').parentNode.classList.add('end');
+  $('tbCnt').textContent = 'Тур завершён'; if (leadOn()) $('leadFab').classList.add('pulse'); $('tbTitle').textContent = leadOn() ? `Понравилось? Нажмите «${brand.lead.label || 'Оставить заявку'}» вверху справа` : brand.cta?.url ? `Есть вопросы — нажмите «${brand.cta.label || 'Связаться'}»` : 'Осмотритесь самостоятельно';
+}
+function exitGuided() {
+  if (!G.on) return;
+  G.on = G.playing = G.ended = false; todAnim = null;
+  document.body.classList.remove('touring');
+}
+function guidedTick(dt) {
+  if (todAnim) { todAnim.k = Math.min(1, todAnim.k + dt / 1.6); const s = todAnim.k * todAnim.k * (3 - 2 * todAnim.k); setTod(todAnim.a + todAnim.d * s); if (todAnim.k >= 1) todAnim = null; }
+  if (!G.on || !G.playing || G.ended || fly) return;
+  const p = G.stops[G.i], stay = Math.max(2, p.stay ?? 8);
+  G.elapsed += Math.min(dt, 0.1);
+  const seg = $('tSegs').children[G.i]; if (seg) seg.firstChild.firstChild.style.width = Math.min(100, G.elapsed / stay * 100) + '%';
+  if (G.elapsed >= stay) { if (G.i < G.stops.length - 1) goStop(G.i + 1); else { if (seg) seg.classList.add('done'); endGuided(); } }
+}
+$('tbPrev').onclick = () => goStop(G.i - 1);
+$('tbNext').onclick = () => { if (G.i < G.stops.length - 1) goStop(G.i + 1); else { G.elapsed = 1e9; if (!G.playing) { const s = $('tSegs').children[G.i]; s?.classList.add('done'); if (s) s.firstChild.firstChild.style.width = '100%'; endGuided(); } } };
+$('tbPlay').onclick = () => { if (G.ended) { G.ended = false; goStop(0); setPlaying(true); } else setPlaying(!G.playing); };
+$('tbExit').onclick = () => closeCard();
+$('tourBtn').onclick = () => G.on ? closeCard() : startGuided(0);
+controls.addEventListener('start', () => { if (G.on && G.playing && !fly) setPlaying(false); });
+// Заставка-приветствие: «Начать тур» / «Осмотреть самостоятельно»
+function splashWelcome() {
+  const st = pois.filter(p => !p.skip), sec = st.reduce((a, p) => a + (p.stay ?? 8) + 1.4, 0);
+  const n = st.length, w = n % 10 === 1 && n % 100 !== 11 ? 'остановка' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'остановки' : 'остановок';
+  $('spStart').style.display = n >= 2 ? '' : 'none';
+  $('spMeta').textContent = n >= 2 ? `${n} ${w} · ~${Math.max(1, Math.round(sec / 60))} мин` : '';
+  splash.classList.add('welcome');
+}
+$('spStart').onclick = () => { splashHide(); startGuided(0); };
+$('spFree').onclick = () => splashHide();
+// Редактор: параметры остановки
+function renderStopBits() {
+  const p = poiSel; if (!p) return;
+  $('edInTour').classList.toggle('on', !p.skip);
+  $('edStay').value = p.stay ?? 8; $('edStayV').textContent = (p.stay ?? 8) + ' с';
+  $('edTodV').textContent = p.tod == null ? 'не менять' : fmtH(p.tod);
+  const sel = $('edAnim'); $('edAnimF').style.display = clips.length ? '' : 'none';
+  sel.innerHTML = '<option value="">Не менять</option>';
+  const multi = p.anim && p.anim.length > 1;
+  sel.add(new Option(multi ? 'Вместе: ' + p.anim.join(', ') : 'Как сейчас в плеере', '*'));
+  clips.forEach((c, i) => sel.add(new Option(clipName(i), 'c' + i)));
+  sel.value = !p.anim ? '' : multi ? '*' : (i => i >= 0 ? 'c' + i : '')(animIndex(p.anim[0]));
+  sel._ddRefresh?.();
+}
+$('edInTour').onclick = () => { if (!poiSel) return; poiSel.skip = !poiSel.skip; renderStopBits(); renderPois(); };
+$('edStay').oninput = e => { if (!poiSel) return; poiSel.stay = +e.target.value; $('edStayV').textContent = poiSel.stay + ' с'; };
+$('edTod').onclick = () => { if (!poiSel) return; poiSel.tod = +todVal.toFixed(3); renderStopBits(); setStatus(`Время ${fmtH(todVal)} привязано к «${poiSel.title}»`); };
+$('edTodClr').onclick = () => { if (!poiSel) return; poiSel.tod = null; renderStopBits(); };
+$('edAnim').addEventListener('change', e => {
+  const p = poiSel; if (!p) return; const v = e.target.value;
+  p.anim = v === '' ? null : v === '*' ? (activeClips.size ? [...activeClips].map(animToken) : null) : [animToken(+v.slice(1))];
+  renderStopBits();
+});
 
 // ===== Выпадающие списки в стиле интерфейса =====
 const ddMenu = document.createElement('div'); ddMenu.id = 'ddMenu'; ddMenu.setAttribute('role', 'listbox'); document.body.appendChild(ddMenu);
@@ -1666,14 +1987,15 @@ function poiDefaultCam(point) {
   const d = Math.min(camera.position.distanceTo(controls.target), Math.max(modelSphere.radius * 0.35, 1));
   return { p: point.clone().add(dir.multiplyScalar(d)), t: point.clone() };
 }
-function poiSerialize(p) { return { id: p.id, title: p.title, subtitle: p.subtitle, description: p.description, icon: p.icon, color: p.color, photos: p.photos, pos: vecArr(p.pos), cam: { p: vecArr(p.cam.p), t: vecArr(p.cam.t) } }; }
+function poiSerialize(p) { return { stay: p.stay ?? 8, tod: p.tod ?? null, anim: p.anim ?? null, skip: p.skip || undefined, id: p.id, title: p.title, subtitle: p.subtitle, description: p.description, icon: p.icon, color: p.color, photos: p.photos, price: p.price || undefined, area: p.area || undefined, specs: (p.specs || '').trim() ? p.specs : undefined, plan: p.plan?.file ? { file: p.plan.file, label: p.plan.label || undefined } : undefined, link: p.link?.url ? { label: p.link.label || undefined, url: p.link.url } : undefined, pos: vecArr(p.pos), cam: { p: vecArr(p.cam.p), t: vecArr(p.cam.t) } }; }
 function poiLoad(list) {
   const V = a => new THREE.Vector3(...a);
   pois.length = 0; closeCard(); closeEditor();
-  (list || []).forEach(d => pois.push({ id: d.id || 'poi-' + Math.random().toString(36).slice(2), title: d.title || 'Точка', subtitle: d.subtitle || '', description: d.description || '', icon: d.icon || '📍', color: d.color || POI_COLORS[0], photos: Array.isArray(d.photos) ? d.photos : (d.image ? [d.image] : []), pos: V(d.pos), cam: d.cam ? { p: V(d.cam.p), t: V(d.cam.t) } : { p: V(d.pos).add(new THREE.Vector3(5, 4, 5)), t: V(d.pos) } }));
+  (list || []).forEach(d => pois.push({ stay: +d.stay || 8, tod: d.tod ?? null, anim: Array.isArray(d.anim) && d.anim.length ? d.anim : null, skip: !!d.skip, id: d.id || 'poi-' + Math.random().toString(36).slice(2), title: d.title || 'Точка', subtitle: d.subtitle || '', description: d.description || '', icon: d.icon || '📍', color: d.color || POI_COLORS[0], photos: Array.isArray(d.photos) ? d.photos : (d.image ? [d.image] : []), price: d.price || '', area: d.area || '', specs: d.specs || '', plan: { file: d.plan?.file || '', label: d.plan?.label || '' }, link: { label: d.link?.label || '', url: d.link?.url || '' }, pos: V(d.pos), cam: d.cam ? { p: V(d.cam.p), t: V(d.cam.t) } : { p: V(d.pos).add(new THREE.Vector3(5, 4, 5)), t: V(d.pos) } }));
   renderPois();
 }
 function renderPois() {
+  document.body.classList.toggle('hasTour', pois.filter(p => !p.skip).length >= 2);
   const layer = $('pins'); layer.innerHTML = '';
   const list = $('poiList'); list.innerHTML = '';
   pois.forEach((p, i) => {
@@ -1685,11 +2007,12 @@ function renderPois() {
     pin.onclick = e => { e.stopPropagation(); openPoi(p); };
     p.el = pin; layer.appendChild(pin);
     const it = document.createElement('div'); it.className = 'poi-item' + (p === poiActive ? ' active' : '');
-    it.innerHTML = `<span class="em"></span><div class="tx"><div class="t"></div><div class="s"></div></div><button title="Редактировать">${ico('edit')}</button>`;
+    it.innerHTML = `<span class="em"></span><div class="tx"><div class="t"></div><div class="s"></div></div><button class="mv" data-d="-1" title="Выше"${i ? '' : ' disabled'}>${ico('up')}</button><button class="mv" data-d="1" title="Ниже"${i < pois.length - 1 ? '' : ' disabled'}>${ico('down')}</button><button class="ed" title="Редактировать">${ico('edit')}</button>`;
+    it.querySelectorAll('.mv').forEach(b => b.onclick = e => { e.stopPropagation(); const j = i + +b.dataset.d; if (j < 0 || j >= pois.length) return; [pois[i], pois[j]] = [pois[j], pois[i]]; if (G.on) closeCard(); renderPois(); if (poiActive) fillCard(); });
     it.querySelector('.em').textContent = p.icon; it.querySelector('.em').style.background = p.color;
-    it.querySelector('.t').textContent = p.title; it.querySelector('.s').textContent = p.subtitle || 'Без подзаголовка';
+    it.querySelector('.t').textContent = `${i + 1}. ${p.title}`; const sb = it.querySelector('.s'); sb.textContent = p.skip ? 'Не в туре' + (p.subtitle ? ' · ' + p.subtitle : '') : p.subtitle || 'Без подзаголовка'; sb.classList.toggle('off', !!p.skip);
     it.onclick = () => openPoi(p);
-    it.querySelector('button').onclick = e => { e.stopPropagation(); openEditor(p); };
+    it.querySelector('.ed').onclick = e => { e.stopPropagation(); openEditor(p); };
     list.appendChild(it);
   });
 }
@@ -1708,13 +2031,77 @@ function updatePins() {
 // Карточка
 function openPoi(p, keepTour) {
   if (pathT !== null) return;
-  if (!keepTour) stopTour();
+  if (!keepTour) { if (G.on && G.stops.includes(p)) return goStop(G.stops.indexOf(p)); stopTour(); }
   poiActive = p; cardImg = 0;
   flyTo(p.cam.p.clone(), p.cam.t.clone());
   fillCard(); document.body.classList.add('cardOpen'); renderPois();
 }
+// ===== Продажа: карточка, PDF, заявка =====
+const okUrl = u => /^(https?:|tel:|mailto:|tg:|whatsapp:|viber:)/i.test(u || '');
+const waDigits = s => (s || '').replace(/\D/g, '');
+const tgName = s => (s || '').replace(/^.*t\.me\//i, '').replace(/^@/, '').replace(/[^\w]/g, '');
+const planLocal = new Map();
+function leadOn() { const l = brand.lead || {}; return waDigits(l.wa).length >= 7 || !!tgName(l.tg) || waDigits(l.tel).length >= 5; }
+function planURL(f) { return planLocal.get(f) || (/^(https?:)?\/\//i.test(f) ? f : tourBase ? new URL(f, tourBase).href : f); }
+function specsParse(t) { return (t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ['', l]; }); }
+function pauseTour() { if (G.on && G.playing) setPlaying(false); }
+function applySales() {
+  const s = brand.site || {}, l = brand.lead || {}, ok = okUrl(s.url);
+  document.body.classList.toggle('hasLead', leadOn()); document.body.classList.toggle('hasSite', ok);
+  $('leadFabTxt').textContent = l.label || 'Оставить заявку';
+  $('siteBtn').href = ok ? s.url : '#'; $('siteLab').textContent = s.label || 'Сайт проекта'; $('siteBtn').title = s.label || 'Сайт проекта';
+  try { if (poiActive) fillCard(); } catch {}
+}
+function actBtn(tag, cls, icon, text) { const e = document.createElement(tag); e.className = cls; e.innerHTML = ico(icon) + '<span></span>'; e.lastChild.textContent = text; return e; }
+function fillSales(p) {
+  const meta = $('cMeta'); meta.innerHTML = '';
+  [[p.price, 'pr'], [p.area, '']].forEach(([v, c]) => { if (v) { const e = document.createElement('span'); e.className = 'chip ' + c; e.textContent = v; meta.appendChild(e); } });
+  const sp = $('cSpecs'); sp.innerHTML = '';
+  specsParse(p.specs).forEach(([k, v]) => {
+    if (k) { const dt = document.createElement('dt'); dt.textContent = k; sp.appendChild(dt); }
+    const dd = document.createElement('dd'); dd.textContent = v; if (!k) { dd.style.gridColumn = '1 / -1'; dd.style.textAlign = 'left'; } sp.appendChild(dd);
+  });
+  const ac = $('cActs'); ac.innerHTML = '';
+  if (leadOn()) { const b = actBtn('button', 'req', 'chat', brand.lead.label || 'Оставить заявку'); b.onclick = () => openLead(p); ac.appendChild(b); }
+  if (p.plan?.file) { const a = actBtn('a', 'pdf', 'file', p.plan.label || 'Планировка (PDF)'); a.href = planURL(p.plan.file); a.target = '_blank'; a.rel = 'noopener'; a.onclick = pauseTour; ac.appendChild(a); }
+  if (okUrl(p.link?.url)) { const a = actBtn('a', 'lnk', 'link', p.link.label || 'Подробнее'); a.href = p.link.url; a.target = '_blank'; a.rel = 'noopener'; a.onclick = pauseTour; ac.appendChild(a); }
+}
+// Заявка в WhatsApp / Telegram (без сервера)
+const leadEl = $('lead'); let leadCtx = null;
+function openLead(p) {
+  leadCtx = p || null; pauseTour();
+  const l = brand.lead, wa = waDigits(l.wa).length >= 7, tg = !!tgName(l.tg), tel = waDigits(l.tel).length >= 5;
+  $('leadTitle').textContent = l.label || 'Оставить заявку';
+  $('leadSub').textContent = p ? 'Объект: ' + p.title + (p.price ? ' · ' + p.price : '') : (brand.title || '');
+  $('leadSub').style.display = $('leadSub').textContent ? '' : 'none';
+  $('lWa').style.display = wa ? '' : 'none'; $('lTg').style.display = tg ? '' : 'none'; $('lTel').style.display = tel ? '' : 'none';
+  $('lTel').href = tel ? 'tel:' + l.tel.replace(/[^\d+]/g, '') : '#';
+  $('lHint').textContent = 'Откроется чат с готовым текстом — останется нажать «Отправить».';
+  $('leadFab').classList.remove('pulse'); leadEl.classList.add('show');
+  if (!matchMedia('(pointer:coarse)').matches) $('lName').focus();
+}
+function closeLead() { leadEl.classList.remove('show'); }
+function leadText() {
+  const n = $('lName').value.trim(), ph = $('lPhone').value.trim(), m = $('lMsg').value.trim(), p = leadCtx;
+  const u = new URL(location.href); u.searchParams.delete('edit'); u.hash = '';
+  const L = ['Здравствуйте! Заявка с 3D-тура' + (brand.title ? ' «' + brand.title + '»' : '') + '.'];
+  if (p) L.push('Интересует: ' + p.title + [p.area, p.price].filter(Boolean).map(x => ' · ' + x).join(''));
+  if (n) L.push('Имя: ' + n); if (ph) L.push('Телефон: ' + ph); if (m) L.push('Комментарий: ' + m);
+  L.push(u.href); return L.join('\n');
+}
+$('lWa').onclick = () => { window.open('https://wa.me/' + waDigits(brand.lead.wa) + '?text=' + encodeURIComponent(leadText()), '_blank', 'noopener'); };
+$('lTg').onclick = () => {
+  const t = leadText(); try { navigator.clipboard.writeText(t).catch(() => {}); } catch {}
+  window.open('https://t.me/' + tgName(brand.lead.tg) + '?text=' + encodeURIComponent(t), '_blank', 'noopener');
+  $('lHint').textContent = 'Если текст не появился в чате — он скопирован, просто вставь его.';
+};
+$('leadFab').onclick = () => openLead(document.body.classList.contains('cardOpen') ? poiActive : null);
+$('leadClose').onclick = closeLead;
+leadEl.onclick = e => { if (e.target === leadEl) closeLead(); };
+addEventListener('keydown', e => { if (e.key === 'Escape' && leadEl.classList.contains('show')) { e.stopImmediatePropagation(); closeLead(); } }, true);
 function fillCard() {
   const p = poiActive; if (!p) return;
+  fillSales(p);
   $('cTitle').textContent = p.title; $('cSub').textContent = p.subtitle; $('cDot').style.background = p.color;
   $('cDesc').textContent = p.description; $('cDesc').style.display = p.description ? '' : 'none';
   $('cCnt').textContent = `${pois.indexOf(p) + 1} / ${pois.length}`;
@@ -1726,9 +2113,10 @@ function fillCard() {
   }
 }
 function closeCard() { stopTour(); document.body.classList.remove('cardOpen'); poiActive = null; pois.forEach(p => p.el?.classList.remove('active')); document.querySelectorAll('.poi-item.active').forEach(e => e.classList.remove('active')); }
-function stepPoi(d, keepTour) { if (!pois.length) return; const i = poiActive ? pois.indexOf(poiActive) : -1; openPoi(pois[(i + d + pois.length) % pois.length], keepTour); }
-function stopTour() { clearInterval(tourTimer); tourTimer = 0; $('cTour').classList.remove('on'); $('cTour').innerHTML = ico('play'); }
+function stepPoi(d, keepTour) { if (G.on) return goStop(G.i + d); if (!pois.length) return; const i = poiActive ? pois.indexOf(poiActive) : -1; openPoi(pois[(i + d + pois.length) % pois.length], keepTour); }
+function stopTour() { exitGuided(); clearInterval(tourTimer); tourTimer = 0; $('cTour').classList.remove('on'); $('cTour').innerHTML = ico('play'); }
 $('cTour').onclick = () => {
+  const st = pois.filter(p => !p.skip); return startGuided(Math.max(0, st.indexOf(poiActive)));
   if (tourTimer) return stopTour();
   if (pois.length < 2) return setStatus('Для экскурсии нужно минимум 2 точки');
   $('cTour').classList.add('on'); $('cTour').innerHTML = ico('pause');
@@ -1749,12 +2137,15 @@ function openEditor(p) {
   poiSel = p; showTab('poi'); document.body.classList.remove('noL'); $('settingsBtn').classList.add('on');
   $('poiListView').hidden = true; $('poiEdit').hidden = false;
   $('edTitle').value = p.title; $('edSub').value = p.subtitle; $('edDesc').value = p.description; $('edUrl').value = '';
+  $('edPrice').value = p.price || ''; $('edArea').value = p.area || ''; $('edSpecs').value = p.specs || '';
+  $('edPlan').value = p.plan?.file || ''; $('edPlanL').value = p.plan?.label || ''; $('edLinkL').value = p.link?.label || ''; $('edLinkU').value = p.link?.url || '';
   renderEditorBits(); $('poiEdit').closest('.panes').scrollTop = 0;
 }
 function closeEditor() { cancelPlace(); poiSel = null; $('poiListView').hidden = false; $('poiEdit').hidden = true; }
 function poiChanged() { renderPois(); if (poiActive === poiSel) fillCard(); }
 function renderEditorBits() {
   const p = poiSel; if (!p) return;
+  renderStopBits();
   const em = $('edEmojis'); em.innerHTML = '';
   POI_EMOJI.forEach(e => { const b = document.createElement('button'); b.textContent = e; b.className = e === p.icon ? 'on' : ''; b.onclick = () => { p.icon = e; renderEditorBits(); poiChanged(); }; em.appendChild(b); });
   const cl = $('edColors'); cl.innerHTML = '';
@@ -1772,6 +2163,25 @@ function renderEditorBits() {
 $('edTitle').oninput = e => { poiSel.title = e.target.value || 'Без названия'; poiChanged(); };
 $('edSub').oninput = e => { poiSel.subtitle = e.target.value; poiChanged(); };
 $('edDesc').oninput = e => { poiSel.description = e.target.value; poiChanged(); };
+$('edPrice').oninput = e => { poiSel.price = e.target.value; poiChanged(); };
+$('edArea').oninput = e => { poiSel.area = e.target.value; poiChanged(); };
+$('edSpecs').oninput = e => { poiSel.specs = e.target.value; poiChanged(); };
+function planOf(p) { if (!p.plan) p.plan = { file: '', label: '' }; return p.plan; }
+function linkOf(p) { if (!p.link) p.link = { label: '', url: '' }; return p.link; }
+function setPlanFile(v) { if (!poiSel) return; planOf(poiSel).file = v; $('edPlan').value = v; poiChanged(); updateTourLink(); }
+$('edPlan').oninput = e => { if (!poiSel) return; planOf(poiSel).file = e.target.value.trim(); poiChanged(); updateTourLink(); };
+$('edPlanL').oninput = e => { if (!poiSel) return; planOf(poiSel).label = e.target.value; poiChanged(); };
+$('edLinkL').oninput = e => { if (!poiSel) return; linkOf(poiSel).label = e.target.value; poiChanged(); };
+$('edLinkU').oninput = e => { if (!poiSel) return; linkOf(poiSel).url = e.target.value.trim(); poiChanged(); };
+$('edPlanPick').onclick = () => $('edPlanIn').click();
+$('edPlanIn').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !poiSel) return;
+  const old = planLocal.get(f.name); if (old) URL.revokeObjectURL(old);
+  planLocal.set(f.name, URL.createObjectURL(f)); setPlanFile(f.name);
+  const mb = f.size / 1048576;
+  setStatus(`PDF «${f.name}» (${mb.toFixed(1)} МБ) — положи рядом с tour.json` + (mb > 10 ? '. Тяжёлый — лучше сжать до 5–10 МБ' : '') + (/[^\x00-\x7F\s]|\s/.test(f.name) ? '. Имя лучше латиницей без пробелов' : ''));
+};
+$('edPlanClr').onclick = () => setPlanFile('');
 function imgToData(file, max = 1600) {
   return new Promise((res, rej) => {
     const img = new Image(), u = URL.createObjectURL(file);
@@ -1903,11 +2313,42 @@ function fpNear() {
   return fp.near = out;
 }
 const _hits = [];
-function fpCast(list) { _hits.length = 0; fpRay.intersectObjects(list, false, _hits); return _hits[0]; }
-function fpGround(x, yFrom, z, far = 30, all) {
+// Лучи видят обе стороны полигонов: односторонние / перевёрнутые полы и стены больше не «прозрачные»
+const _sides = [];
+function withDS(list, fn) {
+  _sides.length = 0;
+  for (const m of list) { const ms = Array.isArray(m.material) ? m.material : [m.material]; for (const mt of ms) if (mt && mt.side !== THREE.DoubleSide) { _sides.push(mt, mt.side); mt.side = THREE.DoubleSide; } }
+  try { return fn(); } finally { for (let i = 0; i < _sides.length; i += 2) _sides[i].side = _sides[i + 1]; }
+}
+function fpCast(list) { _hits.length = 0; withDS(list, () => fpRay.intersectObjects(list, false, _hits)); return _hits[0]; }
+function fpGround(x, yFrom, z, far = 30) {
   fpRay.set(_fo.set(x, yFrom, z), FP_DOWN); fpRay.far = far;
-  const h = all ? fpRay.intersectObject(model, true)[0] : fpCast(fpNear());
+  const h = fpCast(fpNear());
   return h ? h.point.y : null;
+}
+// «Приземление»: вертикальный луч сквозь всю сцену, выбираем пол (горизонтальная поверхность с местом над головой)
+// — самый верхний на уровне refY или ниже; если такого нет — самый нижний (мы под сценой).
+const _n = new THREE.Vector3();
+function fpLand(x, z, refY) {
+  const list = fp.items.filter(i => i.m.visible && i.b.max.x >= x && i.b.min.x <= x && i.b.max.z >= z && i.b.min.z <= z).map(i => i.m);
+  if (!list.length) return null;
+  let top = -Infinity; for (const i of fp.items) top = Math.max(top, i.b.max.y); top += 2;
+  const bottom = fp.minY - 1;
+  fpRay.set(_fo.set(x, top, z), FP_DOWN); fpRay.far = top - bottom; fpRay.firstHitOnly = false;
+  let hits; try { hits = withDS(list, () => fpRay.intersectObjects(list, false)); } finally { fpRay.firstHitOnly = true; }
+  const all = hits.map(h => h.point.y);
+  const floors = hits.filter(h => !h.face || Math.abs(_n.copy(h.face.normal).transformDirection(h.object.matrixWorld).y) > 0.5).map(h => h.point.y);
+  if (!floors.length) return null;
+  const roomy = floors.filter(y => !all.some(a => a > y + 0.05 && a < y + EYE + 0.1));
+  const c = roomy.length ? roomy : floors;
+  return c.find(y => y <= refY + 0.05) ?? c[c.length - 1];
+}
+function fpReland(silent) {
+  const g = fpLand(camera.position.x, camera.position.z, camera.position.y);
+  if (g == null) return false;
+  fp.feet = g; fp.vy = 0; fp.dirty = true; camera.position.y = g + EYE;
+  if (!silent) setStatus('Стоим на полу');
+  return true;
 }
 function fpBlocked(dx, dz) {
   const len = Math.hypot(dx, dz); if (len < 1e-7) return false;
@@ -1924,6 +2365,7 @@ function setFly(v) {
   fp.dirty = true; fp.vy = 0;
 }
 function enterFP() {
+  if (G.on) closeCard();
   if (!model || fp.on) return;
   if (pathT !== null) stopPath();
   fly = null; closeCard(); cancelPlace();
@@ -1931,8 +2373,10 @@ function enterFP() {
   fpPrepare();
   const t = controls.target.clone(), hd = t.clone().sub(camera.position); hd.y = 0;
   if (hd.lengthSq() < 1e-8) hd.set(0, 0, -1); hd.normalize();
-  const P = t.clone().addScaledVector(hd, -Math.min(3, camera.position.distanceTo(t) * 0.5));
-  const g = fpGround(P.x, t.y + 1.2, P.z, 500, true) ?? fpGround(t.x, t.y + 1.2, t.z, 500, true) ?? fp.minY;
+  let P = t.clone().addScaledVector(hd, -Math.min(3, camera.position.distanceTo(t) * 0.5));
+  let g = fpLand(P.x, P.z, t.y + 0.4);
+  if (g == null) { g = fpLand(t.x, t.z, t.y + 0.4); if (g != null) P = t.clone(); }
+  if (g == null) g = fp.minY;
   fp.feet = g; fp.vy = 0; fp.yaw = Math.atan2(-hd.x, -hd.z); fp.pitch = -0.06; fp.dirty = true;
   fpEuler.set(fp.pitch, fp.yaw, 0);
   fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(P.x, g + EYE, P.z), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
@@ -1976,12 +2420,17 @@ function fpUpdate(dt) {
     fp.feet = camera.position.y - EYE; return;
   }
   if (dx || dz) {
+    const ox = camera.position.x, oz = camera.position.z;
     if (!fpBlocked(dx, 0)) camera.position.x += dx;
     if (!fpBlocked(0, dz)) camera.position.z += dz;
+    // под ногами пустота (край сцены, дыра) — не шагаем туда
+    if ((camera.position.x !== ox || camera.position.z !== oz) && fpGround(camera.position.x, fp.feet + 0.45, camera.position.z) == null) { camera.position.x = ox; camera.position.z = oz; }
     fp.dirty = true;
   }
+  if (fp.feet < fp.minY - 0.3) fpReland(true);   // оказались под сценой — встаём на пол
   if (fp.dirty || fp.vy) {
-    const floor = fpGround(camera.position.x, fp.feet + 0.45, camera.position.z) ?? fp.minY;
+    let floor = fpGround(camera.position.x, fp.feet + 0.45, camera.position.z);
+    if (floor == null) { floor = fpLand(camera.position.x, camera.position.z, camera.position.y); if (floor == null) { fp.vy = 0; fp.dirty = false; camera.position.y = fp.feet + EYE; return; } }
     if (floor >= fp.feet - 0.01) { fp.vy = 0; fp.feet += (floor - fp.feet) * Math.min(1, dt * 14); if (Math.abs(floor - fp.feet) < 0.002) fp.feet = floor; }
     else { fp.vy -= 9.8 * dt; fp.feet = Math.max(floor, fp.feet + fp.vy * dt); if (fp.feet === floor) fp.vy = 0; }
     fp.dirty = Math.abs(floor - fp.feet) > 0.002 || fp.vy !== 0;
@@ -2029,9 +2478,22 @@ addEventListener('keydown', e => {
   if (!fp.on || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if (FP_KEYS.has(e.code)) { fp.keys.add(e.code); e.preventDefault(); e.stopImmediatePropagation(); }
   else if (e.code === 'KeyF' && !e.repeat) { setFly(!fp.flyMode); e.stopImmediatePropagation(); }
+  else if (e.code === 'KeyR' && !e.repeat) { if (fp.flyMode) setFly(false); fpReland(); e.stopImmediatePropagation(); }
   else if (e.key === 'Escape' && !helpEl.classList.contains('show') && !ddCur) { exitFP(); e.stopImmediatePropagation(); }
 }, true);
-addEventListener('keyup', e => fp.keys.delete(e.code), true);
+addEventListener('keyup', e => { fp.keys.delete(e.code); if (fp.on && e.key === 'Alt') e.preventDefault(); }, true);
+// Alt — показать/спрятать курсор, не выходя из прогулки и полного экрана
+addEventListener('keydown', e => {
+  if (!fp.on || e.key !== 'Alt' || e.repeat) return;
+  e.preventDefault();
+  if (document.pointerLockElement) document.exitPointerLock?.();
+  else if (fpCv.requestPointerLock && !placing && !matchMedia('(pointer:coarse)').matches) { try { const p = fpCv.requestPointerLock(); p?.catch?.(() => {}); } catch {} }
+}, true);
+// В полном экране Esc не выкидывает из него (Chrome/Edge): выход — G, кнопка или удержание Esc
+document.addEventListener('fullscreenchange', () => {
+  if (document.fullscreenElement) navigator.keyboard?.lock?.(['Escape']).catch?.(() => {});
+  else navigator.keyboard?.unlock?.();
+});
 addEventListener('blur', () => fp.keys.clear());
 // Мышь и пальцы: осмотр
 const fpCv = renderer.domElement;
@@ -2080,6 +2542,7 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
   if (mixer && playing) mixer.update(dt);
+  guidedTick(dt);
   if (action && !scrubbing) {
     const d = action.getClip().duration || 1;
     const t = action.time % d || (action.time >= d ? d : 0);
