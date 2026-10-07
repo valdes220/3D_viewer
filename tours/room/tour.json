@@ -1,0 +1,171 @@
+{
+ "noma": 1,
+ "title": "Экосистема",
+ "subtitle": "Очередная супер-дупер точка притяжения",
+ "accent": "#4d4baf",
+ "cover": "Max_a_добавь_людей,_только.png",
+ "cta": {
+  "label": "Связаться",
+  "url": "https://t.me/Valdes220"
+ },
+ "site": {
+  "label": "Инвестируй с нами",
+  "url": "https://investkamchatka.ru/"
+ },
+ "lead": {
+  "label": "",
+  "wa": "89619619475",
+  "tg": "@Valdes220",
+  "tel": "",
+  "email": "vladshok955@gmail.com",
+  "key": "14af4340-aa4d-44a2-9f9b-1f9e582ff438"
+ },
+ "legal": {
+  "operator": "",
+  "policy": ""
+ },
+ "analytics": {
+  "ym": "",
+  "hook": "https://script.google.com/macros/s/AKfycbxlwOg_4nzTyqajNkOf2IdgJk_5AUmSOYILAHJ6VcUHq1t2ZpkVb6C0x7AnnK_qhACc2A/exec",
+  "note": true
+ },
+ "lock": "fa4b5bb68bf5cceb97496d168b2ea686b06a943817ed2b8045b4f48a7072e9ce",
+ "model": "the_great_drawing_room.glb",
+ "scene": {
+  "version": 1,
+  "model": "the_great_drawing_room.glb",
+  "camera": {
+   "p": [
+    0.1691,
+    2.2538,
+    -2.5613
+   ],
+   "t": [
+    2.9353,
+    1.0132,
+    -4.5761
+   ]
+  },
+  "keys": [],
+  "slots": [
+   null,
+   null,
+   null
+  ],
+  "path": {
+   "sync": true,
+   "loop": false,
+   "todKeys": true,
+   "ease": "smooth"
+  },
+  "pois": [
+   {
+    "stay": 8,
+    "tod": null,
+    "anim": null,
+    "id": "poi-muxfsml2",
+    "title": "Шкатулка счастья",
+    "subtitle": "",
+    "description": "",
+    "icon": "📍",
+    "color": "#2783DE",
+    "photos": [],
+    "pos": [
+     2.8193,
+     1.3753,
+     -1.4073
+    ],
+    "cam": {
+     "p": [
+      2.0235,
+      1.5325,
+      -1.2957
+     ],
+     "t": [
+      3.1824,
+      1.1477,
+      -1.4384
+     ]
+    }
+   },
+   {
+    "stay": 8,
+    "tod": null,
+    "anim": null,
+    "id": "poi-muxftevx",
+    "title": "Вторая шкатулОЧКА",
+    "subtitle": "",
+    "description": "",
+    "icon": "📍",
+    "color": "#46A171",
+    "photos": [],
+    "pos": [
+     -2.9404,
+     1.3507,
+     2.8984
+    ],
+    "cam": {
+     "p": [
+      -2.771,
+      1.7833,
+      1.8269
+     ],
+     "t": [
+      -2.9404,
+      1.3507,
+      2.8984
+     ]
+    }
+   },
+   {
+    "stay": 8,
+    "tod": null,
+    "anim": null,
+    "id": "poi-muypeje8",
+    "title": "Точка 3",
+    "subtitle": "",
+    "description": "",
+    "icon": "📍",
+    "color": "#D5803B",
+    "photos": [],
+    "price": "465646 ₽",
+    "area": "5647 М²",
+    "pos": [
+     2.9353,
+     1.0132,
+     -4.5761
+    ],
+    "cam": {
+     "p": [
+      0.1691,
+      2.2538,
+      -2.5613
+     ],
+     "t": [
+      2.9353,
+      1.0132,
+      -4.5761
+     ]
+    }
+   }
+  ],
+  "view": {
+   "light": "real",
+   "bg": "sky",
+   "mat": "orig",
+   "exposure": 1.25,
+   "tod": 8.8,
+   "az": 250,
+   "cloud": 0.99,
+   "shadows": true,
+   "ground": false,
+   "weather": "clear",
+   "inertia": "0.05",
+   "tone": "aces",
+   "envInt": 1.25,
+   "envRot": 58,
+   "fileLights": false,
+   "hdrBg": true
+  }
+ }
+}
