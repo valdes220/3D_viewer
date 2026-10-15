@@ -596,6 +596,22 @@ body.hasSite #siteBtn{display:inline-flex}
 #ctxLost.show{display:block}
 .chk{display:flex;gap:8px;align-items:center;font-size:13px;margin-top:10px;cursor:pointer}
 .chk input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* UV-анимация текстуры: карточка на каждый материал */
+.uv-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.uv-list:empty::before{content:"Пока пусто — добавь материал";display:block;font-size:13px;color:var(--muted);padding:10px 12px;border:1px dashed rgba(118,118,128,.35);border-radius:10px}
+.uv-item{background:rgba(255,255,255,.45);border:1px solid rgba(20,20,30,.08);border-radius:12px;padding:9px 10px}
+.uv-top{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:6px;align-items:center}
+.uv-num{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.uv-cell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.uv-cell span{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center}
+.uv-item input{width:100%;height:40px;font:600 15px var(--font);color:var(--text);background:#fff;border:1px solid rgba(20,20,30,.12);border-radius:10px;padding:0 6px;outline:none;text-align:center;transition:border-color .15s,box-shadow .15s}
+.uv-item input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.uv-item input[type=text]{text-align:left;font:500 13px var(--font);padding:0 11px}
+.uv-item input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.uv-item input::-webkit-outer-spin-button,.uv-item input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.uv-item button{width:34px;height:40px;padding:0;flex-shrink:0}
+.uv-note{font-size:12px;color:var(--muted);margin:0}
 </style>
 </head>
 <body>
@@ -648,8 +664,11 @@ body.hasSite #siteBtn{display:inline-flex}
           </div>
           <div class="sec">
             <h4>Погода</h4>
-            <select id="weather" aria-label="Погода"><option value="clear">Ясно</option><option value="few">Лёгкая облачность</option><option value="partly">Переменная облачность</option><option value="overcast">Пасмурно</option><option value="fog">Туман / дымка</option></select>
+            <select id="weather" aria-label="Погода"><option value="clear">Ясно</option><option value="few">Лёгкая облачность</option><option value="partly">Переменная облачность</option><option value="overcast">Пасмурно</option><option value="fog">Туман / дымка</option><option value="snow">Зима — снег</option></select>
             <div class="field" style="margin-top:12px"><label>Облачность <b id="cloudVal">35%</b></label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+            <div class="field" style="margin-top:12px"><label>Снег <b id="snowVal">0%</b></label><input id="snow" type="range" min="0" max="1" step="0.01" value="0"></div>
+            <div class="chips" style="margin-top:12px"><button id="cloudMove" class="on" style="grid-column:span 2">Движение облаков</button></div>
+            <div class="field" style="margin-top:10px"><label>Скорость облаков <b id="cloudSpdVal">1.0×</b></label><input id="cloudSpd" type="range" min="0" max="4" step="0.1" value="1"></div>
           </div>
         </div>
         <div class="sec">
@@ -673,7 +692,16 @@ body.hasSite #siteBtn{display:inline-flex}
         <div class="sec">
           <h4>Показывать</h4>
           <div class="chips"><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="fileLights" title="Источники света, сохранённые в GLB" style="grid-column:span 2">Свет из файла</button></div>
+                <div class="sec">
+          <h4>UV Анимация</h4>
+          <div id="uvList" class="uv-list"></div>
+          <button id="addUV" class="wide"><i data-ic="plus"></i> Добавить материал</button>
+          <datalist id="uvNames"></datalist>
+          <p class="uv-note">X — скролл вбок, Y — скролл по вертикали, Z — вращение текстуры.
+          Знак задаёт направление, 0 выключает. Ориентир: 50 — спокойное течение, 500 — быстрое.</p>
         </div>
+
+</div>
       </div>
 
       <!-- КАМЕРА -->
@@ -1084,8 +1112,38 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100000);
 camera.position.set(4, 3, 6);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_HANDHELD = IS_IOS || matchMedia('(hover: none) and (pointer: coarse)').matches;
+// На телефонах большой кадр съедает память, и система отбирает WebGL-контекст.
+// Поэтому ограничиваем плотность пикселей, а после первой потери ещё и режем вдвое.
+const dprCap = () => { let lite = 0; try { lite = sessionStorage.getItem('nomaCtxLost') === '1' ? 1 : 0; } catch (e) {} return IS_HANDHELD ? (lite ? 1 : Math.min(devicePixelRatio, 1.5)) : Math.min(devicePixelRatio, 2); };
+const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+renderer.setPixelRatio(dprCap());
+
+// iOS может перезапустить страницу, если ей не хватило памяти. Чтобы вид не терялся,
+// держим камеру в sessionStorage: переживает перезагрузку, но не влияет на новый визит.
+const VIEW_KEY = 'nomaView';
+function saveView() {
+  try {
+    if (EDIT || !window.__hasModel || !curName) return;
+    sessionStorage.setItem(VIEW_KEY, JSON.stringify({
+      m: curName, p: camera.position.toArray(), t: controls.target.toArray()
+    }));
+  } catch (e) {}
+}
+function restoreView() {
+  try {
+    if (EDIT || !window.__hasModel || !curName) return false;
+    const s = JSON.parse(sessionStorage.getItem(VIEW_KEY) || 'null');
+    if (!s || s.m !== curName || !s.p || !s.t) return false;
+    camera.position.fromArray(s.p); controls.target.fromArray(s.t);
+    camera.updateProjectionMatrix(); controls.update();
+    setStatus(curName + ' · вид восстановлен');
+    return true;
+  } catch (e) { return false; }
+}
+addEventListener('pagehide', saveView);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveView(); });
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1187,6 +1245,55 @@ for (let i = 0; i < 1800; i++) {
 const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false });
 const stars = new THREE.Points(starGeo, starMat); stars.renderOrder = -2; stars.frustumCulled = false; skyRig.add(stars);
+
+// ===== Снег =====
+const SNOW_N = 2600;
+const snowPos = new Float32Array(SNOW_N * 3), snowSpd = new Float32Array(SNOW_N);
+for (let i = 0; i < SNOW_N; i++) {
+  snowPos.set([Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5], i * 3);
+  snowSpd[i] = 0.03 + Math.random() * 0.07;         // локальные единицы за секунду
+}
+const snowGeo = new THREE.BufferGeometry();
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+const snowTex = (() => {                             // мягкая снежинка
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.45, 'rgba(255,255,255,.8)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const snowMat = new THREE.PointsMaterial({ map: snowTex, size: 0.1, sizeAttenuation: true, transparent: true, opacity: 0.85, depthWrite: false, fog: false });
+const snow = new THREE.Points(snowGeo, snowMat);
+snow.frustumCulled = false; snow.visible = false; scene.add(snow);
+let snowAmt = 0, snowSpan = 12, snowFlake = 0.1;
+
+let cloudT = 0, cloudAnim = true, cloudSpeed = 1;
+
+function applySnow() {
+  const vis = snowAmt > 0.002;
+  snow.visible = vis;
+  if (!vis) return;
+  snowGeo.setDrawRange(0, Math.max(1, Math.floor(SNOW_N * snowAmt)));
+  snowMat.size = snowFlake;
+  snowMat.opacity = 0.5 + snowAmt * 0.45;
+}
+
+function updateSnow(dt) {
+  if (!snow.visible) return;
+  const p = snowGeo.attributes.position.array, t = performance.now() / 1000;
+  for (let i = 0; i < SNOW_N; i++) {
+    const j = i * 3;
+    p[j + 1] -= snowSpd[i] * dt;                                  // падение
+    p[j] += Math.sin(t * 0.7 + i * 1.3) * 0.012 * dt;             // снос по X
+    p[j + 2] += Math.cos(t * 0.5 + i * 0.9) * 0.008 * dt;         // снос по Z
+    if (p[j + 1] < -0.5) p[j + 1] += 1;                           // возврат наверх
+    if (p[j] > 0.5) p[j] -= 1; else if (p[j] < -0.5) p[j] += 1;
+    if (p[j + 2] > 0.5) p[j + 2] -= 1; else if (p[j + 2] < -0.5) p[j + 2] += 1;
+  }
+  snowGeo.attributes.position.needsUpdate = true;
+  snow.position.copy(camera.position);                            // облако снега вокруг камеры
+  snow.scale.setScalar(snowSpan);
+}
 skyEnv.renderOrder = -3;
 const cloudsEnv = new THREE.Mesh(clouds.geometry, cloudMat); cloudsEnv.scale.setScalar(50); cloudsEnv.renderOrder = -1; cloudsEnv.frustumCulled = false; envSkyScene.add(cloudsEnv);
 const bounce = new THREE.Mesh(new THREE.CircleGeometry(200, 32), new THREE.MeshBasicMaterial({ color: 0x555555, toneMapped: false }));
@@ -1207,7 +1314,8 @@ const WX = {
   few:      { cover: 0.3,  ov: 0, turb: 4,   ray: 2.0, sun: 0.95, fog: 14 },
   partly:   { cover: 0.6,  ov: 0, turb: 6,   ray: 1.8, sun: 0.75, fog: 11 },
   overcast: { cover: 1.0,  ov: 1, turb: 10,  ray: 1.0, sun: 0.12, fog: 6 },
-  fog:      { cover: 1.0,  ov: 1, turb: 20,  ray: 0.6, sun: 0.04, fog: 2.5 }
+  fog:      { cover: 1.0,  ov: 1, turb: 20,  ray: 0.6, sun: 0.04, fog: 2.5 },
+  snow:     { cover: 0.95, ov: 0.85, turb: 14, ray: 1.6, sun: 0.22, fog: 5 }
 };
 const _c1 = new THREE.Color(), _c2 = new THREE.Color();
 function updateSun(force) {
@@ -1247,9 +1355,17 @@ function updateSun(force) {
   clearTimeout(envTimer);
   if (force || performance.now() - lastEnv > 150) regenEnv(); else envTimer = setTimeout(regenEnv, 170);
 }
-$('weather').onchange = () => { $('cloud').value = (WX[$('weather').value] || WX.clear).cover; updateSun(true); };
+$('weather').onchange = () => {
+  const w = WX[$('weather').value] || WX.clear;
+  $('cloud').value = w.cover;
+  $('snow').value = $('weather').value === 'snow' ? 0.7 : 0;
+  snowAmt = +$('snow').value; applySnow();
+  updateSun(true);
+};
 $('tod').oninput = () => { todVal = +$('tod').value; updateSun(); };
 ['az', 'cloud'].forEach(id => $(id).oninput = () => updateSun());
+$('snow').oninput = () => { snowAmt = +$('snow').value; applySnow(); };
+$('cloudSpd').oninput = () => { cloudSpeed = +$('cloudSpd').value; };
 
 let composer = null, gtao = null, usePost = false, bloomPass = null;
 function tuneAO() {
@@ -1367,6 +1483,10 @@ function enhanceMaterials(root) {
 }
 let actions = [], activeClips = new Set(), multiAnim = false;
 let model = null, mixer = null, action = null, clips = [], playing = true, loop = true, scrubbing = false;
+let uvTargets = [], uvAnimations = [];
+// Масштаб скорости текстуры: в поле вводим удобные числа, внутри умножаем.
+// 1 в поле = 0.001 оборота в секунду. То есть 50 = 0.05, 500 = 0.5.
+const UV_SCALE = 0.001, UV_SCALE_VER = 2;
 const clock = new THREE.Clock();
 const setStatus = t => $('status').textContent = t;
 
@@ -1469,6 +1589,7 @@ function fitCamera(obj) {
   controls.target.copy(center);
   controls.minDistance = Math.max(max * 0.002, 0.005); controls.maxDistance = Math.max(max * 30, 50);
   controls.update();
+  setBounds(max * 0.5);   // предел отдаления для гостя
   grid.scale.setScalar(Math.max(max / 20, 1));
   grid.position.y = box.min.y;
   axes.scale.setScalar(max * 0.6); axes.position.set(box.min.x, box.min.y, box.min.z);
@@ -1519,6 +1640,9 @@ async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
     fitCamera(model);
     slots.fill(null); document.querySelectorAll('.slot').forEach(b => b.classList.remove('on'));
     if (sceneData) applySceneData(sceneData);
+    restoreView();   // вернуть вид после перезапуска страницы (iOS)
+    buildUVTargets(model, uvAnimations);
+    renderUVList();
     bvhIdle(model);
     if (clips.length) {
       mixer = new THREE.AnimationMixer(model);
@@ -1544,6 +1668,7 @@ async function handleFiles(files) {
   const extra = files.filter(f => f !== model && f !== json && f !== hdri);
   let data = null;
   if (json) { try { data = JSON.parse(await json.text()); } catch { return alert('Не удалось прочитать JSON'); } }
+  if (data?.uvAnimations) uvAnimations = migrateUV(data.uvAnimations, data?.uvScale);
   if (data?.noma) { applyBrand(data); data = data.scene || null; }   // tour.json
   if (hdri) await loadHDRI(hdri);
   if (model) return loadBuffer(await model.arrayBuffer(), model.name, data, extra);
@@ -1565,8 +1690,10 @@ const showVals = () => {
   $('expVal').textContent = (+$('exposure').value).toFixed(2);
   $('azVal').textContent = Math.round(+$('az').value) + '°';
   $('cloudVal').textContent = Math.round(+$('cloud').value * 100) + '%';
+  $('snowVal').textContent = Math.round(+$('snow').value * 100) + '%';
+  $('cloudSpdVal').textContent = (+$('cloudSpd').value).toFixed(1) + '×';
 };
-['exposure', 'az', 'cloud'].forEach(id => $(id).addEventListener('input', showVals));
+['exposure', 'az', 'cloud', 'snow', 'cloudSpd'].forEach(id => $(id).addEventListener('input', showVals));
 setInterval(showVals, 400); showVals();
 // Подсказка: видна при старте, скрывается после первого взаимодействия
 // Справка открывается только по кнопке «?» (код ниже)
@@ -1584,6 +1711,7 @@ toggle('groundBtn', updateGround);
 toggle('fileLights', v => fileLights.forEach(l => l.visible = v));
 $('inertia').onchange = () => controls.dampingFactor = +$('inertia').value;
 controls.dampingFactor = +$('inertia').value;
+toggle('cloudMove', on => { cloudAnim = on; });
 toggle('timePlay', () => {});
 
 const _de = document.documentElement, _reqFS = _de.requestFullscreen || _de.webkitRequestFullscreen, _exitFS = document.exitFullscreen || document.webkitExitFullscreen;
@@ -1688,7 +1816,7 @@ function collectScene() {
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
     pois: pois.map(poiSerialize),
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
   };
 }
 function applySceneData(d) {
@@ -1706,7 +1834,10 @@ function applySceneData(d) {
     for (const k of ['envInt', 'envRot']) if (d.view[k] != null) { $(k).value = d.view[k]; $(k).oninput(); }
     if (d.view.hdrBg != null) $('hdrBg').classList.toggle('on', !!d.view.hdrBg);
     if (d.view.fileLights != null) { $('fileLights').classList.toggle('on', !!d.view.fileLights); fileLights.forEach(l => l.visible = !!d.view.fileLights); }
-    for (const k of ['tod', 'az', 'cloud']) if (d.view[k] != null) $(k).value = d.view[k];
+    for (const k of ['tod', 'az', 'cloud', 'snow', 'cloudSpd']) if (d.view[k] != null) $(k).value = d.view[k];
+    snowAmt = +$('snow').value; cloudSpeed = +$('cloudSpd').value;
+    if (d.view.cloudMove != null) { $('cloudMove').classList.toggle('on', !!d.view.cloudMove); cloudAnim = !!d.view.cloudMove; }
+    applySnow();
     todVal = +$('tod').value; controls.dampingFactor = +$('inertia').value;
     if (d.view.ground != null) $('groundBtn').classList.toggle('on', d.view.ground);
     if (d.view.shadows != null) { $('shadowBtn').classList.toggle('on', d.view.shadows); setShadows(d.view.shadows); }
@@ -1864,7 +1995,7 @@ ${img ? `<meta property="og:image" content="${esc(img)}"><meta name="twitter:car
 };
 $('tSave').onclick = async () => {
   if (!window.__hasModel) return alert('Сначала открой модель');
-  const out = { noma: 1, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, legal: brand.legal, analytics: brand.analytics, lock: (await lockValue()) || undefined, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
+  const out = { noma: 1, uvScale: UV_SCALE_VER, uvAnimations: uvAnimations.length ? uvAnimations : undefined, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, legal: brand.legal, analytics: brand.analytics, lock: (await lockValue()) || undefined, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
   a.download = 'tour.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -1970,6 +2101,7 @@ else {
       if (LOCAL_FILE) throw new Error('file');
       let data = null;
       try { const j = await fetch(q.replace(/\.(glb|gltf)$/i, '.cam.json')); if (j.ok) data = await j.json(); } catch {}
+      if (data?.uvAnimations) uvAnimations = migrateUV(data.uvAnimations, data?.uvScale);
       if (data?.noma) { applyBrand(data); data = data.scene || null; }
       await openRemote(new URL(q, location.href).href, data);
       splashHide();
@@ -2032,11 +2164,19 @@ let ctxLost = false, ctxTimer = 0;
 renderer.domElement.addEventListener('webglcontextlost', e => {
   e.preventDefault(); ctxLost = true; $('ctxLost').textContent = 'Графика приостановлена системой — восстанавливаем…'; $('ctxLost').classList.add('show'); track('ctx_lost');
   clearTimeout(ctxTimer);
+  try { sessionStorage.setItem('nomaCtxLost', '1'); } catch (e) {}
   ctxTimer = setTimeout(() => {
     if (!ctxLost) return;
-    if (window.__fallbackTour && TOUR && !EDIT) { $('ctxLost').classList.remove('show'); window.__fallbackTour('графика остановилась и не восстановилась'); }
-    else $('ctxLost').textContent = 'Графика остановилась. Обновите страницу.';
-  }, 7000);
+    // Возвращаем контекст на месте. Страницу не подменяем: вид уже сохранён.
+    try { renderer.forceContextRestore(); } catch (e) {}
+    setTimeout(() => {
+      if (!ctxLost) return;
+      $('ctxLost').textContent = 'Возвращаем графику в облегчённом режиме…';
+      saveView();
+      if (TOUR && !EDIT) setTimeout(() => location.reload(), 400);  // вид вернётся из sessionStorage
+      else $('ctxLost').textContent = 'Графика остановилась. Обновите страницу — вид сохранится.';
+    }, 1200);
+  }, 6000);
 });
 renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; clearTimeout(ctxTimer); $('ctxLost').classList.remove('show'); track('ctx_restored'); });
 
@@ -2743,7 +2883,7 @@ renderer.domElement.addEventListener('wheel', e => {
 }, { passive: false });
 // Лёгкая графика: без пост-эффектов, разрешение 1×, тени не перерисовываются каждый кадр
 function applyLiteGfx(v) {
-  renderer.setPixelRatio(v ? 1 : Math.min(devicePixelRatio, 2)); composer?.setPixelRatio(renderer.getPixelRatio()); onResize();
+  renderer.setPixelRatio(v ? 1 : dprCap()); composer?.setPixelRatio(renderer.getPixelRatio()); onResize();
   renderer.shadowMap.autoUpdate = !v; renderer.shadowMap.needsUpdate = true;
 }
 function setLite(v) {
@@ -2837,9 +2977,137 @@ function updateClip() {
     camera.near = n; camera.far = f; camera.updateProjectionMatrix();
   }
 }
+// ===== UV-анимация текстур (настройка в редакторе, Scene) =====
+function migrateUV(list, ver) {
+  if (!Array.isArray(list)) return [];
+  if (ver === UV_SCALE_VER) return list;          // файл уже в новом масштабе
+  return list.map(a => ({                          // старый: 0.05 -> 50
+    ...a,
+    speedX: +((+a.speedX || 0) / UV_SCALE).toFixed(3),
+    speedY: +((+a.speedY || 0) / UV_SCALE).toFixed(3),
+    speedZ: +((+a.speedZ || 0) / UV_SCALE).toFixed(3)
+  }));
+}
+
+function buildUVTargets(root, cfg) {
+  uvTargets = [];
+  if (!root || !Array.isArray(cfg) || !cfg.length) return;
+  const seen = new Set();
+  root.traverse(o => {
+    if (!o.material) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of mats) {
+      if (!m || !m.name || seen.has(m.uuid)) continue;
+      seen.add(m.uuid);
+      const a = cfg.find(x => x.materialName === m.name);
+      if (!a) continue;
+      const tex = m.map || m.emissiveMap || m.normalMap;
+      if (!tex) { console.warn('[UV] у материала нет текстуры:', m.name); continue; }
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.center.set(0.5, 0.5);   // вращение вокруг центра текстуры, а не угла
+      uvTargets.push({ tex, sx: (+a.speedX || 0) * UV_SCALE, sy: (+a.speedY || 0) * UV_SCALE, sz: (+a.speedZ || 0) * UV_SCALE });
+      console.log(`[UV] "${m.name}": X=${a.speedX || 0} Y=${a.speedY || 0} Z=${a.speedZ || 0}`);
+    }
+  });
+  console.log(`[UV] активных анимаций текстур: ${uvTargets.length}`);
+  if (!uvTargets.length) console.warn('[UV] ни одно имя из списка не совпало с материалами модели');
+}
+
+function updateUVTargets(dt) {
+  for (let i = 0; i < uvTargets.length; i++) {
+    const u = uvTargets[i];
+    u.tex.offset.x = (u.tex.offset.x + u.sx * dt) % 1;
+    u.tex.offset.y = (u.tex.offset.y + u.sy * dt) % 1;
+    if (u.sz) u.tex.rotation = (u.tex.rotation + u.sz * dt) % (Math.PI * 2);
+  }
+}
+
+$('addUV').addEventListener('click', () => {
+  uvAnimations.push({ materialName: '', speedX: 0, speedY: 0, speedZ: 0 });
+  renderUVList();
+});
+
+function renderUVList() {
+  const list = $('uvList');
+  if (!list) return;
+  list.innerHTML = '';
+  const all = [];
+  if (model) model.traverse(o => {
+    if (!o.material) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m && m.name) all.push(m.name); });
+  });
+  const names = [...new Set(all)];
+  const AXES = [
+    ['speedX', 'X', 'скролл вбок (вправо / влево)'],
+    ['speedY', 'Y', 'скролл по вертикали (вверх / вниз)'],
+    ['speedZ', 'Z', 'вращение текстуры']
+  ];
+  uvAnimations.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = 'uv-item';
+    const top = document.createElement('div');
+    top.className = 'uv-top';
+    const name = document.createElement('input');
+    name.type = 'text'; name.placeholder = 'имя материала'; name.value = a.materialName || '';
+    name.setAttribute('list', 'uvNames'); name.setAttribute('aria-label', 'Имя материала');
+    name.dataset.i = i; name.dataset.p = 'materialName';
+    const del = document.createElement('button');
+    del.textContent = '×'; del.title = 'Удалить материал';
+    del.setAttribute('aria-label', 'Удалить ' + (a.materialName || 'материал'));
+    del.dataset.i = i;
+    top.append(name, del);
+    const nums = document.createElement('div');
+    nums.className = 'uv-num';
+    for (const [key, letter, hint] of AXES) {
+      const cell = document.createElement('div');
+      cell.className = 'uv-cell';
+      const lab = document.createElement('span');
+      lab.textContent = letter;
+      const n = document.createElement('input');
+      n.type = 'number'; n.step = '1'; n.inputMode = 'decimal';
+      n.value = a[key] || 0;
+      n.dataset.i = i; n.dataset.p = key;
+      n.title = letter + ' — ' + hint;
+      n.setAttribute('aria-label', letter + ' — ' + hint);
+      cell.append(lab, n);
+      nums.appendChild(cell);
+    }
+    card.append(top, nums);
+    list.appendChild(card);
+  });
+  const dl = $('uvNames');
+  if (dl) dl.innerHTML = names.map(n => '<option value="' + n + '">').join('');
+  list.querySelectorAll('input').forEach(inp => inp.addEventListener('input', e => {
+    const i = +e.target.dataset.i, p = e.target.dataset.p;
+    uvAnimations[i][p] = p === 'materialName' ? e.target.value : (+e.target.value || 0);
+    if (model) buildUVTargets(model, uvAnimations);
+  }));
+  list.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    uvAnimations.splice(+b.dataset.i, 1);
+    renderUVList();
+    if (model) buildUVTargets(model, uvAnimations);
+  }));
+}
+
+
+// ===== Предел отдаления для гостя =====
+// Единственное ограничение: гость не может отлететь от модели слишком далеко.
+// Вращение, наклон и панорама работают без вмешательства — как в оригинале.
+// В редакторе не ограничиваем вообще.
+const bounds = { radius: 5, active: false };
+function setBounds(radius) {
+  bounds.radius = Math.max(radius, 0.001);
+  bounds.active = !EDIT;
+  snowSpan = Math.max(radius * 3, 4);                    // размер области снегопада
+  snowFlake = Math.max(radius * 0.012, 0.02);            // размер снежинки
+  applySnow();
+  if (bounds.active) controls.maxDistance = Math.max(radius * 12, 40);  // предел отдаления гостя
+}
+
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
+  if (uvTargets.length) updateUVTargets(Math.min(dt, 0.1));
   if (ctxLost) return;
   autoLiteWatch(dt);
   if (mixer && playing) mixer.update(dt);
@@ -2867,8 +3135,10 @@ function animate() {
   if (on('timePlay') && isSun() && !(pathT !== null && on('todKeys'))) { todVal = (todVal + Math.min(dt, 0.1) * +$('timeSpeed').value) % 24; $('tod').value = todVal; updateSun(); }
   placeKey(); updatePins();
   skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
-  cloudMat.uniforms.uTime.value = performance.now() / 1000;
+  if (cloudAnim) cloudT += Math.min(dt, 0.1) * cloudSpeed;
+  cloudMat.uniforms.uTime.value = cloudT;
   if (!fly && pathT === null && !fp.on) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
+  updateSnow(Math.min(dt, 0.05));
   if (fp.on) fpUpdate(Math.min(dt, 0.05)); else controls.update();
   updateClip();
   if (fp.lite && (liteShadowT += dt) > 1) { liteShadowT = 0; renderer.shadowMap.needsUpdate = true; }
