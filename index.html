@@ -109,6 +109,21 @@ body.noL #inspector{opacity:0;transform:translateX(16px);pointer-events:none}
 #toolbar button:hover{background:var(--ctl)}
 #toolbar button.on{background:var(--accent);color:#fff}
 #toolbar .sep{width:1px;height:24px;background:var(--hair);margin:0 4px}
+/* Преображение сцены: кнопка у гостя и список в редакторе */
+#stageBtn{left:50%;bottom:84px;transform:translateX(-50%);display:none;height:46px;padding:0 20px;border-radius:15px;gap:9px;font-weight:600;font-size:14px;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
+#stageBtn.show{display:inline-flex}
+#stageBtn.busy{opacity:.6;pointer-events:none}
+#stageBtn svg.ic{width:19px;height:19px}
+body.hasDock #stageBtn{bottom:148px}
+body.touring #stageBtn{display:none!important}
+.stg-item{background:rgba(255,255,255,.45);border:1px solid rgba(20,20,30,.08);border-radius:12px;padding:9px 10px;margin-bottom:8px}
+.stg-item:last-child{margin-bottom:0}
+.stg-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px;gap:6px;align-items:center;margin-bottom:6px}
+.stg-mid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.stg-item input,.stg-item select{width:100%;height:38px;font:500 13px var(--font);color:var(--text);background:#fff;border:1px solid rgba(20,20,30,.12);border-radius:10px;padding:0 10px;outline:none;transition:border-color .15s,box-shadow .15s}
+.stg-item select{appearance:none;-webkit-appearance:none;padding-right:26px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b6b72' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center/14px}
+.stg-item input:focus,.stg-item select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.stg-item button{width:34px;height:38px;padding:0;flex-shrink:0}
 #toolbar svg.ic{width:20px;height:20px}
 [data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(29,29,31,.9);color:#fff;font:500 12px/1 var(--font);padding:7px 9px;border-radius:7px;white-space:nowrap;pointer-events:none}
 
@@ -125,6 +140,8 @@ body.noD #dock{display:none!important}
 #hint b{color:var(--text);font-weight:600}
 body.hideHint #hint{opacity:0;pointer-events:none}
 body.hasDock #hint{bottom:148px}
+body.hasStages #hint{bottom:148px}
+body.hasDock.hasStages #hint{bottom:212px}
 
 #pillE{right:16px;top:16px;display:none;width:40px;height:40px;padding:0;border-radius:12px;opacity:.55}
 #pillE:hover{opacity:1}
@@ -143,6 +160,8 @@ body.clean #pillE{display:inline-flex}
   body.noL #inspector{transform:translateY(16px)}
   #hint{display:none}
   #dock{bottom:84px}
+  #stageBtn{bottom:calc(80px + var(--sab));max-width:calc(100% - 24px);font-size:13px;height:44px;padding:0 16px}
+  body.hasDock #stageBtn{bottom:calc(140px + var(--sab))}
 }
 @media(max-width:820px) and (min-height:521px){body:not(.noL) #dock{display:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -395,6 +414,7 @@ body.fp.touch #fileChip{display:none}
   #timeline{order:6;flex:1 1 60%}
   #time{order:7;min-width:0;font-size:12px}
   body.hasDock #hint{bottom:calc(196px + var(--sab))}
+  body.hasDock #stageBtn{bottom:calc(196px + var(--sab))}
 }
 /* джойстик не налезает на плеер (портрет) */
 body.fp.touch.hasDock:not(.noD) #joy{bottom:calc(196px + var(--sab))}
@@ -691,6 +711,8 @@ body.hasSite #siteBtn{display:inline-flex}
         </div>
         <div class="sec">
           <h4>Показывать</h4>
+          <div class="field"><label>Туман за сценой <b id="mistVal">0%</b></label><input id="mist" type="range" min="0" max="1" step="0.01" value="0"></div>
+          <p class="uv-note" style="margin-bottom:14px">Дымка скрывает границу мира — гость не видит, где кончается сцена.</p>
           <div class="chips"><button id="shadowBtn" class="on">Тени</button><button id="groundBtn" class="on">Земля</button><button id="gridBtn" class="on">Сетка</button><button id="axesBtn">Оси</button><button id="fileLights" title="Источники света, сохранённые в GLB" style="grid-column:span 2">Свет из файла</button></div>
                 <div class="sec">
           <h4>UV Анимация</h4>
@@ -715,6 +737,9 @@ body.hasSite #siteBtn{display:inline-flex}
           <h4>Сохранённые виды</h4>
           <div class="slots"><button id="saveCam" title="Записать текущий вид в слот"><i data-ic="save"></i></button><button class="slot" data-i="0">1</button><button class="slot" data-i="1">2</button><button class="slot" data-i="2">3</button></div>
           <p class="hint-s">Нажми <i data-ic="save" data-s="14"></i>, затем номер слота, чтобы записать вид.</p>
+          <button id="startView" class="wide" style="margin-top:10px"><i data-ic="target"></i> Сделать стартовым для гостя</button>
+          <button id="startViewClr" class="wide" style="margin-top:6px">Сбросить стартовый вид</button>
+          <p class="hint-s" id="svNote">Стартовый вид не задан — гость увидит общий план.</p>
         </div>
         <div class="sec" id="paths">
           <h4>Пролёт камеры</h4>
@@ -840,6 +865,13 @@ body.hasSite #siteBtn{display:inline-flex}
           <p class="hint-s">Считаются: открытия, время в туре, остановки, клики по точкам, PDF, ссылки, заявки. Отчёт — файл <b>stats.html</b>. В режиме редактора статистика не собирается.</p>
         </div>
         <div class="sec">
+          <h4>Преображение сцены</h4>
+          <div id="stageListUI"></div>
+          <button id="addStage" class="wide"><i data-ic="plus"></i> Добавить состояние</button>
+          <p class="uv-note">Гость нажмёт кнопку — старая сцена уйдёт в землю, новая вырастет на её месте вместе с пылью и своими анимациями.
+          Файлы клади в папку тура рядом с tour.json (например <b>complex.glb</b>). Первое состояние — та модель, что загружена сейчас.</p>
+        </div>
+        <div class="sec">
           <h4>Публикация</h4>
           <div class="field"><label>ID тура (имя папки, латиница)</label><input id="tId" class="inp" type="text" maxlength="40" placeholder="house"></div>
           <div class="field"><label>Пароль редактора <span style="font-weight:400">(необязательно)</span></label><input id="tLock" class="inp" type="password" autocomplete="new-password" placeholder="пусто — не менять, «-» — снять"></div>
@@ -888,6 +920,7 @@ body.hasSite #siteBtn{display:inline-flex}
     <button id="pillL" data-tip="Чистый экран (H)"><i data-ic="eye"></i></button>
     <button id="fs" data-tip="Полный экран"><i data-ic="full"></i></button>
   </nav>
+  <button id="stageBtn" class="glass" data-tip="Преображение сцены"><i data-ic="cube"></i><span id="stageLbl"></span></button>
   <button id="pillE" class="glass" title="Вернуть интерфейс (H)"><i data-ic="eye"></i></button>
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
@@ -1144,6 +1177,22 @@ function restoreView() {
 }
 addEventListener('pagehide', saveView);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveView(); });
+
+// Стартовый вид тура: гость открывает сцену уже с выгодного ракурса,
+// даже если пролёт по точкам не настроен.
+let startView = null, animPrefs = null;
+function applyStartView() {
+  if (EDIT || !startView) return false;
+  camera.position.copy(startView.p); controls.target.copy(startView.t);
+  camera.updateProjectionMatrix(); controls.update();
+  return true;
+}
+function updateSvNote() {
+  const n = $('svNote');
+  if (n) n.textContent = startView
+    ? 'Стартовый вид задан — гость откроет сцену с этого ракурса.'
+    : 'Стартовый вид не задан — гость увидит общий план.';
+}
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1306,6 +1355,37 @@ function regenEnv() {
   envRT?.dispose(); envRT = t;
   if (isSun()) scene.environment = t.texture;
 }
+let mist = 0;                                       // дымка за пределами сцены, 0..1
+// ===== Дымка за пределами сцены =====
+// Гость не видит, где кончается мир: чем дальше, тем плотнее мгла.
+// Значение 0 — поведение как раньше (только туман от погоды).
+// Дымка даёт собственную плотность, а не множитель к погодной.
+// Иначе при ясной погоде она остаётся почти незаметной, а при тумане
+// мгновенно выжигает сцену — и слайдер ведёт себя непредсказуемо.
+const MIST_ADD = 2.0;                                  // плотность на 100%, в единицах 1/радиус
+function mistDensity() {
+  const wx = WX[$('weather').value] || WX.clear;
+  const base = 1 / (wx.fog * Math.max(modelSphere.radius, 0.001));
+  return base + mist * MIST_ADD / Math.max(modelSphere.radius, 0.001);
+}
+function applyMist() {
+  const sun = isSun();
+  if (!sun && mist <= 0.001) { scene.fog = null; return; }
+  if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0001);
+  scene.fog.density = mistDensity();
+  // Без солнца туман не проваливается в чёрное — мягкий серый.
+  // Чем сильнее дымка, тем светлее: читается как мгла, а не как цвет неба.
+  if (!sun) {
+    _c1.setRGB(0.52, 0.57, 0.65).lerp(_c2.setRGB(0.62, 0.66, 0.72), mist);
+    scene.fog.color.copy(_c1);
+  }
+}
+function setMistLabel() { if ($('mistVal')) $('mistVal').textContent = Math.round(mist * 100) + '%'; }
+$('mist').oninput = () => {
+  mist = +$('mist').value; setMistLabel(); applyMist();
+  if (isSun()) updateSun();
+};
+
 let todVal = 15;
 function setTod(h) { todVal = ((h % 24) + 24) % 24; $('tod').value = todVal; updateSun(); }
 const sunDir = new THREE.Vector3(), L = new THREE.Vector3(), D = THREE.MathUtils;
@@ -1347,10 +1427,13 @@ function updateSun(force) {
   if (bloomPass) { bloomPass.threshold = D.lerp(1.1, 4.0, day); bloomPass.strength = D.lerp(0.25, 0.1, day); }
   // дымка: цвет горизонта по времени и погоде
   if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0001);
-  scene.fog.density = 1 / (wx.fog * modelSphere.radius);
+  scene.fog.density = mistDensity();
   _c1.setRGB(0.42, 0.54, 0.74).lerp(_c2.setRGB(0.55, 0.58, 0.62), wx.ov);
   _c1.lerp(_c2.setRGB(0.8, 0.45, 0.22), horizon * day * (1 - wx.ov * 0.7) * 0.8);
-  scene.fog.color.copy(_c1).multiplyScalar(0.03 + 0.97 * day);
+  // Дымка выбеливает туман — он должен читаться как мгла, а не как оттенок неба
+  if (mist > 0.001) _c1.lerp(_c2.setRGB(0.66, 0.70, 0.76), 0.45 * mist);
+  // Ночь не гасит туман в чёрный провал: пол 0.22 вместо 0.03
+  scene.fog.color.copy(_c1).multiplyScalar(0.22 + 0.78 * day);
   ground.material.color.setRGB(0.19, 0.18, 0.16).multiplyScalar(1);
   clearTimeout(envTimer);
   if (force || performance.now() - lastEnv > 150) regenEnv(); else envTimer = setTimeout(regenEnv, 170);
@@ -1360,6 +1443,7 @@ $('weather').onchange = () => {
   $('cloud').value = w.cover;
   $('snow').value = $('weather').value === 'snow' ? 0.7 : 0;
   snowAmt = +$('snow').value; applySnow();
+  applyMist();              // дымка работает при любой погоде, не только тумане
   updateSun(true);
 };
 $('tod').oninput = () => { todVal = +$('tod').value; updateSun(); };
@@ -1392,7 +1476,7 @@ function applyLight() {
   const m = $('light').value, sun = isSun();
   applyQuality();
   usePost = $('light').value === 'real'; if (usePost) ensureComposer();
-  if (!sun) scene.fog = null;
+  if (!sun && mist <= 0.001) scene.fog = null; else applyMist();
   $('sunCtl').style.display = sun ? 'block' : 'none';
   scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : m === 'hdri' ? (hdrTex || envTex) : envRT?.texture ?? null;
   if (sun) updateSun(true);
@@ -1484,6 +1568,7 @@ function enhanceMaterials(root) {
 let actions = [], activeClips = new Set(), multiAnim = false;
 let model = null, mixer = null, action = null, clips = [], playing = true, loop = true, scrubbing = false;
 let uvTargets = [], uvAnimations = [];
+let stages = [], stageIdx = 0, stageBusy = false;   // состояния сцены для преображения
 // Масштаб скорости текстуры: в поле вводим удобные числа, внутри умножаем.
 // 1 в поле = 0.001 оборота в секунду. То есть 50 = 0.05, 500 = 0.5.
 const UV_SCALE = 0.001, UV_SCALE_VER = 2;
@@ -1603,6 +1688,11 @@ function flyTo(p, t) {
   fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0 };
 }
 $('saveCam').onclick = e => { saveMode = !saveMode; e.currentTarget.classList.toggle('on', saveMode); };
+$('startView').onclick = () => {
+  startView = { p: camera.position.clone(), t: controls.target.clone() };
+  updateSvNote(); setStatus('Стартовый вид записан — гость начнёт с этого ракурса');
+};
+$('startViewClr').onclick = () => { startView = null; updateSvNote(); setStatus('Стартовый вид сброшен'); };
 document.querySelectorAll('.slot').forEach(b => b.onclick = () => {
   const i = +b.dataset.i;
   if (saveMode) {
@@ -1631,6 +1721,7 @@ async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
   const urls = new Map(extra.map(f => [f.name, URL.createObjectURL(f)]));
   loader.manager.setURLModifier(u => (u.startsWith('data:') || u.startsWith('blob:')) ? u : urls.get(decodeURIComponent(u.split('/').pop().split('?')[0])) || u);
   try {
+    try { stageBytes.set(0, buf); } catch (e) {}          // исходная сцена — для возврата
     const gltf = await loader.parseAsync(buf, base);
     model = gltf.scene; scene.add(model); window.__hasModel = true;
     model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
@@ -1640,16 +1731,26 @@ async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
     fitCamera(model);
     slots.fill(null); document.querySelectorAll('.slot').forEach(b => b.classList.remove('on'));
     if (sceneData) applySceneData(sceneData);
-    restoreView();   // вернуть вид после перезапуска страницы (iOS)
+    // Сетка и оси: по умолчанию сетка выключена у гостя, если тур её не включает
+    if (!sceneData || !sceneData.view) { $('gridBtn')?.classList.remove('on'); grid.visible = false; }
+    if (!restoreView()) applyStartView();   // вид сессии → стартовый вид тура → общий план
     buildUVTargets(model, uvAnimations);
     renderUVList();
+    setupStages(stages);
+    renderStageList();
     bvhIdle(model);
     if (clips.length) {
       mixer = new THREE.AnimationMixer(model);
       mixer.timeScale = +$('speed').value;
       $('clipWrap').style.display = clips.length > 1 ? '' : 'none'; document.body.classList.toggle('multiClip', clips.length > 1);
       $('dock').style.display = 'flex'; document.body.classList.add('hasDock');
-      playAnimation(0);
+      // Порядок и скорость анимаций из тура: гость видит то, что настроил автор
+      if (animPrefs && clips.length) {
+        if (animPrefs.speed) { $('speed').value = animPrefs.speed; mixer.timeScale = +animPrefs.speed; }
+        if (typeof animPrefs.loop === 'boolean') { loop = animPrefs.loop; $('loop').classList.toggle('on', loop); }
+        const sel = (Array.isArray(animPrefs.clips) ? animPrefs.clips : []).filter(i => i >= 0 && i < clips.length);
+        playClips(new Set(sel.length ? sel : [0]));
+      } else playAnimation(0);
       setStatus(`${name} · ${clips.length} анимац.`);
     } else setStatus(`${name} · анимаций нет`);
   } catch (err) {
@@ -1669,6 +1770,7 @@ async function handleFiles(files) {
   let data = null;
   if (json) { try { data = JSON.parse(await json.text()); } catch { return alert('Не удалось прочитать JSON'); } }
   if (data?.uvAnimations) uvAnimations = migrateUV(data.uvAnimations, data?.uvScale);
+  if (Array.isArray(data?.stages)) stages = data.stages;
   if (data?.noma) { applyBrand(data); data = data.scene || null; }   // tour.json
   if (hdri) await loadHDRI(hdri);
   if (model) return loadBuffer(await model.arrayBuffer(), model.name, data, extra);
@@ -1677,7 +1779,7 @@ async function handleFiles(files) {
   else alert('Нужен .GLB/.GLTF (для .gltf — вместе с .bin и текстурами), при желании .json со сценой и .hdr/.exr');
 }
 $('file').addEventListener('change', async e => { await handleFiles([...e.target.files]); e.target.value = ''; });
-$('reset').onclick = () => model && fitCamera(model);
+$('reset').onclick = () => model && !morph.on && fitCamera(model);
 $('settingsBtn').onclick = e => { const open = document.body.classList.toggle('noL') === false; e.currentTarget.classList.toggle('on', open); };
 // Вкладки инспектора
 function showTab(name) {
@@ -1694,7 +1796,7 @@ const showVals = () => {
   $('cloudSpdVal').textContent = (+$('cloudSpd').value).toFixed(1) + '×';
 };
 ['exposure', 'az', 'cloud', 'snow', 'cloudSpd'].forEach(id => $(id).addEventListener('input', showVals));
-setInterval(showVals, 400); showVals();
+setInterval(showVals, 400); showVals(); setMistLabel();
 // Подсказка: видна при старте, скрывается после первого взаимодействия
 // Справка открывается только по кнопке «?» (код ниже)
 // Быстрый пролёт с нижней панели
@@ -1816,7 +1918,9 @@ function collectScene() {
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
     pois: pois.map(poiSerialize),
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
+    startView: startView ? { p: vec(startView.p), t: vec(startView.t) } : undefined,
+    anim: { speed: $('speed').value, loop, clips: [...activeClips] },
+    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, mist: +$('mist').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), grid: on('gridBtn'), axes: on('axesBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
   };
 }
 function applySceneData(d) {
@@ -1835,16 +1939,23 @@ function applySceneData(d) {
     if (d.view.hdrBg != null) $('hdrBg').classList.toggle('on', !!d.view.hdrBg);
     if (d.view.fileLights != null) { $('fileLights').classList.toggle('on', !!d.view.fileLights); fileLights.forEach(l => l.visible = !!d.view.fileLights); }
     for (const k of ['tod', 'az', 'cloud', 'snow', 'cloudSpd']) if (d.view[k] != null) $(k).value = d.view[k];
+    if (d.view.mist != null) $('mist').value = d.view.mist;
+    mist = +$('mist').value; setMistLabel(); applyMist();
     snowAmt = +$('snow').value; cloudSpeed = +$('cloudSpd').value;
     if (d.view.cloudMove != null) { $('cloudMove').classList.toggle('on', !!d.view.cloudMove); cloudAnim = !!d.view.cloudMove; }
     applySnow();
     todVal = +$('tod').value; controls.dampingFactor = +$('inertia').value;
     if (d.view.ground != null) $('groundBtn').classList.toggle('on', d.view.ground);
+    if (d.view.grid != null) { $('gridBtn').classList.toggle('on', d.view.grid); grid.visible = d.view.grid; }
+    if (d.view.axes != null) { $('axesBtn').classList.toggle('on', d.view.axes); axes.visible = d.view.axes; }
     if (d.view.shadows != null) { $('shadowBtn').classList.toggle('on', d.view.shadows); setShadows(d.view.shadows); }
     if (d.view.exposure) { $('exposure').value = d.view.exposure; renderer.toneMappingExposure = d.view.exposure; }
     applyLight(); applyMaterials();
   }
   if (d.camera) { camera.position.copy(V(d.camera.p)); controls.target.copy(V(d.camera.t)); controls.update(); }
+  if (d.startView) startView = { p: V(d.startView.p), t: V(d.startView.t) };
+  if (d.anim) animPrefs = d.anim;
+  updateSvNote();
   if (d.pois) poiLoad(d.pois);
 }
 $('saveScene').onclick = () => {
@@ -1861,7 +1972,7 @@ $('jsonIn').onchange = async e => { await handleFiles([...e.target.files]); e.ta
 const ray = new THREE.Raycaster();
 renderer.domElement.addEventListener('dblclick', e => { if (!placing) focusAt(e.clientX, e.clientY); });
 function focusAt(cx, cy) {
-  if (!model || pathT !== null || fp.on) return;
+  if (!model || pathT !== null || fp.on || morph.on) return;
   const r = renderer.domElement.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
   const hit = ray.intersectObject(model, true)[0];
@@ -1995,7 +2106,7 @@ ${img ? `<meta property="og:image" content="${esc(img)}"><meta name="twitter:car
 };
 $('tSave').onclick = async () => {
   if (!window.__hasModel) return alert('Сначала открой модель');
-  const out = { noma: 1, uvScale: UV_SCALE_VER, uvAnimations: uvAnimations.length ? uvAnimations : undefined, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, legal: brand.legal, analytics: brand.analytics, lock: (await lockValue()) || undefined, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
+  const out = { noma: 1, uvScale: UV_SCALE_VER, stages: stages.filter(s => s && (s.label || s.file)).length ? stages.filter(s => s && (s.label || s.file)) : undefined, uvAnimations: uvAnimations.length ? uvAnimations : undefined, title: brand.title, subtitle: brand.subtitle, accent: brand.accent, cover: brand.cover, cta: brand.cta, site: brand.site, lead: brand.lead, legal: brand.legal, analytics: brand.analytics, lock: (await lockValue()) || undefined, model: curName, hdri: hdrTex && hdrSrc ? hdrSrc : undefined, scene: collectScene() };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
   a.download = 'tour.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2032,6 +2143,7 @@ function setPreview(v) {
 }
 $('tPreview').onclick = () => { setPreview(true); setSplashCover(); splash.className = 'show' + (coverURL() ? ' cover' : ''); splashWelcome(); };
 $('pvExit').onclick = () => setPreview(false);
+const pois = [];
 
 // Заставка с прогрессом
 const splash = $('splash');
@@ -2053,6 +2165,7 @@ async function fetchProgress(url, cb) {
   cb(1); return out.buffer;
 }
 async function openRemote(modelUrl, data) {
+  baseModelUrl = modelUrl;
   const buf = await fetchProgress(modelUrl, splashProgress);
   await new Promise(r => setTimeout(r, 30));
   await loadBuffer(buf, decodeURIComponent(modelUrl.split('/').pop().split('?')[0]), data, [], new URL('.', modelUrl).href);
@@ -2063,6 +2176,8 @@ const LOCAL_MSG = 'Тур открыт как файл с диска — бра�
 if (TOUR) (async () => {
   const url = /\.json(\?|$)/i.test(TOUR) ? TOUR : `tours/${TOUR.replace(/[^\w\-\/]/g, '')}/tour.json`;
   if (!EDIT) document.body.classList.add('viewer', 'noL');
+  // Режим гостя: сетка и оси не показываются, если тур их явно не включил
+  if (!EDIT) { $('gridBtn')?.classList.remove('on'); $('axesBtn')?.classList.remove('on'); grid.visible = false; axes.visible = false; }
   $('settingsBtn').classList.toggle('on', !document.body.classList.contains('noL'));
   try {
     if (LOCAL_FILE) throw new Error('file');
@@ -2074,6 +2189,7 @@ if (TOUR) (async () => {
     lockHash = t.lock || '';
     if (EDIT && !(await editorGate())) return;
     applyBrand({ ...t, id: /\.json/i.test(TOUR) ? '' : TOUR });
+    if (Array.isArray(t.stages)) stages = t.stages;
     statsInit();
     setSplashCover(); showCoverPrev();
     if (!t.model) throw new Error('nomodel');
@@ -2102,6 +2218,7 @@ else {
       let data = null;
       try { const j = await fetch(q.replace(/\.(glb|gltf)$/i, '.cam.json')); if (j.ok) data = await j.json(); } catch {}
       if (data?.uvAnimations) uvAnimations = migrateUV(data.uvAnimations, data?.uvScale);
+      if (Array.isArray(data?.stages)) stages = data.stages;
       if (data?.noma) { applyBrand(data); data = data.scene || null; }
       await openRemote(new URL(q, location.href).href, data);
       splashHide();
@@ -2339,7 +2456,6 @@ addEventListener('resize', ddClose);
 // ===== Точки интереса (POI) =====
 const POI_EMOJI = ['📍', '⭐', '🏛️', '🏢', '🏭', '🏠', '🏗️', '🌳', '⛲', '🐋', '🎨', '☕', '🍽️', '🛍️', '🅿️', '🚪', '🚻', '♿', 'ℹ️', '📷', '💡', '🎭', '⚓', '🚲'];
 const POI_COLORS = ['#2783DE', '#46A171', '#D5803B', '#E56458', '#8E6AD8', '#DF84A8', '#4FB9C9', '#2C2C2B'];
-const pois = [];
 let poiSel = null, poiActive = null, placing = null, cardImg = 0, tourTimer = 0;
 const pinVec = new THREE.Vector3();
 const vecArr = v => v.toArray().map(n => +n.toFixed(4));
@@ -3104,13 +3220,440 @@ function setBounds(radius) {
   if (bounds.active) controls.maxDistance = Math.max(radius * 12, 40);  // предел отдаления гостя
 }
 
+
+// ======================================================================
+//  ПРЕОБРАЖЕНИЕ СЦЕНЫ
+//  Гость нажимает кнопку — старая сцена уходит под землю, новая
+//  вырастает на её месте в облаке пыли и сразу запускает свои анимации.
+//  Настоящего морфинга вершин здесь нет: у двух разных моделей разная
+//  топология, плавно перетекать вершинами нечего. Поэтому — смена
+//  состояний с эффектом, который читается как «ВЖУХ».
+
+// ======================================================================
+//  ПРЕОБРАЖЕНИЕ СЦЕНЫ
+//  Два режима: (1) добавить объект к основе, (2) сменить сцену через облака.
+//  В режиме «добавить» основа остаётся на месте, новый объект вырастает из земли.
+//  В режиме «сменить» экран накрывает облака, внутри модели меняются местами.
+// ======================================================================
+let baseModelUrl = '';
+const stageBytes = new Map();          // номер состояния → ArrayBuffer
+const addedMixers = [];                // микшеры добавленных объектов (режим «добавить»)
+const addedRoots = [];                 // корни добавленных объектов — снимаем при смене сцены
+
+function stageUrl(i) {
+  const s = stages[i];
+  if (!s) return '';
+  if (!s.file) return baseModelUrl;
+  return tourBase ? new URL(s.file, tourBase).href : s.file;
+}
+function stageResolvable(i) {
+  if (stageBytes.has(i)) return true;
+  const s = stages[i];
+  if (!s) return false;
+  return i === 0 ? !!baseModelUrl : !!s.file;
+}
+function stageNext() {
+  for (let k = 1; k <= stages.length; k++) {
+    const i = (stageIdx + k) % stages.length;
+    if (stageResolvable(i) && i !== stageIdx) return i;
+  }
+  return stageIdx;
+}
+
+// ---- Кнопка у гостя ----
+function updateStageBtn() {
+  const btn = $('stageBtn');
+  if (!btn) return;
+  const can = stages.length > 1 && stageNext() !== stageIdx;
+  btn.classList.toggle('show', can);
+  document.body.classList.toggle('hasStages', can);
+  if (!can) return;
+  const nx = stages[stageNext()];
+  $('stageLbl').textContent = (nx && nx.label) || 'Преображение';
+}
+
+// ---- Список в редакторе ----
+function renderStageList() {
+  const box = $('stageListUI');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!stages.length) stages = [{ label: '', file: '', mode: 'replace', fx: 'dust' }];
+  stages.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'stg-item';
+    const top = document.createElement('div');
+    top.className = 'stg-top';
+    const lab = document.createElement('input');
+    lab.type = 'text'; lab.placeholder = i === 0 ? 'Начальный вид' : 'Название кнопки';
+    lab.value = s.label || ''; lab.dataset.i = i; lab.dataset.p = 'label';
+    const file = document.createElement('input');
+    file.type = 'text'; file.placeholder = i === 0 ? 'текущая модель' : 'house.glb';
+    file.value = s.file || ''; file.dataset.i = i; file.dataset.p = 'file';
+    file.disabled = i === 0;
+    if (i === 0) file.title = 'Первое состояние — исходная модель';
+    const del = document.createElement('button');
+    del.textContent = '×'; del.title = 'Удалить'; del.dataset.i = i; del.disabled = i === 0;
+    top.append(lab, file, del);
+    if (i > 0) {
+      const mid = document.createElement('div');
+      mid.className = 'stg-mid';
+      const mode = document.createElement('select');
+      mode.dataset.i = i; mode.dataset.p = 'mode';
+      mode.innerHTML = '<option value="add">Добавить к сцене</option><option value="replace">Сменить сцену</option>';
+      mode.value = s.mode || 'add';
+      const fx = document.createElement('select');
+      fx.dataset.i = i; fx.dataset.p = 'fx';
+      fx.innerHTML = '<option value="dust">Пыль</option><option value="cloud">Облака</option>';
+      fx.value = s.fx || 'dust';
+      const pw = document.createElement('select');           // сила эффекта
+      pw.dataset.i = i; pw.dataset.p = 'fxPower';
+      pw.title = 'Насколько выраженно проходит появление';
+      pw.innerHTML = '<option value="calm">Спокойно</option><option value="normal">Обычно</option><option value="bold">Эффектно</option>';
+      pw.value = s.fxPower || 'calm';
+      mid.append(mode, fx, pw);
+      row.append(top, mid);
+    } else {
+      row.appendChild(top);
+    }
+    box.appendChild(row);
+  });
+  box.querySelectorAll('input,select').forEach(inp => inp.addEventListener('input', e => {
+    const i = +e.target.dataset.i, p = e.target.dataset.p;
+    stages[i][p] = e.target.value;
+    updateStageBtn();
+  }));
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    stages.splice(+b.dataset.i, 1);
+    renderStageList(); updateStageBtn();
+  }));
+}
+
+// ---- Подготовка ----
+function setupStages(list) {
+  stages = Array.isArray(list) ? list.filter(s => s && typeof s === 'object') : [];
+  if (!stages.length) stages = [{ label: '', file: '', mode: 'replace', fx: 'dust', fxPower: 'calm' }];
+  if (stages[0].file) stages.unshift({ label: '', file: '', mode: 'replace', fx: 'dust', fxPower: 'calm' });
+  stageIdx = 0;
+  updateStageBtn();
+  warmStages();
+}
+function warmStages() {
+  if (fp.lite) return;
+  const idle = window.requestIdleCallback || (f => setTimeout(f, 400));
+  stages.forEach((s, i) => {
+    if (i === 0 || !s.file) return;
+    const url = stageUrl(i);
+    if (!url || stageBytes.has(i)) return;
+    idle(async () => {
+      try {
+        const r = await fetch(url);
+        if (r.ok) stageBytes.set(i, await r.arrayBuffer());
+      } catch (e) {}
+    });
+  });
+}
+
+// ---- Сила эффектов ----
+// calm — по умолчанию: медленнее и мягче. normal повторяет прежний вид.
+const FX_PRESETS = {
+  calm:   { power: 0.5, dur: 1.35 },
+  normal: { power: 1.0, dur: 1.95 },
+  bold:   { power: 1.6, dur: 2.60 }
+};
+const FX_LABEL = { calm: 'Спокойно', normal: 'Обычно', bold: 'Эффектно' };
+function fxOf(name) { return FX_PRESETS[name] || FX_PRESETS.calm; }
+
+// ---- Пыль ----
+const DUST_CAP = 1600;                  // буфер под максимум
+const DUST_N = DUST_CAP;
+let dustUsed = 900;                     // сколько частиц рисуем сейчас
+const dustPos = new Float32Array(DUST_N * 3), dustVel = new Float32Array(DUST_N * 3);
+const dustGeo = new THREE.BufferGeometry();
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+const dustMat = new THREE.PointsMaterial({ map: snowTex, color: 0xcbb99e, size: 1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, fog: false });
+const dustCloud = new THREE.Points(dustGeo, dustMat);
+dustCloud.frustumCulled = false; dustCloud.visible = false; dustCloud.renderOrder = 4; scene.add(dustCloud);
+let dustLife = 0;
+const DUST_LIFE = 1.7;
+function burstDust(center, radius, size, power) {
+  const pw = power || 1;
+  dustUsed = Math.max(1, Math.floor(DUST_CAP * 0.6 * pw));   // при normal ≈ прежние 900
+  const spMul = 0.65 + 0.35 * pw;                            // спокойнее — медленнее
+  for (let i = 0; i < dustUsed; i++) {
+    const a = Math.random() * Math.PI * 2, r = radius * (0.25 + Math.random() * 0.75);
+    const j = i * 3;
+    dustPos[j]     = center.x + Math.cos(a) * r;
+    dustPos[j + 1] = center.y + Math.random() * radius * 0.12;
+    dustPos[j + 2] = center.z + Math.sin(a) * r;
+    const sp = (0.35 + Math.random() * 0.9) * radius * spMul;
+    dustVel[j]     = Math.cos(a) * sp;
+    dustVel[j + 1] = (0.25 + Math.random() * 0.65) * radius;
+    dustVel[j + 2] = Math.sin(a) * sp;
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustMat.size = size; dustMat.opacity = 0.85;
+  dustCloud.visible = true; dustLife = DUST_LIFE;
+}
+function tickDust(dt) {
+  if (dustLife <= 0) return;
+  dustLife -= dt;
+  const k = Math.max(dustLife / DUST_LIFE, 0);
+  const damp = Math.pow(0.12, dt);
+  for (let i = 0; i < dustUsed; i++) {
+    const j = i * 3;
+    dustPos[j]     += dustVel[j] * dt;
+    dustPos[j + 1] += dustVel[j + 1] * dt;
+    dustPos[j + 2] += dustVel[j + 2] * dt;
+    dustVel[j] *= damp; dustVel[j + 1] *= damp; dustVel[j + 2] *= damp;
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustMat.opacity = 0.85 * k * k;
+  if (dustLife <= 0) { dustCloud.visible = false; dustMat.opacity = 0; }
+}
+
+// ---- Облака ----
+const CLOUD_CAP = 200;                  // буфер под максимум
+let cloudUsed = 120;                    // при normal ≈ прежние 120
+const cloudPos = new Float32Array(CLOUD_CAP * 3), cloudSpd = new Float32Array(CLOUD_CAP * 3);
+const cloudShapes = new Float32Array(CLOUD_CAP);
+for (let i = 0; i < CLOUD_CAP; i++) cloudShapes[i] = 0.6 + Math.random() * 0.4;
+const cloudFxGeo = new THREE.BufferGeometry();
+cloudFxGeo.setAttribute('position', new THREE.BufferAttribute(cloudPos, 3));
+cloudFxGeo.setAttribute('shape', new THREE.BufferAttribute(cloudShapes, 1));
+const cloudFxMat = new THREE.ShaderMaterial({
+  uniforms: { uOpacity: { value: 0 } },
+  vertexShader: `
+    attribute float shape;
+    varying float vShape;
+    void main() {
+      vShape = shape;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mv;
+      gl_PointSize = (40.0 + shape * 60.0) * (300.0 / -mv.z);
+    }`,
+  fragmentShader: `
+    uniform float uOpacity;
+    varying float vShape;
+    void main() {
+      vec2 d = gl_PointCoord - vec2(0.5);
+      float r = length(d);
+      if (r > 0.5) discard;
+      float a = (1.0 - r * 2.0) * vShape * uOpacity;
+      gl_FragColor = vec4(0.92, 0.94, 0.97, a);
+    }`,
+  transparent: true, depthWrite: false, fog: false
+});
+const cloudFx = new THREE.Points(cloudFxGeo, cloudFxMat);
+cloudFx.frustumCulled = false; cloudFx.visible = false; cloudFx.renderOrder = 10; scene.add(cloudFx);
+let cloudFxLife = 0;
+const CLOUD_FX_IN = 0.7, CLOUD_FX_OUT = 0.5;
+function burstCloud(camPos, span, power) {
+  const pw = power || 1;
+  cloudUsed = Math.max(1, Math.floor(CLOUD_CAP * 0.6 * pw));
+  const spMul = 0.65 + 0.35 * pw;
+  for (let i = 0; i < cloudUsed; i++) {
+    const a = Math.random() * Math.PI * 2, el = (Math.random() - 0.5) * Math.PI * 0.4;
+    const r = span * (0.4 + Math.random() * 0.6);
+    const j = i * 3;
+    cloudPos[j]     = camPos.x + Math.cos(el) * Math.cos(a) * r;
+    cloudPos[j + 1] = camPos.y + Math.sin(el) * r;
+    cloudPos[j + 2] = camPos.z + Math.cos(el) * Math.sin(a) * r;
+    const sp = span * (0.3 + Math.random() * 0.5) * spMul;
+    cloudSpd[j]     = Math.cos(el) * Math.cos(a) * sp;
+    cloudSpd[j + 1] = Math.sin(el) * sp;
+    cloudSpd[j + 2] = Math.cos(el) * Math.sin(a) * sp;
+  }
+  cloudFxGeo.attributes.position.needsUpdate = true;
+  cloudFxMat.uniforms.uOpacity.value = 0;
+  cloudFx.visible = true; cloudFxLife = CLOUD_FX_IN + CLOUD_FX_OUT;
+}
+function tickCloud(dt) {
+  if (cloudFxLife <= 0) return;
+  cloudFxLife -= dt;
+  const t = CLOUD_FX_IN + CLOUD_FX_OUT - cloudFxLife;
+  let op = 0;
+  if (t < CLOUD_FX_IN) op = Math.min(t / CLOUD_FX_IN, 1);
+  else op = Math.max(1 - (t - CLOUD_FX_IN) / CLOUD_FX_OUT, 0);
+  cloudFxMat.uniforms.uOpacity.value = op;
+  const damp = Math.pow(0.08, dt);
+  for (let i = 0; i < cloudUsed; i++) {
+    const j = i * 3;
+    cloudPos[j]     += cloudSpd[j] * dt;
+    cloudPos[j + 1] += cloudSpd[j + 1] * dt;
+    cloudPos[j + 2] += cloudSpd[j + 2] * dt;
+    cloudSpd[j] *= damp; cloudSpd[j + 1] *= damp; cloudSpd[j + 2] *= damp;
+  }
+  cloudFxGeo.attributes.position.needsUpdate = true;
+  if (cloudFxLife <= 0) { cloudFx.visible = false; cloudFxMat.uniforms.uOpacity.value = 0; }
+}
+
+// ---- Переход ----
+const morph = { on: false, t: 0, dur: 1.95, mode: 'add', fx: 'dust', pwr: 1, oldRoot: null, newRoot: null, anims: null, hNew: 1, yNew0: 0, swapped: false, to: 0 };
+const easeIn = t => t * t;
+const easeOutBack = t => { const c1 = 1.35, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+function mountStage(root, anims, mode) {
+  if (mode === 'replace') {
+    clearAnimations();
+    // Сцену меняем целиком: добавленные ранее объекты убираем вместе с микшерами.
+    addedMixers.forEach(m => m.stopAllAction());
+    addedMixers.length = 0;
+    addedRoots.forEach(r => { scene.remove(r); disposeModel(r); });
+    addedRoots.length = 0;
+    if (model && model !== root) { scene.remove(model); disposeModel(model); }
+    origMats.clear();
+    model = root;
+    if (!root.parent) scene.add(root);
+    window.__hasModel = true;
+    root.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
+    enhanceMaterials(root); applyMaterials();
+    clips = anims || [];
+    buildUVTargets(model, uvAnimations);
+    bvhIdle(root);
+    if (clips.length) {
+      mixer = new THREE.AnimationMixer(root);
+      mixer.timeScale = +$('speed').value;
+      $('clipWrap').style.display = clips.length > 1 ? '' : 'none';
+      document.body.classList.toggle('multiClip', clips.length > 1);
+      $('dock').style.display = 'flex'; document.body.classList.add('hasDock');
+      playAnimation(0);
+    } else {
+      mixer = null; action = null; actions = []; activeClips = new Set();
+      $('clipWrap').style.display = 'none';
+    }
+    const keepY = root.position.y; root.position.y = 0;
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+    const max = Math.max(size.x, size.y, size.z) || 1;
+    box.getBoundingSphere(modelSphere);
+    root.position.y = keepY;
+    catcher.position.set(c.x, box.min.y + max * 0.0005, c.z); catcher.scale.setScalar(max * 12);
+    ground.position.set(c.x, box.min.y - max * 0.002, c.z); ground.scale.setScalar(max * 35);
+    grid.position.y = box.min.y;
+    axes.position.set(box.min.x, box.min.y, box.min.z);
+    setBounds(max * 0.5);
+    updateStageBtn(); renderStageList();
+    return { max, base: box.min.y, center: c };
+  } else {
+    if (!root.parent) scene.add(root);
+    addedRoots.push(root);
+    root.traverse(c => { if (c.isMesh && !origMats.has(c)) origMats.set(c, c.material); });
+    enhanceMaterials(root); applyMaterials();
+    if (anims && anims.length) {
+      // У добавленного объекта свой микшер: клипы основы не трогаем,
+      // иначе два микшера начнут спорить за одни и те же кости.
+      const am = new THREE.AnimationMixer(root);
+      am.timeScale = +$('speed').value;
+      anims.forEach(cl => am.clipAction(cl).play());
+      addedMixers.push(am);
+      $('dock').style.display = 'flex'; document.body.classList.add('hasDock');
+    }
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3());
+    const max = Math.max(size.x, size.y, size.z) || 1;
+    return { max, base: box.min.y, center: box.getCenter(new THREE.Vector3()) };
+  }
+}
+
+function startMorph(root, anims, to, mode, fx, power, dur) {
+  if (morph.on) return;
+  morph.pwr = power || 1;
+  morph.dur = dur || 1.95;
+  const boxN = new THREE.Box3().setFromObject(root);
+  const sizeN = boxN.getSize(new THREE.Vector3());
+  const hNew = Math.max(sizeN.x, sizeN.y, sizeN.z) || 1;
+  morph.on = true; morph.t = 0; morph.swapped = false;
+  morph.mode = mode; morph.fx = fx;
+  morph.oldRoot = mode === 'replace' ? model : null;
+  morph.newRoot = root; morph.anims = anims;
+  morph.hNew = hNew; morph.yNew0 = root.position.y; morph.to = to;
+  root.position.y = morph.yNew0 - hNew * 1.02;
+  if (!root.parent) scene.add(root);
+  const pwr = morph.pwr;                                   // сила из настроек состояния
+  if (fx === 'cloud') burstCloud(camera.position, modelSphere.radius * 1.8, pwr);
+  else if (mode === 'replace') burstDust(new THREE.Box3().setFromObject(model || root).getCenter(new THREE.Vector3()), hNew * 0.42, hNew * 0.02, pwr);
+  else burstDust(boxN.getCenter(new THREE.Vector3()), hNew * 0.42, hNew * 0.02, pwr);
+  setStatus('Преображение…');
+  controls.enabled = false;
+  setTimeout(() => { if (!morph.on) controls.enabled = true; }, 2400);
+  $('stageBtn')?.classList.add('busy');
+}
+
+function morphTick(dt) {
+  morph.t += dt;
+  const p = Math.min(morph.t / morph.dur, 1);
+  if (morph.fx === 'cloud') tickCloud(dt); else tickDust(dt);
+  if (!morph.swapped) {
+    const pa = Math.min(p / 0.42, 1);
+    if (morph.mode === 'replace' && morph.oldRoot) morph.oldRoot.position.y = -morph.hNew * 1.02 * easeIn(pa);
+    if (p >= 0.42) {
+      morph.swapped = true;
+      const info = mountStage(morph.newRoot, morph.anims, morph.mode);
+      morph.newRoot.position.y = morph.yNew0 - morph.hNew * 1.02;
+      morph.hNew = Math.max(info.max, 0.001);
+    }
+  } else {
+    const pb = Math.min((p - 0.42) / 0.58, 1);
+    morph.newRoot.position.y = morph.yNew0 - morph.hNew * 1.02 * (1 - easeOutBack(pb));
+  }
+  if (p >= 1) {
+    if (morph.newRoot) morph.newRoot.position.y = morph.yNew0;
+    morph.on = false; morph.oldRoot = null; morph.newRoot = null; morph.anims = null;
+    controls.enabled = true;
+    $('stageBtn')?.classList.remove('busy');
+    const nm = curName || 'сцена';
+    setStatus(clips.length ? `${nm} · ${clips.length} ${plural(clips.length)}` : nm);
+  }
+}
+
+$('stageBtn').onclick = () => activateStage(stageNext());
+$('addStage').onclick = () => {
+  stages.push({ label: '', file: '', mode: 'add', fx: 'dust', fxPower: 'calm' });
+  renderStageList(); updateStageBtn();
+};
+
+async function activateStage(i) {
+  if (morph.on || stageBusy) return;
+  const url = stageUrl(i);
+  if (!url) return;
+  stageBusy = true;
+  $('stageBtn')?.classList.add('busy');
+  try {
+    let buf = stageBytes.get(i);
+    if (!buf) {
+      setStatus('Загрузка сцены…');
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('нет файла');
+      buf = await r.arrayBuffer();
+      stageBytes.set(i, buf);
+    }
+    const dir = new URL('.', url).href;
+    const gltf = await loader.parseAsync(buf, dir);
+    const name = decodeURIComponent(url.split('/').pop().split('?')[0]);
+    curName = name;
+    const s = stages[i] || {};
+    const mode = s.mode || 'add';
+    const fx = s.fx || 'dust';
+    const pr = fxOf(s.fxPower);                              // по умолчанию «Спокойно»
+    startMorph(gltf.scene, gltf.animations || [], i, mode, fx, pr.power, pr.dur);
+    stageIdx = i;
+    track('stage_switch', { i, mode, fx, power: s.fxPower || 'calm' });
+  } catch (e) {
+    console.error(e);
+    setStatus('Не удалось загрузить состояние сцены');
+    $('stageBtn')?.classList.remove('busy');
+  } finally { stageBusy = false; }
+}
+
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
   if (uvTargets.length) updateUVTargets(Math.min(dt, 0.1));
+  if (morph.on) morphTick(Math.min(dt, 0.05));
   if (ctxLost) return;
   autoLiteWatch(dt);
   if (mixer && playing) mixer.update(dt);
+  for (const am of addedMixers) am.update(dt);
   guidedTick(dt);
   if (action && !scrubbing) {
     const d = action.getClip().duration || 1;
@@ -3139,7 +3682,7 @@ function animate() {
   cloudMat.uniforms.uTime.value = cloudT;
   if (!fly && pathT === null && !fp.on) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
   updateSnow(Math.min(dt, 0.05));
-  if (fp.on) fpUpdate(Math.min(dt, 0.05)); else controls.update();
+  if (fp.on) fpUpdate(Math.min(dt, 0.05)); else if (!morph.on) controls.update();
   updateClip();
   if (fp.lite && (liteShadowT += dt) > 1) { liteShadowT = 0; renderer.shadowMap.needsUpdate = true; }
   if (usePost && !fp.lite) composer.render(dt); else renderer.render(scene, camera);
