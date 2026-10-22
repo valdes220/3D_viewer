@@ -697,7 +697,12 @@ body.hasSite #siteBtn{display:inline-flex}
           <div class="field"><label>Отражения и свет окружения <b id="envTxt">1.00</b></label><input id="envInt" type="range" min="0" max="3" step="0.05" value="1"></div>
           <div class="field"><label>Поворот окружения <b id="envRotTxt">0°</b></label><input id="envRot" type="range" min="0" max="360" step="1" value="0"></div>
           <button id="hdrBtn" class="wide" style="margin-top:12px"><i data-ic="folder"></i> Загрузить свой HDRI…</button><input id="hdrIn" type="file" accept=".hdr,.exr">
-          <div class="chips" style="margin-top:8px"><button id="hdrBg" class="on" style="grid-column:span 2" title="Выключи, чтобы HDRI только освещал и отражался, а фон был нейтральным">Показывать HDRI как фон</button></div>
+          <div class="chips" style="margin-top:8px"><button id="hdrBg" class="on" style="grid-column:span 2" title="Выключи, чтобы HDRI только освещал и отражался, а фон был нейтральным">Показывать HDRI как фон</button>
+          <div class="row" id="aoRow" style="margin-top:10px;display:none">
+            <label style="flex:1">AO (глубина теней):</label>
+            <input type="range" id="aoInt" min="0" max="1.5" step="0.05" value="0.6" style="flex:2">
+            <span id="aoVal" style="flex:0 0 42px;text-align:right">0.60</span>
+          </div></div>
           <p class="hint-s" id="hdrName">HDRI (.hdr / .exr) даёт реалистичные отражения на металле, стекле и лаке.</p>
         </div>
       </div>
@@ -1248,8 +1253,9 @@ function placeKey() {
 }
 const catcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.5 }));
 catcher.rotation.x = -Math.PI / 2; catcher.receiveShadow = true; scene.add(catcher);
-const ground = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshStandardMaterial({ color: 0x77736a, roughness: 1, metalness: 0 }));
-ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshStandardMaterial({ color: 0x77736a, roughness: 1, metalness: 0, transparent: false, depthWrite: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
 let shadowsOn = true;
 function updateGround() {
   const g = isSun() && $('bg').value === 'sky' && $('groundBtn').classList.contains('on');
@@ -1454,7 +1460,11 @@ $('cloudSpd').oninput = () => { cloudSpeed = +$('cloudSpd').value; };
 let composer = null, gtao = null, usePost = false, bloomPass = null;
 function tuneAO() {
   if (!gtao) return;
-  gtao.updateGtaoMaterial({ radius: THREE.MathUtils.clamp(modelSphere.radius * 0.02, 0.15, 3), distanceExponent: 1, thickness: 1, scale: 1.2, samples: 16, distanceFallOff: 1, screenSpaceRadius: false });
+  // Радиус AO — маленький: он должен ловить стыки (земля-бордюр), а не заливать холмы.
+  // Раньше был 0.02 от радиуса сцены — на большой модели это десятки метров,
+  // поэтому чёрными становились холмы, а швы оставались чистыми.
+  const aoR = THREE.MathUtils.clamp(modelSphere.radius * 0.004, 0.08, 0.6);
+  gtao.updateGtaoMaterial({ radius: aoR, distanceExponent: 1.5, thickness: 0.6, scale: 1.0, samples: 24, distanceFallOff: 1, screenSpaceRadius: false });
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 8, radiusExponent: 1, rings: 2, samples: 16 });
 }
 function ensureComposer() {
@@ -1465,6 +1475,7 @@ function ensureComposer() {
   composer.setPixelRatio(pr); composer.setSize(W, H);
   composer.addPass(new RenderPass(scene, camera));
   gtao = new GTAOPass(scene, camera, W, H);
+  gtao.output = 0;  // 0 = композит, 1 = только AO
   const orig = gtao.render.bind(gtao);
   gtao.render = (...args) => { const v = skyRig.visible; skyRig.visible = false; orig(...args); skyRig.visible = v; };
   composer.addPass(gtao);
@@ -1478,6 +1489,7 @@ function applyLight() {
   usePost = $('light').value === 'real'; if (usePost) ensureComposer();
   if (!sun && mist <= 0.001) scene.fog = null; else applyMist();
   $('sunCtl').style.display = sun ? 'block' : 'none';
+  if ($('aoRow')) $('aoRow').style.display = (m === 'real') ? 'block' : 'none';
   scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : m === 'hdri' ? (hdrTex || envTex) : envRT?.texture ?? null;
   if (sun) updateSun(true);
   else {
@@ -1531,6 +1543,7 @@ async function loadHDRI(file) {
 }
 $('bg').onchange = applyBg;
 $('exposure').oninput = e => renderer.toneMappingExposure = +e.target.value;
+$('aoInt').oninput = () => { if ($('aoVal')) $('aoVal').textContent = (+$('aoInt').value).toFixed(2); };
 applyLight();
 
 // Материалы
@@ -1666,7 +1679,7 @@ function fitCamera(obj) {
   const max = Math.max(size.x, size.y, size.z) || 1;
   box.getBoundingSphere(modelSphere); isSun() ? updateSun(true) : placeKey(); tuneAO();
   catcher.position.set(center.x, box.min.y + max * 0.0005, center.z); catcher.scale.setScalar(max * 12);
-  ground.position.set(center.x, box.min.y - max * 0.002, center.z); ground.scale.setScalar(max * 35);
+  ground.position.set(center.x, box.min.y - max * 0.02, center.z); ground.scale.setScalar(max * 35);
   const dist = (max / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.35;
   camera.position.copy(center).add(new THREE.Vector3(dist, dist * 0.65, dist));
   camera.near = Math.max(max / 2000, 0.001); camera.far = Math.max(max * 50, 200);
@@ -1713,6 +1726,49 @@ function disposeModel(o) {
 }
 
 let curName = "scene.glb";
+
+// ===== Слияние одинаковых объектов в InstancedMesh =====
+// 1000 деревьев из двух плоскостей — это 1000 отдельных вызовов отрисовки.
+// Группируем меши с одинаковой геометрией и материалом в один InstancedMesh:
+// тот же результат на экране, но 1 вызов вместо 1000.
+// Пропускаем всё, что анимируется (скины), прозрачное и мелкие группы.
+function mergeInstances(root) {
+  const groups = new Map();
+  root.traverse(o => {
+    if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh) return;
+    if (o.morphTargetInfluences && o.morphTargetInfluences.length) return;
+    const g = o.geometry; if (!g) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    if (mats.length !== 1) return;
+    const m = mats[0];
+    if (!m || m.transparent || m.alphaTest > 0 && m.transparent) return;
+    const key = g.uuid + '|' + m.uuid;
+    let arr = groups.get(key);
+    if (!arr) groups.set(key, arr = []);
+    arr.push(o);
+  });
+  let saved = 0;
+  const mtx = new THREE.Matrix4();
+  groups.forEach(list => {
+    if (list.length < 8) return;                 // мелочь не трогаем
+    const src = list[0];
+    const im = new THREE.InstancedMesh(src.geometry, src.material, list.length);
+    list.forEach((o, i) => {
+      o.updateWorldMatrix(true, false);
+      im.setMatrixAt(i, mtx.copy(o.matrixWorld));
+    });
+    im.instanceMatrix.needsUpdate = true;
+    im.castShadow = src.castShadow;
+    im.receiveShadow = src.receiveShadow;
+    im.frustumCulled = true;
+    im.name = 'merged:' + (src.name || src.geometry.type);
+    scene.add(im);
+    list.forEach(o => o.parent && o.parent.remove(o));
+    saved += list.length - 1;
+  });
+  return saved;
+}
+
 async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
   curName = name; keys.length = 0; renderKeys(); poiLoad([]);
   clearAnimations();
@@ -1727,6 +1783,9 @@ async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
     model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
     enhanceMaterials(model);
     applyMaterials();
+    // Схлопываем повторяющиеся объекты (деревья, кусты) — иначе 1000 вызовов отрисовки
+    const merged = mergeInstances(model);
+    if (merged > 0) console.info('InstancedMesh: схлопнуто объектов —', merged);
     clips = gltf.animations || [];
     fitCamera(model);
     slots.fill(null); document.querySelectorAll('.slot').forEach(b => b.classList.remove('on'));
@@ -1920,7 +1979,7 @@ function collectScene() {
     pois: pois.map(poiSerialize),
     startView: startView ? { p: vec(startView.p), t: vec(startView.t) } : undefined,
     anim: { speed: $('speed').value, loop, clips: [...activeClips] },
-    view: { light: $('light').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, mist: +$('mist').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), grid: on('gridBtn'), axes: on('axesBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
+    view: { light: $('light').value, aoInt: +$('aoInt').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, mist: +$('mist').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), grid: on('gridBtn'), axes: on('axesBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
   };
 }
 function applySceneData(d) {
@@ -1932,6 +1991,7 @@ function applySceneData(d) {
   });
   if (d.path) { $('sync').classList.toggle('on', !!d.path.sync); $('pathLoop').classList.toggle('on', !!d.path.loop); $('todKeys').classList.toggle('on', d.path.todKeys !== false); if ([...$('ease').options].some(o => o.value === d.path.ease)) $('ease').value = d.path.ease; }
   if (d.view) {
+    if (d.view.aoInt != null) { $('aoInt').value = d.view.aoInt; if ($('aoVal')) $('aoVal').textContent = d.view.aoInt.toFixed(2); }
     for (const k of ['light', 'bg', 'mat', 'weather', 'inertia', 'tone']) if ([...$(k).options].some(o => o.value === d.view[k])) $(k).value = d.view[k];
     if (!hdrTex) { if ($('light').value === 'hdri') $('light').value = 'studio'; if ($('bg').value === 'hdri') $('bg').value = 'dark'; }
     $('tone').onchange();
@@ -2914,12 +2974,29 @@ function enterFP() {
   fly = null; closeCard(); cancelPlace();
   fp.minY = new THREE.Box3().setFromObject(model).min.y;
   fpPrepare();
-  const t = controls.target.clone(), hd = t.clone().sub(camera.position); hd.y = 0;
+  // Правильная посадка: raycast вниз от целевой точки орбиты (куда смотришь),
+  // а не от позиции камеры — иначе при первом включении камера улетает далеко.
+  const t = controls.target.clone();
+  // Пол ищем тем же способом, что и при ходьбе (fpLand): он учитывает
+  // только поверхности, над которыми есть место для человека. Прямой луч
+  // мог попасть в стену или вообще не найти пол — и мы проваливались вниз.
+  let px = t.x, pz = t.z;
+  let g = fpLand(px, pz, t.y);
+  if (g == null) {                       // вокруг точки интереса, кольцами
+    for (let r = 0.6; r <= 3.5 && g == null; r += 0.6) {
+      for (let a = 0; a < 8; a++) {
+        const ang = a * Math.PI / 4;
+        const x = t.x + Math.cos(ang) * r, z = t.z + Math.sin(ang) * r;
+        const y = fpLand(x, z, t.y);
+        if (y != null) { g = y; px = x; pz = z; break; }
+      }
+    }
+  }
+  if (g == null) g = new THREE.Box3().setFromObject(model).max.y;  // не провал в самый низ
+  let hd = t.clone().sub(camera.position); hd.y = 0;
   if (hd.lengthSq() < 1e-8) hd.set(0, 0, -1); hd.normalize();
-  let P = t.clone().addScaledVector(hd, -Math.min(3, camera.position.distanceTo(t) * 0.5));
-  let g = fpLand(P.x, P.z, t.y + 0.4);
-  if (g == null) { g = fpLand(t.x, t.z, t.y + 0.4); if (g != null) P = t.clone(); }
-  if (g == null) g = fp.minY;
+  const P = new THREE.Vector3(px, 0, pz).addScaledVector(hd, -Math.min(1.2, camera.position.distanceTo(t) * 0.2));
+  P.y = g;
   fp.feet = g; fp.vy = 0; fp.yaw = Math.atan2(-hd.x, -hd.z); fp.pitch = -0.06; fp.dirty = true;
   fpEuler.set(fp.pitch, fp.yaw, 0);
   fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(P.x, g + EYE, P.z), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
@@ -3685,6 +3762,7 @@ function animate() {
   if (fp.on) fpUpdate(Math.min(dt, 0.05)); else if (!morph.on) controls.update();
   updateClip();
   if (fp.lite && (liteShadowT += dt) > 1) { liteShadowT = 0; renderer.shadowMap.needsUpdate = true; }
+  if (gtao) gtao.blendIntensity = +$('aoInt').value;
   if (usePost && !fp.lite) composer.render(dt); else renderer.render(scene, camera);
 }
 animate();
