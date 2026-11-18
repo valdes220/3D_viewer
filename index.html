@@ -2,9 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>NOMA — интерактивные 3D-туры</title>
-<meta name="generator" content="NOMA 3D Tours v2.4">
+<meta name="generator" content="NOMA 3D Tours v3.0">
 <!-- Логотип: положи файлы рядом с index.html в репозитории -->
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOMA — интерактивные 3D-туры">
 <meta property="og:description" content="Осмотрите объект онлайн в 3D, посмотрите планировки и оставьте заявку.">
-<meta name="apple-mobile-web-app-title" content="3D Viewer">
+<meta name="apple-mobile-web-app-title" content="NOMA">
 <style>
 :root{
   --glass:rgba(255,255,255,.62);--glass-strong:rgba(255,255,255,.78);--stroke:rgba(255,255,255,.55);--hair:rgba(20,20,30,.08);
@@ -114,6 +114,18 @@ body.noL #inspector{opacity:0;transform:translateX(16px);pointer-events:none}
 #stageBtn.show{display:inline-flex}
 #stageBtn.busy{opacity:.6;pointer-events:none}
 #stageBtn svg.ic{width:19px;height:19px}
+/* Выбор времени суток у гостя */
+#guestTod{display:none;position:fixed;z-index:24;top:calc(16px + var(--sat));right:calc(16px + var(--sar));width:min(280px,calc(100% - 32px));padding:10px 13px 8px;gap:6px;flex-direction:column}
+#guestTod .gt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);font-weight:600}
+#guestTod .gt-time{font-size:17px;color:var(--text);font-weight:650;font-variant-numeric:tabular-nums}
+#guestTod input{display:block;width:100%;margin:0}
+#guestTodRange::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,#1c2541 0%,#3a4a7a 20%,#f2a65a 27%,#8cc4f0 38%,#cfe8ff 50%,#8cc4f0 62%,#f2a65a 73%,#3a4a7a 80%,#1c2541 100%)}
+#guestTodRange::-moz-range-track{height:6px;border-radius:6px;background:linear-gradient(90deg,#1c2541 0%,#3a4a7a 20%,#f2a65a 27%,#8cc4f0 38%,#cfe8ff 50%,#8cc4f0 62%,#f2a65a 73%,#3a4a7a 80%,#1c2541 100%)}
+#guestTodRange::-webkit-slider-thumb{margin-top:-6px}
+#guestTod .gt-scale{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;line-height:1}
+body.viewer #guestTod.show{display:flex}
+body.touring #guestTod{display:none!important}
+@media(max-width:820px){#guestTod{top:calc(64px + var(--sat));left:calc(8px + var(--sal));right:calc(8px + var(--sar));width:auto;padding:8px 12px 6px}}
 body.hasDock #stageBtn{bottom:148px}
 body.touring #stageBtn{display:none!important}
 .stg-item{background:rgba(255,255,255,.45);border:1px solid rgba(20,20,30,.08);border-radius:12px;padding:9px 10px;margin-bottom:8px}
@@ -237,8 +249,8 @@ button.wide{width:100%}
 
 /* Точки: маркеры на модели */
 #pins{top:0;right:0;bottom:0;left:0;pointer-events:none!important;overflow:hidden}
-.pin{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;will-change:transform}
-.pin .head{display:flex;align-items:center;gap:6px;padding:3px 11px 3px 3px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 2px 10px rgba(0,0,0,.2);font:600 13px/1 var(--font);color:var(--text);white-space:nowrap;transition:transform .15s}
+.pin{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;will-change:transform,opacity;transition:opacity .16s linear}
+.pin .head{display:flex;align-items:center;gap:6px;padding:3px 11px 3px 3px;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(0,0,0,.2);font:600 13px/1 var(--font);color:var(--text);white-space:nowrap;transition:transform .15s}
 .pin .em{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}
 .pin .stem{width:2px;height:12px;background:rgba(255,255,255,.95);box-shadow:0 0 3px rgba(0,0,0,.25)}
 .pin .foot{width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.35)}
@@ -385,7 +397,7 @@ body.hasDock #hint{bottom:calc(148px + var(--sab))}
 body.fp #fpHud{display:flex}
 body.fp #placeBanner{display:none}
 #fpCross{left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.35);display:none;pointer-events:none!important}
-body.fpLock #fpCross{display:block}
+body.fp #fpCross{display:block}
 body.fp canvas{cursor:grab}
 body.fpLock canvas{cursor:none}
 #joy{left:calc(24px + var(--sal));bottom:calc(96px + var(--sab));width:128px;height:128px;border-radius:50%;display:none;touch-action:none}
@@ -632,14 +644,147 @@ body.hasSite #siteBtn{display:inline-flex}
 .uv-item input::-webkit-outer-spin-button,.uv-item input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .uv-item button{width:34px;height:40px;padding:0;flex-shrink:0}
 .uv-note{font-size:12px;color:var(--muted);margin:0}
+
+/* ===== Триггеры анимации: мелкие ненавязчивые кнопки ===== */
+#triggers{top:0;right:0;bottom:0;left:0;pointer-events:none!important;overflow:hidden}
+#triggers .trig{position:absolute;left:0;top:0;width:14px;height:14px;min-width:0;padding:0;border-radius:50%;border:0;
+  background:var(--tc,rgba(255,255,255,.9));box-shadow:0 0 0 1.5px rgba(255,255,255,.7),0 1px 4px rgba(0,0,0,.3);
+  pointer-events:auto;cursor:pointer;opacity:0;transition:opacity .18s,box-shadow .18s;
+  display:flex;align-items:center;justify-content:center;color:transparent;font:600 9px/1 var(--font)}
+#triggers .trig::after{content:"";width:4px;height:4px;border-radius:50%;background:rgba(0,0,0,.35)}
+/* Не переопределяем transform: его задаёт JS для привязки кнопки к 3D-точке.
+   Иначе при наведении кнопка теряет экранные координаты и «улетает» в угол. */
+#triggers .trig:hover{box-shadow:0 0 0 2px var(--tc),0 2px 8px rgba(0,0,0,.35);filter:brightness(1.08)}
+#triggers .trig:active{box-shadow:0 0 0 2px var(--tc),0 1px 4px rgba(0,0,0,.3);filter:brightness(.96)}
+#triggers .trig.sel{box-shadow:0 0 0 2px var(--accent),0 2px 10px rgba(0,0,0,.35)}
+.trig-row{display:flex;align-items:center;gap:6px;margin-top:6px;padding:4px 6px;border-radius:9px;background:var(--ctl);font-size:13px}
+.trig-row.on{outline:2px solid var(--accent);outline-offset:-2px}
+.trig-row .tdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.trig-row b{font-weight:600;color:var(--muted);min-width:14px;text-align:center;font-variant-numeric:tabular-nums}
+.trig-row select{padding:0 26px 0 8px;height:30px;font-size:12px}
+.trig-row .mv{width:30px;height:30px;padding:0;flex-shrink:0;background:transparent}
+.trig-row .mv:hover{background:var(--ctl-h)}
+.trig-row .mv.danger:hover{background:rgba(229,100,88,.15);color:#E56458}
+/* в пешеходе кнопка чуть крупнее — по ней надо попасть пальцем */
+#triggers .trig.fp{width:22px;height:22px;background:rgba(255,255,255,.92)}
+#triggers .trig.fp::after{width:6px;height:6px;background:var(--tc,#2783DE);opacity:.85}
+@media(hover:none){#triggers .trig{width:18px;height:18px}#triggers .trig.fp{width:26px;height:26px}}
+@media(pointer:coarse){#triggers .trig{width:20px;height:20px}}
+
+/* Точки перемещения в режиме «По крестикам» */
+#walkPoints{top:0;right:0;bottom:0;left:0;z-index:14;pointer-events:none!important;overflow:hidden;display:none}
+body.walkEdit #walkPoints,body.fpRoute #walkPoints{display:block}
+#walkPoints .walk-point{position:absolute;left:0;top:0;width:32px;height:32px;min-width:32px;padding:0;border-radius:50%;border:2px solid #fff;background:rgba(39,131,222,.92);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35),0 0 0 2px rgba(39,131,222,.5);pointer-events:auto;transform:translate(-50%,-50%);font-size:0;opacity:.95}
+#walkPoints .walk-point::before,#walkPoints .walk-point::after{content:"";position:absolute;left:50%;top:50%;background:#fff;border-radius:2px;transform:translate(-50%,-50%)}
+#walkPoints .walk-point::before{width:16px;height:3px}#walkPoints .walk-point::after{width:3px;height:16px}
+#walkPoints .walk-point:hover,#walkPoints .walk-point.active{background:#155fa8;box-shadow:0 0 0 4px rgba(255,255,255,.65),0 4px 14px rgba(0,0,0,.4)}
+#walkPoints .walk-point[hidden]{display:none!important}
+#walkPoints .walk-point{transition:opacity .18s ease,background .18s ease,box-shadow .18s ease}
+body.fpRoute #walkPoints .walk-point{width:38px;height:38px;min-width:38px}
+body.fpRoute #walkPoints .walk-point.far{pointer-events:none}
+@media(pointer:coarse){#walkPoints .walk-point{width:42px;height:42px;min-width:42px}}
+#fpCursorBtn{display:none;white-space:nowrap}
+body.fp.fpCursor #fpCursorBtn{
+  display:inline-flex;background:var(--accent);color:#fff;font-weight:700;
+  border:1px solid rgba(255,255,255,.7);box-shadow:0 0 0 3px rgba(39,131,222,.18),0 4px 16px rgba(0,0,0,.18);
+  padding:0 14px;min-height:38px
+}
+body.fp.fpCursor #fpCursorBtn::before{content:"↩";font-size:17px;line-height:1}
+body.fp.fpCursor #fpCursorBtn:hover{background:#176fc0}
+@media(pointer:coarse){#fpCursorBtn{display:none!important}}
+#walkSubTabs{display:flex;gap:5px;margin:4px 0 12px;padding:4px;background:var(--ctl);border-radius:10px}
+#walkSubTabs button{height:32px;flex:1;background:transparent;font-size:12px;padding:0 8px;color:var(--muted)}
+#walkSubTabs button.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.walk-row{display:flex;align-items:center;gap:6px;margin-top:6px;padding:5px 6px;border-radius:9px;background:var(--ctl);font-size:13px}
+.walk-row b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.walk-row button{height:30px;padding:0 9px;font-size:12px}
+body:not(.viewer) #fpBtn{display:none!important}
+body.fpRoute #fpHud .txt{font-size:13px}
+body.fpRoute #fpHud .legacy-only{display:none!important}
+#fpHud .route-only{display:none!important}
+body.fpRoute #fpHud .route-only{display:inline-flex!important}
+body.fpRoute #joy{display:none!important}
+
+/* ===== v3.0 NOMA: презентационный режим, корпуса, карточки ===== */
+body.viewer #liteBtn,
+body.viewer #pillD{display:none!important}
+
+#groups{left:50%;transform:translateX(-50%);top:calc(16px + var(--sat,0px));display:none;align-items:center;gap:4px;padding:5px;border-radius:999px;z-index:22;max-width:calc(100% - 32px);overflow-x:auto;scrollbar-width:none}
+#groups::-webkit-scrollbar{display:none}
+body.hasGroups.viewer #groups{display:flex}
+#groups button{height:38px;padding:0 16px;border-radius:999px;background:transparent;font:600 14px/1 var(--font);color:var(--muted);flex-shrink:0}
+#groups button:hover{background:var(--ctl)}
+#groups button.on{background:var(--accent);color:#fff}
+@media(max-width:820px){
+  #groups{top:auto;bottom:calc(78px + var(--sab,0px));left:8px;right:8px;transform:none;max-width:none}
+}
+
+/* Нейтральная заглушка вместо отсутствующего фото */
+.gallery.empty{background:linear-gradient(135deg,#eceef2,#dfe3ea);display:grid;place-items:center}
+.gallery.empty img{display:none}
+.gallery.empty::after{content:"Фотография не загружена";font:500 13px var(--font);color:#8a8f99}
+.gallery img.broken{opacity:0}
+
+/* Мобильная карточка: панель снизу */
+@media(max-width:820px){
+  #poiCard{border-radius:20px 20px 0 0;left:0;right:0;bottom:0;max-height:78vh;max-height:78dvh;box-shadow:0 -8px 40px rgba(0,0,0,.24)}
+  body.hasTour #poiCard{bottom:calc(72px + var(--sab,0px))}
+  #poiCard .cfoot{padding-bottom:calc(10px + var(--sab,0px))}
+  .pin .head{padding:5px 14px 5px 5px;font-size:14px}
+  .pin .em{width:30px;height:30px}
+}
+@media(hover:none){
+  #cardClose{width:44px;height:44px}
+  .cfoot button{height:42px;min-width:44px}
+  .gallery .nav{width:42px;height:42px}
+  #groups button{height:42px}
+}
+
+/* В гостевом режиме плеер анимаций не показываем: его параметры задаются в редакторе. */
+body.viewer #dock,body.viewer #pillD{display:none!important}
+
+/* Полноэкранная презентация */
+body.present #fileChip{background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+body.present #fileChip .logo{display:none}
+body.present #fileChip .cap{text-shadow:0 1px 3px rgba(0,0,0,.4);color:rgba(255,255,255,.85)}
+body.present #fileChip #brandTitle{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);font-size:15px}
+body.present.touring #fileChip,body.present.cardOpen #fileChip{opacity:0;pointer-events:none}
+
+/* Маркеры сцены находятся ниже интерфейса и не перекрывают его элементы. */
+#pins,#triggers,#walkPoints{z-index:0!important}
+
+/* NOMA guest UI refinements: POI card 1.5x original size, original corner, always above pins */
+#poiCard{
+  z-index:65;
+  left:16px;right:auto;top:84px;bottom:auto;
+  width:min(570px,calc(100vw - 32px));
+  max-height:calc(100dvh - 100px);
+  transform:none;
+}
+body:not(.cardOpen) #poiCard{transform:translateY(8px)}
+body.cardOpen #poiCard{transform:none}
+#poiCard .gallery{aspect-ratio:16/10;max-height:48vh}
+#poiCard .cbody{min-height:0}
+@media(max-width:820px){
+  #poiCard{
+    left:8px;right:8px;top:auto;bottom:84px;
+    width:auto;max-height:62vh;max-height:62dvh;
+  }
+  body:not(.cardOpen) #poiCard{transform:translateY(8px)}
+  body.cardOpen #poiCard{transform:none}
+  #poiCard .gallery{aspect-ratio:16/8;max-height:42dvh}
+}
 </style>
 </head>
 <body>
 <div id="viewer"></div>
 <div id="splash"><div class="sp-box"><div class="sp-logo"><span class="nlogo"></span></div><h1 id="spTitle">NOMA</h1><p id="spSub">Интерактивный 3D-тур</p><div class="sp-bar ind" id="spBar"><i id="spFill"></i></div><div class="sp-pct" id="spPct">Загрузка…</div><div class="sp-err" id="spErr"></div><div class="sp-go"><button id="spStart"><i data-ic="play"></i>Начать тур</button><button id="spFree">Осмотреть самостоятельно</button></div><div class="sp-meta" id="spMeta"></div></div><div class="sp-foot"><span class="nlogo"></span>Создано в NOMA</div></div>
-<script>(function(){var p=new URLSearchParams(location.search);if(p.get('tour')||p.get('model')){document.getElementById('splash').className='show';if(p.get('tour')&&!p.has('edit'))document.body.classList.add('viewer','noL');}})();</script>
+<script>(function(){var p=new URLSearchParams(location.search);if(p.get('tour')||p.get('model')){document.getElementById('splash').className='show';var pr=p.get('mode')==='present';if(pr||(p.get('tour')&&!p.has('edit'))){document.body.classList.add('viewer','noL');if(pr)document.body.classList.add('present');}}})();</script>
 <div id="ui">
   <div id="pins"></div>
+  <div id="triggers"></div>
+  <div id="walkPoints" aria-label="Точки перемещения"></div>
+  <div id="groups" role="tablist" aria-label="Корпуса и зоны"></div>
   <div id="placeBanner" class="glass"><i data-ic="target"></i><span id="placeTxt">Кликни по модели, чтобы поставить точку</span><button id="placeCancel">Отмена</button></div>
   <article id="poiCard" class="glass" aria-live="polite">
     <button id="cardClose" title="Закрыть (Esc)"><i data-ic="close"></i></button>
@@ -688,7 +833,7 @@ body.hasSite #siteBtn{display:inline-flex}
             <div class="field" style="margin-top:12px"><label>Облачность <b id="cloudVal">35%</b></label><input id="cloud" type="range" min="0" max="1" step="0.01" value="0.35"></div>
             <div class="field" style="margin-top:12px"><label>Снег <b id="snowVal">0%</b></label><input id="snow" type="range" min="0" max="1" step="0.01" value="0"></div>
             <div class="chips" style="margin-top:12px"><button id="cloudMove" class="on" style="grid-column:span 2">Движение облаков</button></div>
-            <div class="field" style="margin-top:10px"><label>Скорость облаков <b id="cloudSpdVal">1.0×</b></label><input id="cloudSpd" type="range" min="0" max="4" step="0.1" value="1"></div>
+            <div class="field" style="margin-top:10px"><label>Скорость облаков <b id="cloudSpdVal">1.0×</b></label><input id="cloudSpd" type="range" min="0" max="10" step="0.1" value="1"></div>
           </div>
         </div>
         <div class="sec">
@@ -746,12 +891,40 @@ body.hasSite #siteBtn{display:inline-flex}
           <button id="startViewClr" class="wide" style="margin-top:6px">Сбросить стартовый вид</button>
           <p class="hint-s" id="svNote">Стартовый вид не задан — гость увидит общий план.</p>
         </div>
-        <div class="sec" id="paths">
+        <div id="walkSubTabs" role="tablist" aria-label="Маршруты камеры">
+          <button id="pathTab" class="on" type="button">Пролёт камеры</button>
+          <button id="walkTab" type="button">Крестики</button>
+        </div>
+        <div class="sec" id="paths" data-cam-sub="path">
           <h4>Пролёт камеры</h4>
           <div class="row"><button id="addKey"><i data-ic="plus"></i> Ключ</button><button id="pathPlay"><i data-ic="play"></i> Пролёт</button><button id="clearKeys" title="Удалить все ключи" style="flex:0 0 44px"><i data-ic="trash"></i></button></div>
           <div id="keyList"></div>
           <div class="field" style="margin-top:14px"><label>Движение</label><select id="ease"><option value="smooth">Плавный разгон и торможение</option><option value="cine">Кино: мягкая остановка на ключах</option><option value="linear">Равномерно</option></select></div>
           <div class="chips" style="margin-top:10px"><button id="sync" class="on">С анимацией</button><button id="pathLoop">Повтор</button><button id="todKeys" class="on" title="Время суток меняется от ключа к ключу" style="grid-column:span 2">Время суток в ключах</button></div>
+        </div>
+        <div class="sec" id="walkPaths" data-cam-sub="walk" hidden>
+          <h4>Перемещение по крестикам</h4>
+          <p class="hint-s" style="margin:0 0 10px">Поставь крестики на полу в местах, где гость должен осматриваться. Высота камеры над каждой точкой фиксирована — 170 см. В гостевом режиме крестики появятся только после нажатия «От первого лица».</p>
+          <button id="walkAdd" class="primary wide"><i data-ic="plus"></i> Добавить крестик</button>
+          <div id="walkList"></div>
+          <div class="sec" style="padding:10px 0 0;margin-top:12px;border-top:1px solid var(--line)">
+            <h4>Граница территории</h4>
+            <p class="hint-s" style="margin:0 0 8px">Добавь точки по периметру территории. Нужно минимум три точки. В гостевом режиме контур будет скрыт, но камера не сможет выйти за его пределы.</p>
+            <div class="row">
+              <button id="boundaryAdd" class="wide"><i data-ic="plus"></i> Добавить точки</button>
+              <button id="boundaryFinish" class="wide" disabled>Завершить</button>
+            </div>
+            <div class="row" style="margin-top:6px">
+              <button id="boundaryClear" class="wide">Очистить контур</button>
+              <span id="boundaryCount" class="hint-s" style="align-self:center;white-space:nowrap">Точек: 0</span>
+            </div>
+          </div>
+          <p class="hint-s">Кликни по полу модели, чтобы поставить точку. Направление взгляда сохранится таким, каким оно было у камеры в момент добавления.</p>
+          <div class="sec" style="padding-bottom:0;margin-top:10px;border:0">
+            <h4>Старый свободный режим (только редактор)</h4>
+            <button id="legacyFpBtn" class="wide"><i data-ic="walk"></i> Тест свободного пешехода</button>
+            <p class="hint-s">Это прежний режим со свободной ходьбой и поиском пола. Он оставлен для проверки, но не используется гостями.</p>
+          </div>
         </div>
         <div class="sec">
           <h4>Экспорт</h4>
@@ -773,6 +946,12 @@ body.hasSite #siteBtn{display:inline-flex}
           <div class="sec">
             <h4>Отображение</h4>
             <div class="chips"><button id="poiShow" class="on">Точки</button><button id="poiLabels" class="on">Подписи</button></div>
+          </div>
+          <div class="sec">
+            <h4>Кнопки анимации</h4>
+            <button id="trigAdd" class="wide"><i data-ic="plus"></i> Поставить кнопку на модель</button>
+            <div id="trigList"></div>
+            <p class="hint-s">Кнопка запускает выбранную анимацию. В орбите это мелкая точка, в пешеходе — проявляется при наведении.</p>
           </div>
         </div>
         <div id="poiEdit" hidden>
@@ -906,7 +1085,7 @@ body.hasSite #siteBtn{display:inline-flex}
     <button id="loop" class="on" title="Повтор"><i data-ic="repeat"></i></button><button id="hideD" title="Скрыть плеер"><i data-ic="close"></i></button>
   </div>
 
-  <div id="fpHud" class="glass"><span class="txt"><b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>Alt</b> курсор · <b>F</b> полёт · <b>Esc</b> выход</span><button id="spdDn" class="sb" title="Медленнее" aria-label="Медленнее">−</button><span id="fpSpeed" class="spd" title="Скорость: колесо мыши">1.5 м/с</span><button id="spdUp" class="sb" title="Быстрее" aria-label="Быстрее">+</button><button id="fpFly" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
+  <div id="fpHud" class="glass"><span class="txt"><b>Мышь</b> осмотр · <b>Tab</b> курсор · <b>Esc</b> выход</span><button id="fpCursorBtn" title="Скрыть курсор и вернуться к осмотру">Вернуться к осмотру</button><button id="spdDn" class="legacy-only sb" title="Медленнее" aria-label="Медленнее">−</button><span id="fpSpeed" class="spd legacy-only" title="Скорость: колесо мыши">1.5 м/с</span><button id="spdUp" class="legacy-only sb" title="Быстрее" aria-label="Быстрее">+</button><button id="fpFly" class="legacy-only" title="Полёт без гравитации (F)">Полёт</button><button id="fpExit" class="primary" title="Выйти (Esc)">Выйти</button></div>
   <div id="fpCross"></div>
   <div id="joy" class="glass" aria-label="Джойстик ходьбы"><div class="knob"></div></div>
 
@@ -926,6 +1105,11 @@ body.hasSite #siteBtn{display:inline-flex}
     <button id="fs" data-tip="Полный экран"><i data-ic="full"></i></button>
   </nav>
   <button id="stageBtn" class="glass" data-tip="Преображение сцены"><i data-ic="cube"></i><span id="stageLbl"></span></button>
+  <div id="guestTod" class="glass" aria-label="Выбор времени суток">
+    <div class="gt-head"><span><i data-ic="sun"></i> Время суток</span><span id="guestTodTxt" class="gt-time">15:00</span></div>
+    <input id="guestTodRange" type="range" min="0" max="24" step="0.05" value="15" aria-label="Время суток">
+    <div class="gt-scale"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+  </div>
   <button id="pillE" class="glass" title="Вернуть интерфейс (H)"><i data-ic="eye"></i></button>
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
@@ -937,18 +1121,20 @@ body.hasSite #siteBtn{display:inline-flex}
         <dl><dt><i data-ic="left" data-s="16"></i> <i data-ic="right" data-s="16"></i></dt><dd>предыдущая / следующая остановка</dd><dt><i data-ic="pause" data-s="16"></i></dt><dd>пауза и продолжение</dd><dt>Полоски сверху</dt><dd>переход к любой остановке</dd><dt>«Свободный осмотр»</dt><dd>выйти из тура и смотреть самостоятельно</dd><dt><i data-ic="flag" data-s="16"></i></dt><dd>запустить тур снова (нижняя панель)</dd></dl>
         <p>Покрутите камеру — тур встанет на паузу.</p></section>
       <section><h3><i data-ic="cube"></i>Осмотр — мышь</h3>
-        <dl><dt>Левая кнопка</dt><dd>вращение вокруг объекта</dd><dt>Колесо</dt><dd>приближение к курсору</dd><dt>Правая кнопка</dt><dd>сдвиг (панорама)</dd><dt>Двойной клик</dt><dd>плавно подлететь к месту</dd></dl></section>
+        <dl><dt>Левая кнопка</dt><dd>вращение вокруг точки опоры</dd><dt>Правая кнопка</dt><dd>перемещение по горизонтали — «подтягивание» сцены</dd><dt><kbd>Ctrl</kbd> + левая кнопка</dt><dd>свободная панорама</dd><dt>Колесо</dt><dd>приближение и отдаление</dd><dt>Двойной клик</dt><dd>плавно подлететь к месту</dd></dl></section>
       <section><h3><i data-ic="cube"></i>Осмотр — сенсорный экран</h3>
-        <dl><dt>1 палец</dt><dd>вращение</dd><dt>2 пальца</dt><dd>масштаб и сдвиг</dd><dt>Двойной тап</dt><dd>подлететь к месту</dd></dl></section>
+        <dl><dt>1 палец</dt><dd>вращение вокруг точки опоры</dd><dt>2 пальца</dt><dd>перемещение и масштабирование</dd><dt>Двойной тап</dt><dd>плавно подлететь к месту</dd></dl></section>
+      <section class="g"><h3><i data-ic="play"></i>Пролёт камеры</h3>
+        <p>Если в туре есть заранее сохранённый маршрут камеры, в нижней панели появится кнопка с треугольником. Нажмите её, чтобы камера автоматически прошла по маршруту. Повторное нажатие остановит пролёт.</p></section>
       <section class="g"><h3><i data-ic="pin"></i>Точки интереса</h3>
         <p>Нажмите на метку — откроется карточка с описанием и фотографиями. Фото открывается крупно по нажатию. <kbd>←</kbd> <kbd>→</kbd> — соседние точки.</p></section>
-      <section><h3><i data-ic="walk"></i>Прогулка от первого лица</h3>
-        <p>Кнопка <i data-ic="walk" data-s="16"></i> — камера опускается на уровень глаз человека ростом 170 см.</p>
-        <dl><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / стрелки</dt><dd>ходьба</dd><dt>Мышь</dt><dd>осмотр. Клик по сцене захватывает курсор</dd><dt><kbd>Alt</kbd></dt><dd>показать / спрятать курсор, не выходя из прогулки</dd><dt>Колесо мыши</dt><dd>скорость ходьбы, от 0.3 до 40 м/с</dd><dt><kbd>F</kbd></dt><dd>полёт: <kbd>E</kbd>/<kbd>Space</kbd> вверх, <kbd>Q</kbd>/<kbd>C</kbd> вниз</dd><dt><kbd>Esc</kbd></dt><dd>выход из прогулки (полный экран сохраняется)</dd><dt><kbd>R</kbd></dt><dd>встать на пол, если провалились или застряли</dd><dt>Телефон</dt><dd>джойстик слева — ходьба (до края — бег), палец по экрану — осмотр, <b>−</b> / <b>+</b> вверху — скорость</dd></dl></section>
+      <section><h3><i data-ic="walk"></i>Режим от первого лица</h3>
+        <p>Нажмите <i data-ic="walk" data-s="16"></i> — камера плавно переместится к ближайшему крестику на уровне глаз (170 см). Крестики показывают подготовленные места для осмотра.</p>
+        <dl><dt>Мышь / палец</dt><dd>осмотр по сторонам</dd><dt>Крестик на экране</dt><dd>перейти к другой точке маршрута</dd><dt>‹ / › вверху</dt><dd>предыдущая или следующая точка</dd><dt><kbd>Esc</kbd> / «Выйти»</dt><dd>вернуться к общему обзору</dd><dt>Точки интереса</dt><dd>нажмите на обычную метку, чтобы открыть карточку с описанием и фотографиями</dd></dl></section>
       <section class="g"><h3><i data-ic="chat"></i>Планировка и заявка</h3>
         <p>В карточке — цена, характеристики и кнопка с PDF-планировкой. «Оставить заявку» откроет WhatsApp или Telegram с готовым текстом, достаточно нажать «Отправить».</p></section>
       <section class="g"><h3><i data-ic="tune"></i>Нижняя панель</h3>
-        <dl><dt><i data-ic="flag" data-s="16"></i></dt><dd>тур с гидом</dd><dt><i data-ic="walk" data-s="16"></i></dt><dd>прогулка</dd><dt><i data-ic="bolt" data-s="16"></i></dt><dd>лёгкая графика — для слабых устройств</dd><dt><i data-ic="film" data-s="16"></i></dt><dd>плеер анимации (если скрыт)</dd><dt><i data-ic="eye" data-s="16"></i></dt><dd>чистый экран</dd><dt><i data-ic="full" data-s="16"></i></dt><dd>полный экран</dd></dl></section>
+        <dl><dt><i data-ic="play" data-s="16"></i></dt><dd>пролёт камеры по сохранённому маршруту (если доступен)</dd><dt><i data-ic="flag" data-s="16"></i></dt><dd>тур с гидом</dd><dt><i data-ic="walk" data-s="16"></i></dt><dd>прогулка от первого лица</dd><dt><i data-ic="help" data-s="16"></i></dt><dd>эта справка</dd><dt><i data-ic="film" data-s="16"></i></dt><dd>плеер анимации (если скрыт)</dd><dt><i data-ic="eye" data-s="16"></i></dt><dd>чистый экран</dd><dt><i data-ic="full" data-s="16"></i></dt><dd>полный экран</dd></dl></section>
       <section class="g"><h3><i data-ic="help"></i>Горячие клавиши</h3>
         <dl><dt><kbd>G</kbd></dt><dd>полный экран</dd><dt><kbd>H</kbd></dt><dd>чистый экран</dd><dt><kbd>Space</kbd></dt><dd>пауза анимации</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>соседняя точка / остановка</dd><dt><kbd>Esc</kbd></dt><dd>закрыть карточку, выйти из тура</dd></dl>
         <p>В полном экране выход — <kbd>G</kbd>, кнопка <i data-ic="full" data-s="16"></i> или удерживать <kbd>Esc</kbd>.</p></section>
@@ -959,7 +1145,7 @@ body.hasSite #siteBtn{display:inline-flex}
       <section class="e"><h3><i data-ic="sun"></i>«Свет» и «Сцена»</h3>
         <ul><li><b>Освещение:</b> Студия, Экстерьер (солнце и небо), Реализм (самый красивый и тяжёлый), свой HDRI, Классика.</li><li><b>Солнце:</b> время суток, ход времени, направление, погода.</li><li><b>Отражения:</b> цветопередача, сила и поворот окружения, загрузка HDRI (.hdr / .exr), «HDRI как фон».</li><li><b>Сцена:</b> фон, режим материалов, тени, земля, сетка, свет из GLB.</li></ul></section>
       <section class="e"><h3><i data-ic="photo"></i>«Камера»</h3>
-        <ul><li><b>Сохранённые виды:</b> <i data-ic="save" data-s="16"></i>, затем номер слота.</li><li><b>Пролёт:</b> «Ключ» добавляет текущий вид. У ключа — секунды, время суток <i data-ic="clock" data-s="16"></i>, порядок <i data-ic="up" data-s="16"></i><i data-ic="down" data-s="16"></i>, удаление.</li><li><b>Записать видео</b> — только 3D-картинка, без интерфейса.</li></ul></section>
+        <ul><li><b>Сохранённые виды:</b> <i data-ic="save" data-s="16"></i>, затем номер слота.</li><li><b>Пролёт:</b> «Ключ» добавляет текущий вид. У ключа — секунды, время суток <i data-ic="clock" data-s="16"></i>, порядок и удаление.</li><li><b>Крестики:</b> откройте одноимённую вкладку, нажмите «Добавить крестик» и кликните по полу модели в нужном месте. Камера гостя будет находиться на высоте 170 см. При переходе между крестиками направление взгляда сохраняется; при входе камера выравнивается по горизонту.</li><li><b>Старый свободный пешеход</b> оставлен в этой вкладке только для тестирования редактором.</li><li><b>Записать видео</b> — только 3D-картинка, без интерфейса.</li></ul></section>
       <section class="e"><h3><i data-ic="pin"></i>«Точки» и тур с гидом</h3>
         <ul><li>«Добавить точку» → клик по модели, дальше название, описание, значок, цвет, фото, «Запомнить вид».</li><li><b>Порядок</b> точек = порядок остановок тура, меняется стрелками <i data-ic="up" data-s="16"></i><i data-ic="down" data-s="16"></i> в списке.</li><li><b>Тур с гидом</b> в редакторе точки: «Остановка тура», длительность, время суток, анимация на остановке.</li></ul></section>
       <section class="e"><h3><i data-ic="flag"></i>«Тур» — публикация</h3>
@@ -1100,6 +1286,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { normalizeTour, normalizePoi, safeUrl, resolveAsset, cssUrl } from './src/tour-io.js';
 
 window.__viewerReady = true; document.getElementById('compat')?.remove();
 const $ = id => document.getElementById(id);
@@ -1155,6 +1342,10 @@ const IS_HANDHELD = IS_IOS || matchMedia('(hover: none) and (pointer: coarse)').
 // На телефонах большой кадр съедает память, и система отбирает WebGL-контекст.
 // Поэтому ограничиваем плотность пикселей, а после первой потери ещё и режем вдвое.
 const dprCap = () => { let lite = 0; try { lite = sessionStorage.getItem('nomaCtxLost') === '1' ? 1 : 0; } catch (e) {} return IS_HANDHELD ? (lite ? 1 : Math.min(devicePixelRatio, 1.5)) : Math.min(devicePixelRatio, 2); };
+// В «Реализме» GTAO и Bloom обрабатывают весь кадр несколько раз.
+// Ограничиваем плотность пикселей только для этого режима: сцена остаётся
+// чёткой, но постобработка не считает 4K-буфер на обычном Full HD экране.
+const renderDpr = () => $('light')?.value === 'real' ? Math.min(dprCap(), 1.35) : dprCap();
 const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
 renderer.setPixelRatio(dprCap());
 
@@ -1206,8 +1397,39 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 $('viewer').appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = 0.06; controls.screenSpacePanning = true;
-controls.autoRotateSpeed = 2; controls.zoomToCursor = true;
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+// Основное перетаскивание (ПКМ и два пальца) идёт по горизонтальной плоскости:
+// оно не поднимает и не опускает точку опоры, поэтому камеру нельзя утащить под сцену.
+controls.screenSpacePanning = false;
+controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+controls.autoRotateSpeed = 2; controls.zoomToCursor = false;
+// Ctrl + ЛКМ — дополнительное классическое панорамирование в плоскости экрана.
+// Слушатель в capture-фазе успевает поменять режим до обработчика OrbitControls.
+const orbitCanvas = renderer.domElement;
+let ctrlPanPointer = null;
+function restoreOrbitMouseMode(e) {
+  if (ctrlPanPointer !== null && (!e || e.pointerId === ctrlPanPointer)) {
+    controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+    controls.screenSpacePanning = false;
+    ctrlPanPointer = null;
+  }
+}
+orbitCanvas.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse' || e.button !== 0) return;
+  if (e.ctrlKey) {
+    controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    controls.screenSpacePanning = true;
+    ctrlPanPointer = e.pointerId;
+  } else {
+    controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+    controls.screenSpacePanning = false;
+  }
+}, true);
+addEventListener('pointerup', restoreOrbitMouseMode, true);
+addEventListener('pointercancel', restoreOrbitMouseMode, true);
+addEventListener('blur', () => restoreOrbitMouseMode(), true);
+// ПКМ используется для перемещения, системное контекстное меню не нужно.
+orbitCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // Свет
 const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
@@ -1227,7 +1449,8 @@ const isMobile = matchMedia('(max-width:700px)').matches;
 function isSun() { const v = $('light').value; return v === 'sun' || v === 'real'; }
 function applyQuality() {
   const real = $('light').value === 'real';
-  const ms = real ? (isMobile ? 2048 : 4096) : (isMobile ? 1024 : 2048);
+  // 2048 — разумный баланс: 4096 резко увеличивает стоимость и память shadow pass.
+  const ms = real ? 2048 : (isMobile ? 1024 : 2048);
   if (key.shadow.mapSize.x !== ms) { key.shadow.mapSize.set(ms, ms); key.shadow.map?.dispose(); key.shadow.map = null; }
   key.shadow.radius = real ? 5 : isSun() ? 3 : 2.5;
 }
@@ -1393,7 +1616,18 @@ $('mist').oninput = () => {
 };
 
 let todVal = 15;
+function updateGuestTodPanel() {
+  const panel = $('guestTod');
+  if (!panel) return;
+  const visible = document.body.classList.contains('viewer') && isSun();
+  panel.classList.toggle('show', visible);
+  const range = $('guestTodRange');
+  if (range) range.value = todVal;
+  const txt = $('guestTodTxt');
+  if (txt) txt.textContent = String(Math.floor(todVal)).padStart(2, '0') + ':' + String(Math.floor(todVal % 1 * 60)).padStart(2, '0');
+}
 function setTod(h) { todVal = ((h % 24) + 24) % 24; $('tod').value = todVal; updateSun(); }
+$('guestTodRange').oninput = () => setTod(+$('guestTodRange').value);
 const sunDir = new THREE.Vector3(), L = new THREE.Vector3(), D = THREE.MathUtils;
 const WX = {
   clear:    { cover: 0.05, ov: 0, turb: 2.5, ray: 2.0, sun: 1.0,  fog: 16 },
@@ -1409,6 +1643,7 @@ function updateSun(force) {
   const el = Math.sin((h - 6) / 24 * Math.PI * 2) * 62;
   sunDir.setFromSphericalCoords(1, D.degToRad(90 - el), D.degToRad(az0 + (h - 12) * 15));
   $('clockTxt').textContent = String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0');
+  updateGuestTodPanel();
   const day = D.smoothstep(el, -3, 12), night = D.smoothstep(-el, 2, 12), horizon = 1 - D.smoothstep(el, 0, 25);
   const sunCol = new THREE.Color(0xff8a4a).lerp(new THREE.Color(0xfff2df), D.smoothstep(el, 0, 30));
   for (const sk of [sky, skyEnv]) {
@@ -1458,26 +1693,56 @@ $('snow').oninput = () => { snowAmt = +$('snow').value; applySnow(); };
 $('cloudSpd').oninput = () => { cloudSpeed = +$('cloudSpd').value; };
 
 let composer = null, gtao = null, usePost = false, bloomPass = null;
+const aoExcludedMeshes = new Set();
+function collectAOExcludedMeshes(root) {
+  aoExcludedMeshes.clear();
+  root?.traverse(o => {
+    if (!o.isMesh) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    // MASK/BLEND, alphaMap и alpha-to-coverage: такие поверхности не должны
+    // попадать в depth/normal pass GTAO (листва, вырезанные PNG-плоскости и т.п.).
+    if (mats.some(m => m && (m.transparent || m.alphaTest > 0 || m.alphaMap || m.alphaHash || m.alphaToCoverage))) {
+      aoExcludedMeshes.add(o);
+    }
+  });
+}
+async function collectAOExcludedMeshesAsync(root) {
+  aoExcludedMeshes.clear();
+  await traverseChunked(root, o => {
+    if (!o.isMesh) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    if (mats.some(m => m && (m.transparent || m.alphaTest > 0 || m.alphaMap || m.alphaHash || m.alphaToCoverage))) aoExcludedMeshes.add(o);
+  });
+}
 function tuneAO() {
   if (!gtao) return;
   // Радиус AO — маленький: он должен ловить стыки (земля-бордюр), а не заливать холмы.
   // Раньше был 0.02 от радиуса сцены — на большой модели это десятки метров,
   // поэтому чёрными становились холмы, а швы оставались чистыми.
   const aoR = THREE.MathUtils.clamp(modelSphere.radius * 0.004, 0.08, 0.6);
-  gtao.updateGtaoMaterial({ radius: aoR, distanceExponent: 1.5, thickness: 0.6, scale: 1.0, samples: 24, distanceFallOff: 1, screenSpaceRadius: false });
-  gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 8, radiusExponent: 1, rings: 2, samples: 16 });
+  // Умеренное качество AO: меньше выборок на пиксель, без отключения эффекта.
+  gtao.updateGtaoMaterial({ radius: aoR, distanceExponent: 1.5, thickness: 0.6, scale: 1.0, samples: 16, distanceFallOff: 1, screenSpaceRadius: false });
+  gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 8, radiusExponent: 1, rings: 2, samples: 8 });
 }
 function ensureComposer() {
   if (composer) return;
   const pr = renderer.getPixelRatio(), W = $('viewer').clientWidth || innerWidth, H = $('viewer').clientHeight || innerHeight;
-  const rt = new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: 4 });
+  const rt = new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: 2 });
   composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(pr); composer.setSize(W, H);
   composer.addPass(new RenderPass(scene, camera));
   gtao = new GTAOPass(scene, camera, W, H);
   gtao.output = 0;  // 0 = композит, 1 = только AO
   const orig = gtao.render.bind(gtao);
-  gtao.render = (...args) => { const v = skyRig.visible; skyRig.visible = false; orig(...args); skyRig.visible = v; };
+  gtao.render = (...args) => {
+    const skyVisible = skyRig.visible, hidden = [];
+    skyRig.visible = false;
+    // Цветовой кадр уже отрисован RenderPass. На время расчёта GTAO исключаем
+    // альфа-плоскости из depth/normal буферов, чтобы AO не затемнял листву.
+    for (const mesh of aoExcludedMeshes) if (mesh.visible) { hidden.push(mesh); mesh.visible = false; }
+    try { orig(...args); }
+    finally { skyRig.visible = skyVisible; for (const mesh of hidden) mesh.visible = true; }
+  };
   composer.addPass(gtao);
   bloomPass = new UnrealBloomPass(new THREE.Vector2(W, H), 0.25, 0.6, 1.1); composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
@@ -1487,8 +1752,16 @@ function applyLight() {
   const m = $('light').value, sun = isSun();
   applyQuality();
   usePost = $('light').value === 'real'; if (usePost) ensureComposer();
+  // Режим «Реализм» рендерим в умеренном разрешении, чтобы GTAO/Bloom
+  // не умножали стоимость кадра на высокий DPR дисплея. Остальные режимы
+  // сохраняют исходную плотность пикселей.
+  const targetDpr = renderDpr();
+  if (Math.abs(renderer.getPixelRatio() - targetDpr) > 0.01) {
+    renderer.setPixelRatio(targetDpr); composer?.setPixelRatio(targetDpr); onResize();
+  }
   if (!sun && mist <= 0.001) scene.fog = null; else applyMist();
   $('sunCtl').style.display = sun ? 'block' : 'none';
+  updateGuestTodPanel();
   if ($('aoRow')) $('aoRow').style.display = (m === 'real') ? 'block' : 'none';
   scene.environment = m === 'classic' ? null : m === 'studio' ? envTex : m === 'hdri' ? (hdrTex || envTex) : envRT?.texture ?? null;
   if (sun) updateSun(true);
@@ -1570,6 +1843,32 @@ function enhanceMaterials(root) {
   const aniso = renderer.capabilities.getMaxAnisotropy();
   fileLights.length = 0;
   root.traverse(c => {
+    if (c.isLight) { fileLights.push(c); c.visible = on('fileLights'); if (c.shadow) c.castShadow = false; return; }
+    if (!c.isMesh) return;
+    const mats = Array.isArray(c.material) ? c.material : [c.material];
+    mats.forEach(m => { for (const k in m) if (m[k]?.isTexture) { m[k].anisotropy = aniso; m[k].needsUpdate = true; } });
+    c.castShadow = !mats.some(m => m.transparent || m.transmission > 0);
+    c.receiveShadow = true;
+  });
+}
+
+// Длинные обходы модели разбиваем на небольшие порции. Между порциями браузер
+// успевает обновить заставку и интерфейс, вместо одного длинного зависания.
+const yieldMain = () => new Promise(resolve => setTimeout(resolve, 0));
+async function traverseChunked(root, visit, chunkSize = 300) {
+  const stack = [root]; let count = 0;
+  while (stack.length) {
+    const node = stack.pop();
+    visit(node);
+    const children = node.children;
+    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
+    if (++count % chunkSize === 0) await yieldMain();
+  }
+}
+async function enhanceMaterialsAsync(root) {
+  const aniso = renderer.capabilities.getMaxAnisotropy();
+  fileLights.length = 0;
+  await traverseChunked(root, c => {
     if (c.isLight) { fileLights.push(c); c.visible = on('fileLights'); if (c.shadow) c.castShadow = false; return; }
     if (!c.isMesh) return;
     const mats = Array.isArray(c.material) ? c.material : [c.material];
@@ -1682,10 +1981,16 @@ function fitCamera(obj) {
   ground.position.set(center.x, box.min.y - max * 0.02, center.z); ground.scale.setScalar(max * 35);
   const dist = (max / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.35;
   camera.position.copy(center).add(new THREE.Vector3(dist, dist * 0.65, dist));
-  camera.near = Math.max(max / 2000, 0.001); camera.far = Math.max(max * 50, 200);
+  // Ближняя плоскость. Раньше было max/2000: для сцены в 1 км это 0.5 м,
+  // и всё, к чему подходишь ближе полуметра, отсекалось — «объекты стираются».
+  // logarithmicDepthBuffer включён, поэтому near может быть очень маленьким без z-fighting.
+  camera.near = Math.max(max / 50000, 0.002); camera.far = Math.max(max * 50, 200);
   camera.updateProjectionMatrix();
   controls.target.copy(center);
-  controls.minDistance = Math.max(max * 0.002, 0.005); controls.maxDistance = Math.max(max * 30, 50);
+  // Разрешаем подойти почти вплотную: нижний предел — сантиметры, а не метры.
+  controls.minDistance = 0.02; controls.maxDistance = Math.max(max * 30, 50);
+  // Камера не уходит ниже плоскости цели — иначе при обзоре оказываешься под землёй.
+  controls.maxPolarAngle = Math.PI * 0.5 - 0.03;
   controls.update();
   setBounds(max * 0.5);   // предел отдаления для гостя
   grid.scale.setScalar(Math.max(max / 20, 1));
@@ -1699,7 +2004,11 @@ let saveMode = false;
 function flyTo(p, t) {
   if (fp.on) exitFP();
   fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0 };
+  wake(60);
 }
+// Новый жест пользователя отменяет автоматический перелёт — камера слушается человека
+function cancelFly() { if (!fly) return; fly = null; saveView(); wake(3); }
+controls.addEventListener('start', cancelFly);
 $('saveCam').onclick = e => { saveMode = !saveMode; e.currentTarget.classList.toggle('on', saveMode); };
 $('startView').onclick = () => {
   startView = { p: camera.position.clone(), t: controls.target.clone() };
@@ -1769,23 +2078,65 @@ function mergeInstances(root) {
   return saved;
 }
 
+async function mergeInstancesAsync(root) {
+  const groups = new Map();
+  await traverseChunked(root, o => {
+    if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh) return;
+    if (o.morphTargetInfluences && o.morphTargetInfluences.length) return;
+    const g = o.geometry; if (!g) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    if (mats.length !== 1) return;
+    const m = mats[0];
+    if (!m || m.transparent || (m.alphaTest > 0 && m.transparent)) return;
+    const key = g.uuid + '|' + m.uuid;
+    let arr = groups.get(key); if (!arr) groups.set(key, arr = []);
+    arr.push(o);
+  });
+  let saved = 0, work = 0;
+  const mtx = new THREE.Matrix4();
+  for (const list of groups.values()) {
+    if (list.length < 8) continue;
+    const src = list[0];
+    const im = new THREE.InstancedMesh(src.geometry, src.material, list.length);
+    for (let i = 0; i < list.length; i++) {
+      const o = list[i]; o.updateWorldMatrix(true, false);
+      im.setMatrixAt(i, mtx.copy(o.matrixWorld));
+      if (++work % 300 === 0) await yieldMain();
+    }
+    im.instanceMatrix.needsUpdate = true;
+    im.castShadow = src.castShadow; im.receiveShadow = src.receiveShadow;
+    im.frustumCulled = true; im.name = 'merged:' + (src.name || src.geometry.type);
+    scene.add(im);
+    for (const o of list) { if (o.parent) o.parent.remove(o); if (++work % 300 === 0) await yieldMain(); }
+    saved += list.length - 1;
+  }
+  return saved;
+}
+
 async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
-  curName = name; keys.length = 0; renderKeys(); poiLoad([]);
+  curName = name; keys.length = 0; walkPoints.length = 0; renderKeys(); renderWalkPoints(); poiLoad([]); triggerLoad([]);
   clearAnimations();
   if (model) { scene.remove(model); disposeModel(model); origMats.clear(); model = null; }
+  aoExcludedMeshes.clear();
   setStatus(`Загрузка: ${name}…`);
   const urls = new Map(extra.map(f => [f.name, URL.createObjectURL(f)]));
   loader.manager.setURLModifier(u => (u.startsWith('data:') || u.startsWith('blob:')) ? u : urls.get(decodeURIComponent(u.split('/').pop().split('?')[0])) || u);
   try {
-    try { stageBytes.set(0, buf); } catch (e) {}          // исходная сцена — для возврата
+    // Копию исходной сцены держим, только если есть к чему возвращаться (система состояний).
+    // Иначе это лишняя полная копия модели в памяти.
+    if (stages.length > 1) { try { stageBytes.set(0, buf); } catch (e) {} }
     const gltf = await loader.parseAsync(buf, base);
     model = gltf.scene; scene.add(model); window.__hasModel = true;
-    model.traverse(c => { if (c.isMesh) origMats.set(c, c.material); });
-    enhanceMaterials(model);
+    $('spPct').textContent = 'Подготовка материалов…';
+    await traverseChunked(model, c => { if (c.isMesh) origMats.set(c, c.material); });
+    await enhanceMaterialsAsync(model);
     applyMaterials();
-    // Схлопываем повторяющиеся объекты (деревья, кусты) — иначе 1000 вызовов отрисовки
-    const merged = mergeInstances(model);
+    // Схлопываем повторяющиеся объекты порциями, не блокируя главный поток.
+    $('spPct').textContent = 'Оптимизация геометрии…';
+    const merged = await mergeInstancesAsync(model);
     if (merged > 0) console.info('InstancedMesh: схлопнуто объектов —', merged);
+    $('spPct').textContent = 'Подготовка освещения…';
+    await collectAOExcludedMeshesAsync(model);
     clips = gltf.animations || [];
     fitCamera(model);
     slots.fill(null); document.querySelectorAll('.slot').forEach(b => b.classList.remove('on'));
@@ -1797,7 +2148,8 @@ async function loadBuffer(buf, name, sceneData, extra = [], base = '') {
     renderUVList();
     setupStages(stages);
     renderStageList();
-    bvhIdle(model);
+    $('spPct').textContent = 'Подготовка перемещения и коллизий…';
+    await bvhPrepareAsync(model);
     if (clips.length) {
       mixer = new THREE.AnimationMixer(model);
       mixer.timeScale = +$('speed').value;
@@ -1844,6 +2196,8 @@ $('settingsBtn').onclick = e => { const open = document.body.classList.toggle('n
 function showTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
+  document.body.classList.toggle('walkEdit', name === 'cam' && !$('walkPaths').hidden && !isViewer());
+  updateWalkPointVisibility();
 }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
 // Значения рядом со слайдерами
@@ -1882,11 +2236,20 @@ if (_reqFS) {
 
 // Пролёт камеры
 const keys = [];
+const walkPoints = [];
+// Полигон границы хранится в мировых координатах XZ; визуализация нужна только редактору.
+const boundaryPoints = [];
+let boundaryGroup = null, boundaryLine = null, boundaryPlaceActive = false;
+let walkPointSel = null;
 let pathT = null, pc = null, tc = null, cum = [], recorder = null, chunks = [], recAuto = false;
 const on = id => $(id).classList.contains('on');
 const fmtT = h => String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0');
 function renderKeys() {
-  document.body.classList.toggle('hasKeys', keys.length >= 2);
+  const hasCameraPath = keys.length >= 2;
+  document.body.classList.toggle('hasKeys', hasCameraPath);
+  // Гостю доступен пролёт только когда в сцене действительно есть минимум два ключа.
+  $('quickPath').style.display = hasCameraPath ? '' : 'none';
+  $('quickPath').disabled = !hasCameraPath;
   const box = $('keyList'); box.innerHTML = '';
   keys.forEach((k, i) => {
     const r = document.createElement('div'); r.className = 'krow';
@@ -1921,7 +2284,11 @@ function startPath() {
   return true;
 }
 function stopPath() {
-  pathT = null; controls.enabled = true;
+  // Полностью сбрасываем состояние пролёта: после прерывания интерфейс и OrbitControls
+  // должны снова принимать ввод, в том числе клик по кнопке «От первого лица».
+  pathT = null; pc = tc = null; cum = [];
+  controls.enabled = true;
+  controls.update();
   setBtn($('pathPlay'), 'play', 'Пролёт');
   if (recorder && recAuto) stopRec();
 }
@@ -1974,9 +2341,12 @@ function collectScene() {
     version: 1, model: curName,
     camera: { p: vec(camera.position), t: vec(controls.target) },
     keys: keys.map(k => ({ p: vec(k.p), t: vec(k.t), d: k.d, tod: +k.tod.toFixed(3), c: k.c })),
+    walkPoints: walkPoints.map(w => ({ id: w.id, p: vec(w.pos), yaw: +w.yaw.toFixed(5), pitch: +w.pitch.toFixed(5), label: w.label || "" })),
+    boundary: boundaryPoints.length >= 3 ? boundaryPoints.map(vec) : undefined,
     slots: slots.map(s => s && { p: vec(s.p), t: vec(s.t) }),
     path: { sync: on('sync'), loop: on('pathLoop'), todKeys: on('todKeys'), ease: $('ease').value },
     pois: pois.map(poiSerialize),
+    triggers: triggers.length ? triggers.map(triggerSerialize) : undefined,
     startView: startView ? { p: vec(startView.p), t: vec(startView.t) } : undefined,
     anim: { speed: $('speed').value, loop, clips: [...activeClips] },
     view: { light: $('light').value, aoInt: +$('aoInt').value, bg: $('bg').value, mat: $('mat').value, exposure: +$('exposure').value, tod: todVal, az: +$('az').value, cloud: +$('cloud').value, snow: +$('snow').value, mist: +$('mist').value, cloudMove: on('cloudMove'), cloudSpd: +$('cloudSpd').value, shadows: on('shadowBtn'), ground: on('groundBtn'), grid: on('gridBtn'), axes: on('axesBtn'), weather: $('weather').value, inertia: $('inertia').value, tone: $('tone').value, envInt: envK(), envRot: +$('envRot').value, fileLights: on('fileLights'), hdrBg: on('hdrBg') }
@@ -1986,6 +2356,11 @@ function applySceneData(d) {
   const V = a => new THREE.Vector3(...a);
   keys.length = 0; (d.keys || []).forEach((k, i) => keys.push({ p: V(k.p), t: V(k.t), d: k.d || 3, tod: k.tod ?? todVal, c: k.c || KEY_COLORS[i % KEY_COLORS.length] }));
   renderKeys();
+  walkPoints.length = 0; (d.walkPoints || []).forEach((w, i) => { if (Array.isArray(w.p) && w.p.length === 3) walkPoints.push({ id: w.id || ('walk-' + i), pos: V(w.p), yaw: Number.isFinite(+w.yaw) ? +w.yaw : 0, pitch: Number.isFinite(+w.pitch) ? +w.pitch : 0, label: w.label || '' }); });
+  renderWalkPoints();
+  boundaryPoints.length = 0;
+  (Array.isArray(d.boundary) ? d.boundary : []).forEach(p => { if (Array.isArray(p) && p.length === 3 && p.every(Number.isFinite)) boundaryPoints.push(V(p)); });
+  renderBoundary();
   document.querySelectorAll('.slot').forEach((b, i) => {
     const s = d.slots?.[i]; slots[i] = s ? { p: V(s.p), t: V(s.t) } : null; b.classList.toggle('on', !!s);
   });
@@ -2013,6 +2388,7 @@ function applySceneData(d) {
     applyLight(); applyMaterials();
   }
   if (d.camera) { camera.position.copy(V(d.camera.p)); controls.target.copy(V(d.camera.t)); controls.update(); }
+  triggerLoad(d.triggers);
   if (d.startView) startView = { p: V(d.startView.p), t: V(d.startView.t) };
   if (d.anim) animPrefs = d.anim;
   updateSvNote();
@@ -2036,7 +2412,17 @@ function focusAt(cx, cy) {
   const r = renderer.domElement.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
   const hit = ray.intersectObject(model, true)[0];
-  if (hit) flyTo(hit.point.clone().add(camera.position.clone().sub(controls.target)), hit.point.clone());
+  if (!hit) return;
+  // Двойной клик — это «рассмотреть поближе». Сохраняем направление взгляда,
+  // но сокращаем дистанцию: раньше камера оставалась на прежнем удалении,
+  // из-за чего к точке нельзя было подойти вплотную.
+  const off = camera.position.clone().sub(controls.target);
+  // Дистанцию не наращиваем, но и не «прыгаем» к точке: сохраняем текущее удаление.
+  // Раньше здесь было ограничение снизу max(1.5, radius*0.18) — на крупной сцене оно
+  // отбрасывало камеру на несколько метров, и рассмотреть объект вплотную было нельзя.
+  const keep = Math.max(off.length(), controls.minDistance * 2);
+  off.setLength(keep);
+  flyTo(hit.point.clone().add(off), hit.point.clone());
 }
 
 // Скрытие интерфейса
@@ -2073,6 +2459,48 @@ addEventListener('keydown', e => {
 // ===== NOMA: тур по ссылке, режим зрителя, бренд =====
 const isViewer = () => document.body.classList.contains('viewer');
 const QP = new URLSearchParams(location.search), TOUR = QP.get('tour'), EDIT = QP.has('edit');
+const PRESENT = QP.get('mode') === 'present' || (!EDIT && !!TOUR);
+
+// ===== Рендер по требованию: в клиентском режиме не жжём GPU в простое =====
+// Логика кадра работает всегда, draw call — только когда сцена меняется.
+let needsRender = 3, idleTick = 0;
+// HTML-маркеры не обязаны пересчитываться 60–120 раз/с. 30 Гц достаточно
+// для плавного сопровождения камеры и вдвое сокращает DOM-работу при множестве точек.
+let overlayAccumulator = 1 / 60;
+const OVERLAY_STEP = 1 / 60;
+// Счётчики для объективного замера: сколько кадров запрошено и сколько реально нарисовано
+const frameStats = { raf: 0, drawn: 0, idleSkipped: 0 };
+// RAF запускается только при необходимости. В неподвижном состоянии
+// браузер не выполняет покадровую логику NOMA впустую.
+let rafHandle = 0, inAnimationFrame = false, wakePending = false;
+function wake(n = 3) {
+  needsRender = Math.max(needsRender, n);
+  idleTick = 0;
+  if (inAnimationFrame) { wakePending = true; return; }
+  if (!rafHandle && !document.hidden) rafHandle = requestAnimationFrame(animate);
+}
+window.__nomaWake = wake;
+window.__nomaFrames = () => ({ ...frameStats, ratio: frameStats.raf ? +(frameStats.drawn / frameStats.raf).toFixed(3) : 1 });
+window.__nomaFramesReset = () => { frameStats.raf = 0; frameStats.drawn = 0; frameStats.idleSkipped = 0; };
+// Реальное движение камеры: сравниваем позицию и цель с прошлым кадром.
+// controls.update() для этого не годится — при damping он почти всегда возвращает true.
+let _lastCamP = null, _lastCamT = null;
+function camMoved() {
+  if (!_lastCamP) { _lastCamP = camera.position.clone(); _lastCamT = controls.target.clone(); return true; }
+  const dp = camera.position.distanceToSquared(_lastCamP);
+  const dt2 = controls.target.distanceToSquared(_lastCamT);
+  if (dp > 1e-8 || dt2 > 1e-8) {
+    _lastCamP.copy(camera.position); _lastCamT.copy(controls.target);
+    return true;
+  }
+  return false;
+}
+['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'wheel',
+ 'keydown', 'keyup', 'touchstart', 'touchmove', 'click', 'input', 'change'].forEach(ev =>
+  addEventListener(ev, () => wake(2), { passive: true, capture: true })
+);
+addEventListener('resize', () => wake(3));
+addEventListener('visibilitychange', () => { if (!document.hidden) wake(3); });
 let brand = { title: '', subtitle: '', accent: '', cover: '', cta: { label: '', url: '' }, site: { label: '', url: '' }, lead: { label: '', wa: '', tg: '', tel: '', email: '', key: '' }, legal: { operator: '', policy: '' }, analytics: { ym: '', hook: '', note: true }, id: '' }, tourBase = '', lockHash = '';
 function hexRGB(h) { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function setAccent(h) {
@@ -2174,8 +2602,8 @@ $('tSave').onclick = async () => {
 };
 // Обложка: выбор файла (в tour.json пишется только имя файла)
 let coverLocal = '';
-function coverURL() { return coverLocal || (brand.cover && tourBase ? new URL(brand.cover, tourBase).href : ''); }
-function showCoverPrev() { const u = coverURL(); $('tCoverPrev').classList.toggle('on', !!u); $('tCoverPrev').style.backgroundImage = u ? `url("${u}")` : ''; }
+function coverURL() { return coverLocal || resolveAsset(brand.cover, tourBase); }
+function showCoverPrev() { const u = coverURL(); $('tCoverPrev').classList.toggle('on', !!u); $('tCoverPrev').style.backgroundImage = u ? cssUrl(u) : ''; }
 $('tCoverPick').onclick = () => $('tCoverIn').click();
 $('tCoverIn').onchange = e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -2191,11 +2619,15 @@ $('tCoverIn').onchange = e => {
 };
 $('tCoverClr').onclick = () => { if (coverLocal) URL.revokeObjectURL(coverLocal); coverLocal = ''; $('tCover').value = ''; brandFromFields(); showCoverPrev(); };
 $('tCover').addEventListener('change', () => { coverLocal = ''; showCoverPrev(); });
-function setSplashCover() { const u = coverURL(); splash.style.backgroundImage = u ? `url("${u}")` : ''; splash.classList.toggle('cover', !!u); }
+function setSplashCover() { const u = coverURL(); splash.style.backgroundImage = u ? cssUrl(u) : ''; splash.classList.toggle('cover', !!u); }
 // Предпросмотр «как клиент» прямо из редактора
 let pvWasOpen = false;
 function setPreview(v) {
   document.body.classList.toggle('previewing', v); document.body.classList.toggle('viewer', v);
+  if (v) document.body.classList.remove('walkEdit');
+  else document.body.classList.toggle('walkEdit', document.querySelector('.pane[data-pane="cam"]')?.classList.contains('active') && !$('walkPaths').hidden);
+  updateGuestTodPanel();
+  renderWalkPoints();
   if (v) { pvWasOpen = !document.body.classList.contains('noL'); document.body.classList.add('noL'); }
   else if (pvWasOpen) document.body.classList.remove('noL');
   $('settingsBtn').classList.toggle('on', !document.body.classList.contains('noL'));
@@ -2214,15 +2646,29 @@ function splashProgress(p) {
 }
 function splashHide() { splash.classList.add('hide'); setTimeout(() => splash.className = '', 750); }
 function splashError(msg) { splash.classList.add('err'); $('spErr').innerHTML = msg; }
+// Загрузка с прогрессом. Пишем сразу в буфер нужного размера:
+// раньше куски складывались в массив, потом копировались в Uint8Array — пик памяти был 2×.
 async function fetchProgress(url, cb) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(r.status + ' — ' + url);
   const total = +r.headers.get('content-length') || 0;
-  if (!r.body || !total || !r.body.getReader) { cb(-1); return r.arrayBuffer(); }
-  const rd = r.body.getReader(), parts = []; let got = 0;
-  for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; cb(Math.min(got / total, 0.999)); }
-  const out = new Uint8Array(got); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
-  cb(1); return out.buffer;
+  const len = total || 0;
+  if (!r.body || !len || !r.body.getReader) { cb(-1); return r.arrayBuffer(); }
+  const rd = r.body.getReader();
+  let out = new Uint8Array(len);
+  let got = 0;
+  for (;;) {
+    const { done, value } = await rd.read();
+    if (done) break;
+    if (got + value.length > out.length) {          // сервер отдал больше обещанного
+      const grown = new Uint8Array(Math.max(out.length * 2, got + value.length));
+      grown.set(out.subarray(0, got)); out = grown;
+    }
+    out.set(value, got); got += value.length;
+    cb(Math.min(got / len, 0.999));
+  }
+  cb(1);
+  return (got === out.length ? out : out.subarray(0, got)).buffer;
 }
 async function openRemote(modelUrl, data) {
   baseModelUrl = modelUrl;
@@ -2231,6 +2677,29 @@ async function openRemote(modelUrl, data) {
   await loadBuffer(buf, decodeURIComponent(modelUrl.split('/').pop().split('?')[0]), data, [], new URL('.', modelUrl).href);
   if (!window.__hasModel) throw new Error('model');
 }
+// Перед показом тура заранее компилируем шейдеры и прогреваем цепочку постобработки.
+// Пользователь может подождать на заставке — первый интерактивный кадр не должен
+// внезапно оплачивать компиляцию GTAO/Bloom и создание теневой карты.
+async function prepareTourGraphics() {
+  if (!usePost || !composer || !model) return;
+  $('spPct').textContent = 'Подготовка графики «Реализм»…';
+  $('spBar').classList.add('ind');
+  try {
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    else renderer.compile(scene, camera);
+    // Первый проход компилирует внутренние материалы GTAO/Bloom/OutputPass.
+    // Второй прогревает повторное использование уже созданных render targets.
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    composer.render(1 / 60);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    composer.render(1 / 60);
+    renderer.info.reset?.();
+  } catch (err) {
+    // Не блокируем тур из-за несовместимого драйвера/неподдержанного compileAsync.
+    console.warn('NOMA: предварительная подготовка графики не завершилась', err);
+  }
+}
+
 const LOCAL_FILE = location.protocol === 'file:';
 const LOCAL_MSG = 'Тур открыт как файл с диска — браузер так не даёт загрузить модель.<br>Запусти <b>start-noma.bat</b> (Windows) или <b>start-noma-mac.command</b> (Mac) из папки сайта<br>и открой ссылку <b>http://localhost:8080/?tour=…</b>';
 if (TOUR) (async () => {
@@ -2244,9 +2713,28 @@ if (TOUR) (async () => {
     const abs = new URL(url, location.href).href;
     const r = await fetch(abs, { cache: 'no-cache' });
     if (!r.ok) throw new Error('tour');
-    const t = await r.json();
+    // Сохраняем пользовательские поля сцены, которые старые версии
+    // normalizeTour() могут не знать и поэтому выкидывать при нормализации.
+    const rawTour = await r.json();
+    const t = normalizeTour(rawTour);
+    if (rawTour?.scene && typeof rawTour.scene === 'object') {
+      const rawScene = rawTour.scene;
+      const normalizedScene = (t.scene && typeof t.scene === 'object') ? t.scene : {};
+      const validWalkPoints = Array.isArray(rawScene.walkPoints)
+        ? rawScene.walkPoints.filter(w => w && Array.isArray(w.p) && w.p.length === 3 && w.p.every(v => typeof v === 'number' && Number.isFinite(v)))
+        : null;
+      const validBoundary = Array.isArray(rawScene.boundary)
+        ? rawScene.boundary.filter(p => Array.isArray(p) && p.length === 3 && p.every(v => typeof v === 'number' && Number.isFinite(v)))
+        : null;
+      t.scene = {
+        ...normalizedScene,
+        ...(validWalkPoints ? { walkPoints: validWalkPoints } : {}),
+        ...(validBoundary ? { boundary: validBoundary } : {})
+      };
+    }
     tourBase = new URL('.', abs).href;
     lockHash = t.lock || '';
+    if (t.__warnings.length) console.warn('NOMA tour.json:', t.__warnings);
     if (EDIT && !(await editorGate())) return;
     applyBrand({ ...t, id: /\.json/i.test(TOUR) ? '' : TOUR });
     if (Array.isArray(t.stages)) stages = t.stages;
@@ -2258,7 +2746,14 @@ if (TOUR) (async () => {
       catch { console.warn('HDRI не найден:', t.hdri); }
     }
     await openRemote(new URL(t.model, tourBase).href, t.scene || null);
+    // Не показываем готовность, пока тяжёлый режим не скомпилирован и не прогрет.
+    await prepareTourGraphics();
+    // Повторно синхронизируем кнопку после полного применения scene-data в гостевом режиме.
+    renderWalkPoints();
+    $('fpBtn').style.display = (isViewer() && walkPoints.length > 0) ? '' : 'none';
     track('model_ready', { sec: Math.round((Date.now() - ST.t0) / 1000) });
+    applyGroups(t.groups && t.groups.length ? t.groups : (t.scene && t.scene.groups) || []);
+    if (t.__warnings.length) setStatus(`Тур открыт с замечаниями (${t.__warnings.length}) — подробности в консоли`);
     if (!EDIT && pois.filter(p => !p.skip).length >= 2) splashWelcome(); else splashHide();
     if (EDIT) setStatus(`Тур «${brand.title || TOUR}» открыт для редактирования`);
   } catch (e) {
@@ -2355,7 +2850,7 @@ renderer.domElement.addEventListener('webglcontextlost', e => {
     }, 1200);
   }, 6000);
 });
-renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; clearTimeout(ctxTimer); $('ctxLost').classList.remove('show'); track('ctx_restored'); });
+renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; clearTimeout(ctxTimer); $('ctxLost').classList.remove('show'); track('ctx_restored'); wake(3); });
 
 // ===== Тур с гидом =====
 const G = { on: false, playing: false, ended: false, i: 0, elapsed: 0, stops: [] };
@@ -2451,6 +2946,80 @@ $('edAnim').addEventListener('change', e => {
   renderStopBits();
 });
 
+// ===== Редактор кнопок анимации =====
+function trigAdd() {
+  if (!model) return setStatus('Сначала открой модель');
+  placing = { trigger: true };
+  document.body.classList.add('placing');
+  $('placeTxt').textContent = 'Клик по модели — поставить кнопку анимации';
+}
+function renderTriggerList() {
+  const box = $('trigList');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!triggers.length) {
+    box.innerHTML = '<p class="hint-s" style="margin-top:8px">Кнопок пока нет.</p>';
+    return;
+  }
+  triggers.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'trig-row' + (t === triggerSel ? ' on' : '');
+
+    const dot = document.createElement('i');
+    dot.className = 'tdot';
+    dot.style.background = t.color;
+
+    const num = document.createElement('b');
+    num.textContent = String(i + 1);
+
+    const sel = document.createElement('select');
+    sel.className = 'inp';
+    sel.style.flex = '1';
+    sel.style.minWidth = '0';
+    sel.innerHTML = '<option value="">— анимация —</option>';
+    clips.forEach((c, ci) => {
+      const o = document.createElement('option');
+      o.value = 'c' + ci;
+      o.textContent = clipName(ci);
+      sel.appendChild(o);
+    });
+    const cur = t.anim?.length ? animIndex(t.anim[0]) : -1;
+    sel.value = cur >= 0 ? 'c' + cur : '';
+    sel.onchange = e => {
+      const v = e.target.value;
+      t.anim = v ? [animToken(+v.slice(1))] : [];
+      sel._ddRefresh?.();
+      renderTriggerList();
+      setStatus(v ? 'Анимация привязана к кнопке' : 'У кнопки нет анимации');
+    };
+
+    const move = document.createElement('button');
+    move.className = 'mv';
+    move.title = 'Переместить';
+    move.innerHTML = ico('target');
+    move.onclick = () => { placing = { triggerMove: t }; document.body.classList.add('placing');
+      $('placeTxt').textContent = 'Клик по модели — новое место кнопки'; };
+
+    const del = document.createElement('button');
+    del.className = 'mv danger';
+    del.title = 'Удалить';
+    del.innerHTML = ico('trash');
+    del.onclick = () => {
+      const i2 = triggers.indexOf(t);
+      if (i2 < 0) return;
+      triggers.splice(i2, 1);
+      if (triggerSel === t) triggerSel = null;
+      renderTriggers(); renderTriggerList();
+      setStatus('Кнопка удалена');
+    };
+
+    row.append(dot, num, sel, move, del);
+    row.onclick = e => { if (e.target.closest('select,button')) return; triggerSel = t; renderTriggers(); renderTriggerList(); };
+    box.appendChild(row);
+  });
+}
+$('trigAdd').onclick = trigAdd;
+
 // ===== Выпадающие списки в стиле интерфейса =====
 const ddMenu = document.createElement('div'); ddMenu.id = 'ddMenu'; ddMenu.setAttribute('role', 'listbox'); document.body.appendChild(ddMenu);
 let ddCur = null;
@@ -2518,17 +3087,76 @@ const POI_EMOJI = ['📍', '⭐', '🏛️', '🏢', '🏭', '🏠', '🏗️', 
 const POI_COLORS = ['#2783DE', '#46A171', '#D5803B', '#E56458', '#8E6AD8', '#DF84A8', '#4FB9C9', '#2C2C2B'];
 let poiSel = null, poiActive = null, placing = null, cardImg = 0, tourTimer = 0;
 const pinVec = new THREE.Vector3();
+
+// ===== Триггеры анимации: маленькие точки на модели, запускающие клип =====
+// Не точки интереса: у них нет карточки, они только запускают анимацию.
+// В орбите висят точками, в пешеходе проявляются при наведении, как пины.
+const triggers = [];               // [{ id, pos, anim, label, color, el, alpha }]
+let triggerSel = null;             // выбранный в редакторе
+const triggerVis = new WeakMap();
+
+function triggerSerialize(t) {
+  const o = { id: t.id, pos: vecArr(t.pos) };
+  const anim = Array.isArray(t.anim) ? t.anim.filter(Boolean) : (t.anim ? [t.anim] : []);
+  if (anim.length) o.anim = anim;                       // пустой список не пишем
+  const label = (t.label || '').trim();
+  if (label) o.label = label;
+  if (t.color && t.color !== TRIGGER_COLOR) o.color = t.color;
+  return o;
+}
+
+function triggerLoad(list) {
+  const V = a => new THREE.Vector3(...a);
+  const warns = [];
+  triggers.length = 0;
+  triggerSel = null;
+  (Array.isArray(list) ? list : []).forEach((d, i) => {
+    if (!d || typeof d !== 'object') { warns.push(`Триггер #${i + 1} пропущен: не объект`); return; }
+    const p = Array.isArray(d.pos) && d.pos.length >= 3 && d.pos.slice(0, 3).every(v => typeof v === 'number' && Number.isFinite(v))
+      ? V([+d.pos[0], +d.pos[1], +d.pos[2]]) : null;
+    if (!p) { warns.push(`Триггер #${i + 1} пропущен: нет корректных координат`); return; }
+    const anim = Array.isArray(d.anim) ? d.anim.filter(x => typeof x === 'string') : (typeof d.anim === 'string' ? [d.anim] : []);
+    triggers.push({
+      id: (typeof d.id === 'string' && d.id.slice(0, 80)) || 'trig-' + i + '-' + Math.random().toString(36).slice(2, 7),
+      pos: p,
+      anim,
+      label: typeof d.label === 'string' ? d.label.slice(0, 60) : '',
+      color: /^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : TRIGGER_COLOR,
+      el: null, alpha: 0
+    });
+  });
+  if (warns.length) console.warn('NOMA триггеры:', warns);
+  renderTriggers();
+}
 const vecArr = v => v.toArray().map(n => +n.toFixed(4));
 function poiDefaultCam(point) {
   const dir = camera.position.clone().sub(controls.target).normalize();
   const d = Math.min(camera.position.distanceTo(controls.target), Math.max(modelSphere.radius * 0.35, 1));
   return { p: point.clone().add(dir.multiplyScalar(d)), t: point.clone() };
 }
-function poiSerialize(p) { return { stay: p.stay ?? 8, tod: p.tod ?? null, anim: p.anim ?? null, skip: p.skip || undefined, id: p.id, title: p.title, subtitle: p.subtitle, description: p.description, icon: p.icon, color: p.color, photos: p.photos, price: p.price || undefined, area: p.area || undefined, specs: (p.specs || '').trim() ? p.specs : undefined, plan: p.plan?.file ? { file: p.plan.file, label: p.plan.label || undefined } : undefined, link: p.link?.url ? { label: p.link.label || undefined, url: p.link.url } : undefined, pos: vecArr(p.pos), cam: { p: vecArr(p.cam.p), t: vecArr(p.cam.t) } }; }
+function poiSerialize(p) { return { stay: p.stay ?? 8, tod: p.tod ?? null, anim: p.anim ?? null, skip: p.skip || undefined, id: p.id, title: p.title, subtitle: p.subtitle, description: p.description, icon: p.icon, color: p.color, photos: p.photos, price: p.price || undefined, area: p.area || undefined, specs: (p.specs || '').trim() ? p.specs : undefined, docs: p.docs?.length ? p.docs : undefined, group: p.group || undefined, plan: p.plan?.file ? { file: p.plan.file, label: p.plan.label || undefined } : undefined, link: p.link?.url ? { label: p.link.label || undefined, url: p.link.url } : undefined, pos: vecArr(p.pos), cam: { p: vecArr(p.cam.p), t: vecArr(p.cam.t) } }; }
 function poiLoad(list) {
   const V = a => new THREE.Vector3(...a);
+  const warns = [];
   pois.length = 0; closeCard(); closeEditor();
-  (list || []).forEach(d => pois.push({ stay: +d.stay || 8, tod: d.tod ?? null, anim: Array.isArray(d.anim) && d.anim.length ? d.anim : null, skip: !!d.skip, id: d.id || 'poi-' + Math.random().toString(36).slice(2), title: d.title || 'Точка', subtitle: d.subtitle || '', description: d.description || '', icon: d.icon || '📍', color: d.color || POI_COLORS[0], photos: Array.isArray(d.photos) ? d.photos : (d.image ? [d.image] : []), price: d.price || '', area: d.area || '', specs: d.specs || '', plan: { file: d.plan?.file || '', label: d.plan?.label || '' }, link: { label: d.link?.label || '', url: d.link?.url || '' }, pos: V(d.pos), cam: d.cam ? { p: V(d.cam.p), t: V(d.cam.t) } : { p: V(d.pos).add(new THREE.Vector3(5, 4, 5)), t: V(d.pos) } }));
+  (list || []).forEach((d, i) => {
+    const n = normalizePoi(d, i, warns);
+    if (!n) return;                       // битая точка не роняет весь тур
+    pois.push({
+      stay: n.stay, tod: n.tod, anim: n.anim, skip: n.skip, id: n.id,
+      title: n.title, subtitle: n.subtitle, description: n.description,
+      icon: n.icon, color: n.color,
+      photos: n.photos.map(src => resolveAsset(src, tourBase)),
+      price: n.price, area: n.area, specs: n.specs,
+      docs: n.docs.map(doc => ({ file: resolveAsset(doc.file, tourBase), label: doc.label })),
+      group: n.group,
+      plan: { file: n.plan.file, label: n.plan.label },
+      link: { label: n.link.label, url: n.link.url },
+      pos: V(n.pos),
+      cam: n.cam ? { p: V(n.cam.p), t: V(n.cam.t) } : { p: V(n.pos).add(new THREE.Vector3(5, 4, 5)), t: V(n.pos) }
+    });
+  });
+  if (warns.length) console.warn('NOMA точки:', warns);
   renderPois();
 }
 function renderPois() {
@@ -2536,12 +3164,19 @@ function renderPois() {
   const layer = $('pins'); layer.innerHTML = '';
   const list = $('poiList'); list.innerHTML = '';
   pois.forEach((p, i) => {
+    const hidden = activeGroup && !inGroup(p);
     const pin = document.createElement('div'); pin.className = 'pin' + (p === poiActive ? ' active' : ''); pin.style.setProperty('--c', p.color);
     pin.innerHTML = '<div class="head"><span class="em"></span><span class="lbl"></span></div><div class="stem"></div><div class="foot"></div>';
     pin.querySelector('.em').textContent = p.icon; pin.querySelector('.em').style.background = p.color;
     pin.querySelector('.lbl').textContent = p.title; pin.querySelector('.foot').style.background = p.color;
     pin.title = p.subtitle ? p.title + ' — ' + p.subtitle : p.title;
+    pin.setAttribute('role', 'button'); pin.tabIndex = 0;
+    pin.setAttribute('aria-label', 'Точка: ' + p.title);
+    pin._nomaPoi = p;
     pin.onclick = e => { e.stopPropagation(); openPoi(p); };
+    pin.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPoi(p); } };
+    if (hidden) pin.style.display = 'none';
+    p.hidden = hidden;
     p.el = pin; layer.appendChild(pin);
     const it = document.createElement('div'); it.className = 'poi-item' + (p === poiActive ? ' active' : '');
     it.innerHTML = `<span class="em"></span><div class="tx"><div class="t"></div><div class="s"></div></div><button class="mv" data-d="-1" title="Выше"${i ? '' : ' disabled'}>${ico('up')}</button><button class="mv" data-d="1" title="Ниже"${i < pois.length - 1 ? '' : ' disabled'}>${ico('down')}</button><button class="ed" title="Редактировать">${ico('edit')}</button>`;
@@ -2553,16 +3188,227 @@ function renderPois() {
     list.appendChild(it);
   });
 }
-function updatePins() {
-  if (!pois.length) return;
-  const w = innerWidth, h = innerHeight;
+// ===== Корпуса / зоны (опционально, scene.groups) =====
+let groups = [];                 // [{id,title,cam,pois}]
+let activeGroup = '';            // '' = все
+function inGroup(p) {
+  if (!activeGroup) return true;
+  const g = groups.find(x => x.id === activeGroup);
+  if (!g) return true;
+  if (g.pois.length) return g.pois.includes(p.id) || g.pois.includes(p.title);
+  return !p.group || p.group === activeGroup;
+}
+function applyGroups(list) {
+  groups = Array.isArray(list) ? list.filter(g => g && g.id && g.title) : [];
+  unloadZone();                    // новый тур — прежняя зона не нужна
+  if (activeGroup && !groups.some(g => g.id === activeGroup)) activeGroup = '';
+  const show = groups.length > 0 && !EDIT && !!TOUR;
+  document.body.classList.toggle('hasGroups', show);
+  renderGroups();
+  renderPois();
+}
+function renderGroups() {
+  const box = $('groups'); if (!box) return;
+  box.innerHTML = '';
+  const show = groups.length > 0 && !EDIT && !!TOUR;
+  box.hidden = !show;
+  if (!show) return;
+  const mk = (id, label) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.setAttribute('role', 'tab');
+    b.className = id === activeGroup ? 'on' : '';
+    b.setAttribute('aria-selected', id === activeGroup ? 'true' : 'false');
+    b.onclick = () => selectGroup(id);
+    box.appendChild(b);
+  };
+  mk('', 'Все');
+  groups.forEach(g => mk(g.id, g.title));
+}
+function selectGroup(id) {
+  activeGroup = id || '';
+  renderGroups(); renderPois();
+  const g = groups.find(x => x.id === activeGroup);
+  if (g && g.cam) flyTo(new THREE.Vector3(...g.cam.p), new THREE.Vector3(...g.cam.t));
+  else wake(3);
+  // Тяжёлая детализация зоны: грузим выбранную, выгружаем предыдущую (экономия памяти на телефоне)
+  if (g && g.model) loadZone(g.model);
+  else if (zoneModel && !groups.some(x => x.model === zoneUrl && x.id === activeGroup)) unloadZone();
+  if (poiActive && !inGroup(poiActive)) closeCard();
+  try { track('group_select', { g: activeGroup || 'all' }); } catch (e) {}
+}
+
+// ===== Видимость пинов в режиме пешехода =====
+// Раньше пины висели сквозь стены. Теперь в ходьбе пин виден, только если он
+// в пределах дальности И не перекрыт геометрией. Появление — плавное.
+let _mmCache = null, _mmCacheFor = null;
+function modelMeshList() {
+  if (_mmCacheFor !== model) {
+    _mmCache = [];
+    if (model) model.traverse(c => { if (c.isMesh) _mmCache.push(c); });
+    _mmCacheFor = model;
+  }
+  return _mmCache;
+}
+const _pinTo = new THREE.Vector3();
+const pinVis = new WeakMap();
+const PIN_RANGE = () => Math.max(18, Math.min(45, modelSphere.radius * 0.5));
+
+// Перекрыт ли обзор от камеры до точки. Луч обрезаем чуть раньше самой точки,
+// чтобы сам объект-точка не считался препятствием.
+function pinBlocked(p, dist) {
+  _pinTo.copy(p.pos).sub(camera.position).divideScalar(dist);
+  fpRay.set(camera.position, _pinTo);
+  fpRay.far = Math.max(0.2, dist - 0.45);
+  fpRay.firstHitOnly = true;
+  _pinHits.length = 0;
+  try { withDS(modelMeshList(), () => fpRay.intersectObjects(modelMeshList(), false, _pinHits)); }
+  catch (e) { return false; }
+  return _pinHits.length > 0;
+}
+const _pinHits = [];
+
+function updatePinVisibility(now) {
+  const far = PIN_RANGE();
   for (const p of pois) {
     if (!p.el) continue;
+    const dist = camera.position.distanceTo(p.pos);
+    // Только дистанционное затухание. Raycast для каждого пина в каждом кадре
+    // создавал сотни дополнительных обходов геометрии в секунду.
+    let alpha;
+    if (dist > far * 1.4) alpha = 0;
+    else if (dist > far) alpha = 1 - (dist - far) / (far * 0.4);
+    else alpha = 1;
+    p.pinAlpha = alpha;
+  }
+}
+
+// ===== Отрисовка триггеров =====
+const TRIGGER_COLOR = '#8E8E93';
+function renderTriggers() {
+  const layer = $('triggers');
+  if (!layer) return;
+  layer.innerHTML = '';
+  triggers.forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'trig' + (t === triggerSel ? ' sel' : '');
+    b.style.setProperty('--tc', t.color);
+    b.setAttribute('aria-label', t.label || 'Запустить анимацию');
+    if (t.label) b.title = t.label;
+    b._nomaTrigger = t;
+    b.onclick = e => { e.stopPropagation(); fireTrigger(t); };
+    b.onpointerdown = e => e.stopPropagation();
+    t.el = b;
+    t.alpha = 0;
+    layer.appendChild(b);
+  });
+  document.body.classList.toggle('hasTriggers', triggers.length > 0);
+}
+
+// Нажатие: запускаем привязанные клипы. Повторное нажатие перезапускает с начала.
+function fireTrigger(t) {
+  if (!t.anim?.length) return setStatus(t === triggerSel ? 'Выберите анимацию для кнопки' : 'У кнопки не задана анимация');
+  if (!mixer || !clips.length) return setStatus('В модели нет анимаций');
+  const idx = t.anim.map(animIndex).filter(i => i >= 0 && i < clips.length);
+  if (!idx.length) return setStatus('Анимация кнопки не найдена в модели');
+  // Останавливаем только эти клипы, чтобы не сбивать общий плеер
+  idx.forEach(i => {
+    const a = mixer.clipAction(clips[i]);
+    a.stop(); a.reset();
+    a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true;
+    a.setEffectiveWeight(1); a.play();
+  });
+  playing = true; setBtn($('play'), 'pause');
+  wake(120);                        // анимация требует непрерывной перерисовки
+  track('trigger_fire', { id: t.id, label: t.label || '' });
+  if (t.label) setStatus(t.label);
+}
+
+function updateTriggers(dtHint) {
+  if (!triggers.length) return;
+  const w = innerWidth, h = innerHeight;
+  const inFP = fp.on;
+  const k = dtHint ? Math.min(1, 0.3 * (dtHint / 0.0166) * 0.85 + 0.15) : 0.3;
+  for (const t of triggers) {
+    const el = t.el; if (!el) continue;
+    pinVec.copy(t.pos).project(camera);
+    if (pinVec.z > 1 || pinVec.z < -1 || Math.abs(pinVec.x) > 1.05 || Math.abs(pinVec.y) > 1.05) {
+      el.style.display = 'none'; t._sx = null; continue;
+    }
+    const dist = camera.position.distanceTo(t.pos);
+
+    // В пешеходе кнопка проявляется, только если
+    //   а) близко, б) не перекрыта геометрией, в) смотрит примерно в нашу сторону
+    let want = 1;
+    if (inFP) {
+      const near = THREE.MathUtils.clamp(1 - (dist - 3) / 23, 0, 1);   // 1.5–8 м
+      let facing = 1;
+      // Сравниваем направление взгляда с вектором ОТ камеры К кнопке.
+      // Обратный вектор (к камере) давал dot ≈ -1 при прямом наведении,
+      // из-за чего кнопка оставалась полностью невидимой.
+      const toTrigger = _trigTo.copy(t.pos).sub(camera.position).normalize();
+      const fwd = _trigForward.set(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+      facing = THREE.MathUtils.clamp((toTrigger.dot(fwd) - 0.15) / 0.75, 0, 1);
+      want = near * facing;
+    } else {
+      // В орбите — видна всегда, но совсем мелкая и приглушённая
+      want = 1;
+    }
+
+    t.alpha += (want - t.alpha) * (want > t.alpha ? 0.22 : 0.3);   // плавно
+    if (t.alpha < 0.02) { el.style.display = 'none'; t._sx = null; continue; }
+    el.style.display = '';
+    el.style.opacity = t.alpha.toFixed(2);
+    el.classList.toggle('fp', inFP);
+
+    const tx = (pinVec.x + 1) / 2 * w, ty = (1 - pinVec.y) / 2 * h;
+    // Для триггеров используем точную проекцию без инерции:
+    // интерактивная кнопка должна оставаться прямо под курсором.
+    t._sx = tx; t._sy = ty;
+    el.style.transform = `translate3d(${t._sx.toFixed(1)}px,${t._sy.toFixed(1)}px,0) translate(-50%,-50%)`;
+    el.style.zIndex = Math.round((1 - pinVec.z) * 40000) + 1;
+  }
+}
+
+const _trigTo = new THREE.Vector3(), _trigForward = new THREE.Vector3(), _trigHits = [];
+function triggerBlocked(t, dist) {
+  _trigTo.copy(t.pos).sub(camera.position).divideScalar(dist);
+  fpRay.set(camera.position, _trigTo);
+  fpRay.far = Math.max(0.15, dist - 0.25);
+  fpRay.firstHitOnly = true;
+  _trigHits.length = 0;
+  try { withDS(modelMeshList(), () => fpRay.intersectObjects(modelMeshList(), false, _trigHits)); }
+  catch (e) { return false; }
+  return _trigHits.length > 0;
+}
+
+// Пины всегда стоят точно на проекции своей 3D-точки — без инерции и запаздывания.
+function updatePins(dtHint) {
+  if (!pois.length) return;
+  const w = innerWidth, h = innerHeight;
+  const inFP = fp.on;
+  if (inFP) updatePinVisibility(performance.now());
+  for (const p of pois) {
+    if (!p.el) continue;
+    if (p.hidden) { p.el.style.display = 'none'; continue; }
     pinVec.copy(p.pos).project(camera);
-    if (pinVec.z > 1 || pinVec.z < -1 || Math.abs(pinVec.x) > 1.2 || Math.abs(pinVec.y) > 1.2) { p.el.style.display = 'none'; continue; }
+    if (pinVec.z > 1 || pinVec.z < -1 || Math.abs(pinVec.x) > 1.2 || Math.abs(pinVec.y) > 1.2) {
+      p.el.style.display = 'none'; p._sx = null; continue;   // вернулся в кадр — без рывка
+    }
+    const alpha = inFP ? (p.pinAlpha ?? 1) : 1;
+    if (alpha <= 0.03) { p.el.style.display = 'none'; continue; }
     p.el.style.display = '';
-    p.el.style.transform = `translate3d(${((pinVec.x + 1) / 2 * w).toFixed(1)}px,${((1 - pinVec.y) / 2 * h).toFixed(1)}px,0) translate(-50%,-100%)`;
-    p.el.style.zIndex = p === poiActive ? 100000 : Math.round((1 - pinVec.z) * 50000);
+
+    const tx = (pinVec.x + 1) / 2 * w, ty = (1 - pinVec.y) / 2 * h;
+    p._sx = tx; p._sy = ty;
+
+    p.el.style.opacity = alpha >= 0.97 ? '' : alpha.toFixed(2);
+    p.el.style.transform = `translate3d(${p._sx.toFixed(1)}px,${p._sy.toFixed(1)}px,0) translate(-50%,-100%)`;
+
+    const z = p === poiActive ? 100000 : Math.round((1 - pinVec.z) * 40000);
+    if (p._z == null || Math.abs(z - p._z) > 400 || p === poiActive) {
+      p._z = z; p.el.style.zIndex = z;
+    }
   }
 }
 // Карточка
@@ -2570,16 +3416,19 @@ function openPoi(p, keepTour) {
   if (pathT !== null) return;
   if (!keepTour) { if (G.on && G.stops.includes(p)) return goStop(G.stops.indexOf(p)); stopTour(); }
   poiActive = p; cardImg = 0; if (!G.on) track('poi_open', { t: p.title });
-  flyTo(p.cam.p.clone(), p.cam.t.clone());
+  // В режиме пешехода карточка открывается на месте: камеру не трогаем,
+  // иначе flyTo() выкидывает из ходьбы в орбиту и ломает погружение.
+  if (!fp.on) flyTo(p.cam.p.clone(), p.cam.t.clone());
   fillCard(); document.body.classList.add('cardOpen'); renderPois();
+  wake(3);
 }
 // ===== Продажа: карточка, PDF, заявка =====
-const okUrl = u => /^(https?:|tel:|mailto:|tg:|whatsapp:|viber:)/i.test(u || '');
+const okUrl = u => /^(https?:|tel:|mailto:|tg:|whatsapp:|viber:)/i.test(safeUrl(u) || '');
 const waDigits = s => (s || '').replace(/\D/g, '');
 const tgName = s => (s || '').replace(/^.*t\.me\//i, '').replace(/^@/, '').replace(/[^\w]/g, '');
 const planLocal = new Map();
 function leadOn() { const l = brand.lead || {}; return waDigits(l.wa).length >= 7 || !!tgName(l.tg) || waDigits(l.tel).length >= 5 || !!l.key || /@/.test(l.email || ''); }
-function planURL(f) { return planLocal.get(f) || (/^(https?:)?\/\//i.test(f) ? f : tourBase ? new URL(f, tourBase).href : f); }
+function planURL(f) { return planLocal.get(f) || resolveAsset(f, tourBase); }
 function specsParse(t) { return (t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ['', l]; }); }
 function pauseTour() { if (G.on && G.playing) setPlaying(false); }
 function applySales() {
@@ -2601,6 +3450,12 @@ function fillSales(p) {
   const ac = $('cActs'); ac.innerHTML = '';
   if (leadOn()) { const b = actBtn('button', 'req', 'chat', brand.lead.label || 'Оставить заявку'); b.onclick = () => openLead(p); ac.appendChild(b); }
   if (p.plan?.file) { const a = actBtn('a', 'pdf', 'file', p.plan.label || 'Планировка (PDF)'); a.href = planURL(p.plan.file); a.target = '_blank'; a.rel = 'noopener'; a.onclick = () => { pauseTour(); track('pdf_open', { t: p.title, f: p.plan.file }); }; ac.appendChild(a); }
+  (p.docs || []).forEach(d => {
+    const u = planURL(d.file); if (!okUrl(u)) return;
+    const a = actBtn('a', 'doc', 'file', d.label || 'Документ'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
+    a.onclick = () => { pauseTour(); track('pdf_open', { t: p.title, f: d.file }); };
+    ac.appendChild(a);
+  });
   if (okUrl(p.link?.url)) { const a = actBtn('a', 'lnk', 'link', p.link.label || 'Подробнее'); a.href = p.link.url; a.target = '_blank'; a.rel = 'noopener'; a.onclick = () => { pauseTour(); track('link_click', { t: p.title, u: p.link.url }); }; ac.appendChild(a); }
 }
 // Заявка: почта (Web3Forms) + WhatsApp / Telegram. Согласие на обработку данных обязательно.
@@ -2706,13 +3561,26 @@ function fillCard() {
   fillSales(p);
   $('cTitle').textContent = p.title; $('cSub').textContent = p.subtitle; $('cDot').style.background = p.color;
   $('cDesc').textContent = p.description; $('cDesc').style.display = p.description ? '' : 'none';
-  $('cCnt').textContent = `${pois.indexOf(p) + 1} / ${pois.length}`;
-  const n = p.photos.length; $('cGal').hidden = !n;
+  const visible = pois.filter(x => !x.hidden);
+  $('cCnt').textContent = `${Math.max(1, visible.indexOf(p) + 1)} / ${visible.length}`;
+  const n = p.photos.length;
+  const gal = $('cGal'), img = $('cImg');
+  gal.hidden = false;
+  gal.classList.toggle('empty', !n);
   if (n) {
-    cardImg = (cardImg + n) % n; $('cImg').src = p.photos[cardImg];
+    cardImg = ((cardImg % n) + n) % n;
+    const src = safeUrl(p.photos[cardImg]);
+    img.onerror = () => { img.classList.add('broken'); gal.classList.add('empty'); };
+    img.onload = () => { img.classList.remove('broken'); gal.classList.remove('empty'); };
+    if (src) img.src = src; else { img.removeAttribute('src'); gal.classList.add('empty'); }
     $('cPrevImg').style.display = $('cNextImg').style.display = $('cDots').style.display = n > 1 ? '' : 'none';
     $('cDots').innerHTML = p.photos.map((_, i) => `<i class="${i === cardImg ? 'on' : ''}"></i>`).join('');
+  } else {
+    img.removeAttribute('src'); img.onerror = img.onload = null;
+    $('cPrevImg').style.display = $('cNextImg').style.display = $('cDots').style.display = 'none';
+    $('cDots').innerHTML = '';
   }
+  wake(3);
 }
 function closeCard() { stopTour(); document.body.classList.remove('cardOpen'); poiActive = null; pois.forEach(p => p.el?.classList.remove('active')); document.querySelectorAll('.poi-item.active').forEach(e => e.classList.remove('active')); }
 function stepPoi(d, keepTour) { if (G.on) return goStop(G.i + d); if (!pois.length) return; const i = poiActive ? pois.indexOf(poiActive) : -1; openPoi(pois[(i + d + pois.length) % pois.length], keepTour); }
@@ -2743,7 +3611,7 @@ function openEditor(p) {
   $('edPlan').value = p.plan?.file || ''; $('edPlanL').value = p.plan?.label || ''; $('edLinkL').value = p.link?.label || ''; $('edLinkU').value = p.link?.url || '';
   renderEditorBits(); $('poiEdit').closest('.panes').scrollTop = 0;
 }
-function closeEditor() { cancelPlace(); poiSel = null; $('poiListView').hidden = false; $('poiEdit').hidden = true; }
+function closeEditor() { cancelPlace(); poiSel = null; $('poiListView').hidden = false; $('poiEdit').hidden = true; renderTriggerList(); }
 function poiChanged() { renderPois(); if (poiActive === poiSel) fillCard(); }
 function renderEditorBits() {
   const p = poiSel; if (!p) return;
@@ -2809,6 +3677,216 @@ $('edDel').onclick = () => { const p = poiSel; if (!p || !confirm(`Удалит�
 $('edBack').onclick = $('edDone').onclick = closeEditor;
 toggle('poiShow', v => document.body.classList.toggle('noPins', !v));
 toggle('poiLabels', v => document.body.classList.toggle('noLabels', !v));
+// Вкладки камеры: старый пролёт и новый маршрут по крестикам.
+function setCamSubTab(which) {
+  const walk = which === 'walk';
+  $('pathTab').classList.toggle('on', !walk); $('walkTab').classList.toggle('on', walk);
+  $('paths').hidden = walk; $('walkPaths').hidden = !walk;
+  document.body.classList.toggle('walkEdit', walk && !isViewer());
+  if (walk) { renderWalkPoints(); renderWalkList(); }
+}
+$('pathTab').onclick = () => setCamSubTab('path');
+$('walkTab').onclick = () => setCamSubTab('walk');
+$('walkAdd').onclick = () => {
+  if (!model) return setStatus('Сначала открой модель');
+  placing = { walkPoint: true }; document.body.classList.add('placing');
+  $('placeTxt').textContent = 'Кликни по полу модели, чтобы поставить крестик';
+};
+function setBoundaryPlace(active) {
+  boundaryPlaceActive = !!active;
+  if (boundaryPlaceActive) {
+    placing = { boundaryPoint: true }; document.body.classList.add('placing');
+    $('placeTxt').textContent = 'Кликай по поверхности по периметру территории. Затем нажми «Завершить»';
+  } else if (placing?.boundaryPoint) cancelPlace();
+  $('boundaryAdd').classList.toggle('on', boundaryPlaceActive);
+  $('boundaryFinish').disabled = !boundaryPlaceActive;
+  wake(3);
+}
+$('boundaryAdd').onclick = () => {
+  if (!model) return setStatus('Сначала открой модель');
+  if (!boundaryPlaceActive) setBoundaryPlace(true); else setBoundaryPlace(false);
+};
+$('boundaryFinish').onclick = () => {
+  if (boundaryPoints.length < 3) return setStatus('Для границы нужно минимум три точки');
+  setBoundaryPlace(false); renderBoundary(); setStatus(`Контур территории готов: ${boundaryPoints.length} точек`);
+};
+$('boundaryClear').onclick = () => {
+  setBoundaryPlace(false); boundaryPoints.length = 0; renderBoundary();
+  setStatus('Граница территории очищена');
+};
+$('legacyFpBtn').onclick = () => fp.on ? exitFP() : enterFP();
+function ensureBoundaryGroup() {
+  if (boundaryGroup) return;
+  boundaryGroup = new THREE.Group(); boundaryGroup.name = 'NOMA territory boundary';
+  scene.add(boundaryGroup);
+}
+function renderBoundary() {
+  ensureBoundaryGroup();
+  const oldGeometries = new Set(), oldMaterials = new Set();
+  for (const o of [...boundaryGroup.children]) {
+    if (o.geometry) oldGeometries.add(o.geometry);
+    if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => oldMaterials.add(m));
+    boundaryGroup.remove(o);
+  }
+  oldGeometries.forEach(g => g.dispose()); oldMaterials.forEach(m => m.dispose());
+  if (boundaryPoints.length >= 2) {
+    const pts = boundaryPoints.map(p => new THREE.Vector3(p.x, p.y + 0.08, p.z));
+    if (boundaryPoints.length >= 3) pts.push(pts[0].clone());
+    const geom = new THREE.BufferGeometry().setFromPoints(pts);
+    boundaryLine = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0x28a8ff, depthTest: false, transparent: true, opacity: 0.95 }));
+    boundaryLine.renderOrder = 999; boundaryGroup.add(boundaryLine);
+  }
+  const sphereGeo = new THREE.SphereGeometry(0.11, 10, 8);
+  const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffc247, depthTest: false });
+  boundaryPoints.forEach(p => {
+    const dot = new THREE.Mesh(sphereGeo, sphereMat);
+    dot.position.set(p.x, p.y + 0.1, p.z); dot.renderOrder = 1000; boundaryGroup.add(dot);
+  });
+  // Геометрии точек общие для всех маркеров; материал также общий.
+  boundaryGroup.visible = !isViewer();
+  const count = $('boundaryCount'); if (count) count.textContent = `Точек: ${boundaryPoints.length}`;
+  wake(3);
+}
+function boundaryContainsXZ(x, z) {
+  const n = boundaryPoints.length; if (n < 3) return true;
+  let inside = false;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const a = boundaryPoints[i], b = boundaryPoints[j];
+    if (((a.z > z) !== (b.z > z)) && x < (b.x - a.x) * (z - a.z) / ((b.z - a.z) || 1e-12) + a.x) inside = !inside;
+  }
+  return inside;
+}
+const _boundaryTmp = new THREE.Vector3();
+function constrainToBoundary(pos) {
+  const n = boundaryPoints.length;
+  if (n < 3 || boundaryContainsXZ(pos.x, pos.z)) return false;
+  let bestD = Infinity, bestX = pos.x, bestZ = pos.z;
+  for (let i = 0; i < n; i++) {
+    const a = boundaryPoints[i], b = boundaryPoints[(i + 1) % n];
+    const dx = b.x - a.x, dz = b.z - a.z, den = dx * dx + dz * dz;
+    const t = den > 1e-12 ? THREE.MathUtils.clamp(((pos.x - a.x) * dx + (pos.z - a.z) * dz) / den, 0, 1) : 0;
+    const x = a.x + dx * t, z = a.z + dz * t;
+    const d = (pos.x - x) ** 2 + (pos.z - z) ** 2;
+    if (d < bestD) { bestD = d; bestX = x; bestZ = z; }
+  }
+  pos.x = bestX; pos.z = bestZ; return true;
+}
+
+function renderWalkList() {
+  const box = $('walkList'); if (!box) return; box.innerHTML = '';
+  if (!walkPoints.length) { box.innerHTML = '<p class="hint-s">Крестиков пока нет.</p>'; return; }
+  walkPoints.forEach((w, i) => {
+    const row = document.createElement('div'); row.className = 'walk-row';
+    const b = document.createElement('b'); b.textContent = w.label || `Крестик ${i + 1}`;
+    const go = document.createElement('button'); go.textContent = 'Вид'; go.title = 'Перейти к точке'; go.onclick = () => previewWalkPoint(w);
+    const mv = document.createElement('button'); mv.textContent = 'Перенести'; mv.title = 'Перенести крестик'; mv.onclick = () => { placing = { walkPointMove: w }; document.body.classList.add('placing'); $('placeTxt').textContent = `Кликни по полу, чтобы перенести «${w.label || 'Крестик ' + (i + 1)}»`; };
+    const del = document.createElement('button'); del.textContent = '×'; del.title = 'Удалить'; del.onclick = () => { walkPoints.splice(i, 1); if (walkPointSel === w) walkPointSel = null; renderWalkPoints(); renderWalkList(); };
+    row.append(b, go, mv, del); box.appendChild(row);
+  });
+}
+function renderWalkPoints() {
+  const layer = $('walkPoints'); if (!layer) return; layer.innerHTML = '';
+  walkPoints.forEach((w, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'walk-point'; b.title = w.label || `Крестик ${i + 1}`; b.setAttribute('aria-label', b.title); b.dataset.walkIndex = i;
+    b.onclick = e => { e.preventDefault(); e.stopPropagation(); if (fp.routeMode) jumpWalkPoint(w); else if (!isViewer()) previewWalkPoint(w); };
+    layer.appendChild(b); w.el = b;
+  });
+  updateWalkPointVisibility();
+  $('fpBtn').style.display = (isViewer() && walkPoints.length) ? '' : 'none';
+}
+const _walkProj = new THREE.Vector3(), _walkMarkerPos = new THREE.Vector3(), _walkTo = new THREE.Vector3();
+function walkPointBlocked(w, dist) {
+  _walkTo.copy(w.pos).sub(camera.position).divideScalar(dist);
+  fpRay.set(camera.position, _walkTo);
+  fpRay.far = Math.max(0.2, dist - 0.45);
+  fpRay.firstHitOnly = true;
+  _walkHits.length = 0;
+  try { withDS(modelMeshList(), () => fpRay.intersectObjects(modelMeshList(), false, _walkHits)); }
+  catch (e) { return false; }
+  return _walkHits.length > 0;
+}
+function updateWalkPointVisibility() {
+  const layer = $('walkPoints'); if (!layer) return;
+  const editMode = document.body.classList.contains('walkEdit') && !fp.routeMode;
+  const visibleMode = editMode || fp.routeMode;
+  layer.style.display = visibleMode ? 'block' : 'none';
+  if (!visibleMode) return;
+  // Та же дальность и плавное затухание, что у пинов: полная видимость до PIN_RANGE,
+  // затем исчезновение на следующих 40% дистанции. Проверки стен распределены по кадрам.
+  const nearDist = PIN_RANGE();
+  const farDist = nearDist * 1.4;
+  for (const w of walkPoints) {
+    const el = w.el; if (!el) continue;
+    _walkMarkerPos.set(w.pos.x, w.pos.y + 0.12, w.pos.z);
+    _walkProj.copy(_walkMarkerPos).project(camera);
+    const inFront = _walkProj.z > -1 && _walkProj.z < 1 && _walkProj.x > -1.1 && _walkProj.x < 1.1 && _walkProj.y > -1.1 && _walkProj.y < 1.1;
+    const distance = camera.position.distanceTo(_walkMarkerPos);
+    let opacity = 0.95;
+    if (fp.routeMode) {
+      if (distance > farDist) opacity = 0;
+      else if (distance > nearDist) {
+        const t = (distance - nearDist) / Math.max(0.001, farDist - nearDist);
+        const smooth = t * t * (3 - 2 * t);
+        opacity = 0.95 * (1 - smooth);
+      }
+    }
+    const tooFar = fp.routeMode && opacity < 0.04;
+    el.hidden = !inFront || tooFar;
+    el.style.opacity = editMode ? '0.95' : opacity.toFixed(2);
+    const scaleT = fp.routeMode ? THREE.MathUtils.clamp((distance - nearDist) / Math.max(0.001, farDist - nearDist), 0, 1) : 0;
+    const markerScale = 1 - scaleT * 0.58; // дальние крестики плавно уменьшаются до 42% размера
+    el.style.transform = `translate(-50%,-50%) scale(${markerScale.toFixed(3)})`;
+    el.classList.toggle('far', fp.routeMode && opacity < 0.2);
+    if (inFront && !tooFar) {
+      el.style.left = ((_walkProj.x + 1) * 0.5 * innerWidth) + 'px';
+      el.style.top = ((1 - _walkProj.y) * 0.5 * innerHeight) + 'px';
+      el.classList.toggle('active', walkPointSel === w || (fp.routeMode && fp.currentWalkPoint === w));
+    }
+  }
+}
+function previewWalkPoint(w) {
+  if (!w) return;
+  const eye = WALK_EYE, q = new THREE.Quaternion().setFromEuler(new THREE.Euler(w.pitch || 0, w.yaw || 0, 0, 'YXZ'));
+  const p = new THREE.Vector3(w.pos.x, w.pos.y + eye, w.pos.z);
+  flyTo(p, p.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(q).multiplyScalar(3)));
+  walkPointSel = w; updateWalkPointVisibility();
+}
+function jumpWalkPoint(w) {
+  if (!w || !fp.routeMode || fp.trans) return;
+  // При переходе меняется только позиция. Направление взгляда гостя сохраняется.
+  fp.currentWalkPoint = w; fp.feet = w.pos.y; fp.vy = 0;
+  fpEuler.set(fp.pitch, fp.yaw, 0);
+  const p1 = new THREE.Vector3(w.pos.x, w.pos.y + WALK_EYE, w.pos.z);
+  fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1, q1: new THREE.Quaternion().setFromEuler(fpEuler) };
+  fp.look = null; fp.keys.clear(); updateWalkPointVisibility(); wake(3);
+}
+function enterWalkRoute() {
+  if (!model || fp.on) return;
+  if (pathT !== null) stopPath();
+  if (!walkPoints.length) return setStatus('В этой сцене пока нет крестиков перемещения');
+  if (G.on) closeCard(); closeCard(); cancelPlace(); fly = null;
+  const p = camera.position;
+  let nearest = walkPoints[0], best = Infinity;
+  for (const w of walkPoints) { const d = p.distanceToSquared(new THREE.Vector3(w.pos.x, w.pos.y + WALK_EYE, w.pos.z)); if (d < best) { best = d; nearest = w; } }
+  // На входе сохраняем текущий азимут камеры, но выравниваем взгляд по горизонту,
+  // чтобы гость не оказывался направленным в пол или потолок.
+  camera.getWorldDirection(_fd);
+  fp.yaw = Math.atan2(-_fd.x, -_fd.z); fp.pitch = 0; fp.keys.clear(); fp.joy.x = fp.joy.y = 0;
+  fp.routeMode = true; fp.currentWalkPoint = nearest; fp.on = true; fp.feet = nearest.pos.y; fp.vy = 0; fp.flyMode = false;
+  fpEuler.set(fp.pitch, fp.yaw, 0);
+  fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(nearest.pos.x, nearest.pos.y + WALK_EYE, nearest.pos.z), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
+  controls.enabled = false; controls.autoRotate = false; document.body.classList.add('fp', 'fpRoute'); $('fpBtn').classList.add('on');
+  $('fpHud').querySelector('.txt').innerHTML = '<b>Мышь</b> осмотр · <b>Tab</b> курсор · <b>клик по пину</b> карточка · <b>Esc</b> выход';
+  $('fpExit').textContent = 'Выйти'; updateWalkPointVisibility(); syncFPCursorUI();
+  // Вход по клику на кнопку сразу захватывает мышь для осмотра. Если браузер
+  // не разрешит Pointer Lock, останется обычный курсор и кнопка возврата к осмотру.
+  requestFPLock();
+  setStatus('Режим по крестикам · Tab — показать курсор, клик по сцене — снова осмотр'); wake(3);
+}
+function cycleWalkPoint(dir) {
+  if (!fp.routeMode || !walkPoints.length) return;
+  const i = walkPoints.indexOf(fp.currentWalkPoint); const j = (i + dir + walkPoints.length) % walkPoints.length; jumpWalkPoint(walkPoints[j]);
+}
 // Размещение точки кликом по модели
 function startPlace(target) {
   if (!model) return setStatus('Сначала открой модель');
@@ -2843,6 +3921,43 @@ function placeAt(e) {
   ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
   const hit = ray.intersectObject(model, true)[0]; if (!hit) return setStatus('Промах — кликни прямо по модели');
   const pt = hit.point.clone();
+  if (placing.boundaryPoint) {
+    boundaryPoints.push(pt);
+    renderBoundary();
+    setStatus(`Точка границы добавлена (${boundaryPoints.length}). Продолжай по периметру`);
+    return;
+  }
+  // Точка маршрута хранит опорную точку на полу, а камера всегда поднимается на фиксированные 170 см.
+  if (placing.walkPoint || placing.walkPointMove) {
+    if (placing.walkPointMove) { placing.walkPointMove.pos.copy(pt); setStatus('Крестик перемещён'); }
+    else {
+      const dir = camera.getWorldDirection(new THREE.Vector3());
+      const yaw = Math.atan2(-dir.x, -dir.z), pitch = Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1));
+      const w = { id: 'walk-' + Date.now().toString(36), pos: pt, yaw, pitch, label: '' };
+      walkPoints.push(w); walkPointSel = w; setStatus('Крестик добавлен');
+    }
+    cancelPlace(); renderWalkPoints(); renderWalkList(); wake(3); return;
+  }
+  // Кнопка анимации: новая или перенос существующей
+  if (placing.trigger || placing.triggerMove) {
+    if (placing.triggerMove) {
+      placing.triggerMove.pos.copy(pt);
+      setStatus('Кнопка перемещена');
+    } else {
+      const t = {
+        id: 'trig-' + Date.now().toString(36),
+        pos: pt, anim: [],
+        label: '', color: TRIGGER_COLOR, el: null, alpha: 0
+      };
+      triggers.push(t);
+      triggerSel = t;
+      setStatus('Кнопка добавлена — выбери анимацию');
+    }
+    cancelPlace();
+    renderTriggers(); renderTriggerList();
+    wake(3);
+    return;
+  }
   if (placing.target) {
     const p = placing.target, off = pt.clone().sub(p.pos); p.pos.copy(pt); p.cam.p.add(off); p.cam.t.add(off);
     cancelPlace(); renderPois(); setStatus('Точка перемещена');
@@ -2868,16 +3983,17 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && helpEl.classList.co
 
 // ===== Ускорение лучей (BVH): ходьба, коллизии, клики по модели =====
 let BVH = null;
-(async () => {
+const BVHReady = (async () => {
   for (const v of ['0.9', '0.8']) {
     try {
       const m = await import(`https://cdn.jsdelivr.net/npm/three-mesh-bvh@${v}/build/index.module.js`);
       THREE.BufferGeometry.prototype.computeBoundsTree = m.computeBoundsTree;
       THREE.BufferGeometry.prototype.disposeBoundsTree = m.disposeBoundsTree;
       THREE.Mesh.prototype.raycast = m.acceleratedRaycast;
-      BVH = m; if (model) bvhIdle(model); return;
+      BVH = m; return m;
     } catch (e) { /* пробуем следующую версию / работаем без BVH */ }
   }
+  return null;
 })();
 function bvhMesh(c) {
   const g = c.geometry;
@@ -2891,11 +4007,22 @@ function bvhIdle(root) {
   const step = d => { while (list.length && d.timeRemaining() > 2) bvhMesh(list.pop()); if (list.length && root === model) idle(step); };
   idle(step);
 }
+async function bvhPrepareAsync(root) {
+  const lib = await BVHReady;
+  if (!lib) return;
+  const meshes = [];
+  await traverseChunked(root, o => { if (o.isMesh) meshes.push(o); }, 500);
+  for (let i = 0; i < meshes.length; i++) {
+    bvhMesh(meshes[i]);
+    if (i && i % 4 === 0) await yieldMain();
+  }
+}
 
 // ===== Режим от первого лица =====
-const EYE = 1.6;               // уровень глаз человека ростом 170 см (единицы glTF = метры)
+const EYE = 1.6;               // старый свободный режим пешехода
+const WALK_EYE = 1.7;          // фиксированная высота камеры над крестиком: 170 см
 const SPEED_MIN = 0.3, SPEED_MAX = 40;   // скорость ходьбы, м/с (меняется колесом мыши)
-const fp = { speed: 1.5, lite: false, items: [], near: [], nearAt: null, on: false, trans: null, yaw: 0, pitch: 0, feet: 0, vy: 0, minY: 0, flyMode: false, keys: new Set(), joy: { x: 0, y: 0 }, look: null, dirty: true };
+const fp = { speed: 1.5, lite: false, items: [], near: [], nearAt: null, on: false, routeMode: false, currentWalkPoint: null, trans: null, yaw: 0, pitch: 0, feet: 0, vy: 0, minY: 0, flyMode: false, keys: new Set(), joy: { x: 0, y: 0 }, look: null, dirty: true };
 const fpRay = new THREE.Raycaster();
 const _fo = new THREE.Vector3(), _fd = new THREE.Vector3(), FP_DOWN = new THREE.Vector3(0, -1, 0);
 const fpEuler = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -2942,8 +4069,28 @@ function fpLand(x, z, refY) {
   const floors = hits.filter(h => !h.face || Math.abs(_n.copy(h.face.normal).transformDirection(h.object.matrixWorld).y) > 0.5).map(h => h.point.y);
   if (!floors.length) return null;
   const roomy = floors.filter(y => !all.some(a => a > y + 0.05 && a < y + EYE + 0.1));
-  const c = roomy.length ? roomy : floors;
-  return c.find(y => y <= refY + 0.05) ?? c[c.length - 1];
+  if (!roomy.length) return null; // над поверхностью нет места для камеры/персонажа
+  // Raycaster отдаёт пересечения сверху вниз. Берём ближайшую подходящую
+  // поверхность не выше точки отсчёта; нижние этажи/подложки не являются запасным вариантом.
+  return roomy.find(y => y <= refY + 0.05) ?? null;
+}
+// Свободно ли место для человека в точке (x, y, z): проверяем пояс и голову во все стороны.
+// Нужно, чтобы при входе в пешеходный режим не оказаться внутри стены или колонны.
+function fpFree(x, y, z) {
+  const list = (fp.items.length ? fp.items.map(i => i.m) : modelMeshList());
+  if (!list.length) return true;
+  for (const hgt of [0.35, EYE * 0.55, EYE - 0.15]) {
+    for (let a = 0; a < 4; a++) {
+      const ang = a * Math.PI / 2;
+      _fd.set(Math.cos(ang), 0, Math.sin(ang));
+      fpRay.set(_fo.set(x, y + hgt, z), _fd);
+      fpRay.far = 0.45;
+      _hits.length = 0;
+      withDS(list, () => fpRay.intersectObjects(list, false, _hits));
+      if (_hits.length) return false;
+    }
+  }
+  return true;
 }
 function fpReland(silent) {
   const g = fpLand(camera.position.x, camera.position.z, camera.position.y);
@@ -2967,39 +4114,54 @@ function setFly(v) {
   fp.dirty = true; fp.vy = 0;
 }
 function enterFP() {
+  fp.routeMode = false; fp.currentWalkPoint = null; document.body.classList.remove('fpRoute');
   if (G.on) closeCard();
   if (!model || fp.on) return;
   track('walk_start');
+  // На случай, если пролёт был прерван не штатной кнопкой «Стоп».
   if (pathT !== null) stopPath();
+  if (!controls.enabled) { controls.enabled = true; controls.update(); }
   fly = null; closeCard(); cancelPlace();
   fp.minY = new THREE.Box3().setFromObject(model).min.y;
   fpPrepare();
   // Правильная посадка: raycast вниз от целевой точки орбиты (куда смотришь),
   // а не от позиции камеры — иначе при первом включении камера улетает далеко.
   const t = controls.target.clone();
-  // Пол ищем тем же способом, что и при ходьбе (fpLand): он учитывает
-  // только поверхности, над которыми есть место для человека. Прямой луч
-  // мог попасть в стену или вообще не найти пол — и мы проваливались вниз.
-  let px = t.x, pz = t.z;
-  let g = fpLand(px, pz, t.y);
-  if (g == null) {                       // вокруг точки интереса, кольцами
-    for (let r = 0.6; r <= 3.5 && g == null; r += 0.6) {
+  // Направление «камера → цель» по горизонтали: игрок встаёт так, чтобы смотреть на цель.
+  const hd = t.clone().sub(camera.position); hd.y = 0;
+  if (hd.lengthSq() < 1e-8) hd.set(0, 0, -1);
+  hd.normalize();
+
+  // Точка приземления — ПЕРЕД целью (ближе к камере), а не в самой цели.
+  // Раньше пол искали в точке интереса, а ставили камеру в другой точке (со сдвигом),
+  // поэтому высота бралась от чужой поверхности — отсюда «ныряние» в глубину сцены.
+  const back = Math.min(2.0, Math.max(0.7, camera.position.distanceTo(t) * 0.25));
+  let px = t.x - hd.x * back, pz = t.z - hd.z * back;
+
+  // Пол ищем именно в точке приземления и проверяем, что там есть место человеку.
+  let g = null;
+  const y0 = fpLand(px, pz, t.y);
+  if (y0 != null && fpFree(px, y0, pz)) g = y0;
+  if (g == null) {
+    for (let r = 0.8; r <= 5.0 && g == null; r += 0.8) {
       for (let a = 0; a < 8; a++) {
         const ang = a * Math.PI / 4;
-        const x = t.x + Math.cos(ang) * r, z = t.z + Math.sin(ang) * r;
+        const x = px + Math.cos(ang) * r, z = pz + Math.sin(ang) * r;
         const y = fpLand(x, z, t.y);
-        if (y != null) { g = y; px = x; pz = z; break; }
+        if (y != null && fpFree(x, y, z)) { g = y; px = x; pz = z; break; }
       }
     }
   }
-  if (g == null) g = new THREE.Box3().setFromObject(model).max.y;  // не провал в самый низ
-  let hd = t.clone().sub(camera.position); hd.y = 0;
-  if (hd.lengthSq() < 1e-8) hd.set(0, 0, -1); hd.normalize();
-  const P = new THREE.Vector3(px, 0, pz).addScaledVector(hd, -Math.min(1.2, camera.position.distanceTo(t) * 0.2));
-  P.y = g;
+  if (g == null) {
+    // Не телепортируем игрока к нижней границе всей модели: это и давало
+    // проваливание под сцену при отсутствии пола в выбранной точке.
+    setStatus('Не удалось найти свободную поверхность для приземления. Выбери другую точку обзора.');
+    return;
+  }
+
   fp.feet = g; fp.vy = 0; fp.yaw = Math.atan2(-hd.x, -hd.z); fp.pitch = -0.06; fp.dirty = true;
   fpEuler.set(fp.pitch, fp.yaw, 0);
-  fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(P.x, g + EYE, P.z), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
+  fp.trans = { k: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: new THREE.Vector3(px, g + EYE, pz), q1: new THREE.Quaternion().setFromEuler(fpEuler) };
   fp.on = true; controls.enabled = false; controls.autoRotate = false;
   if (matchMedia('(max-width:820px), (pointer:coarse)').matches || document.body.classList.contains('touch')) { document.body.classList.add('noL'); $('settingsBtn').classList.remove('on'); }
   document.body.classList.add('fp'); $('fpBtn').classList.add('on');
@@ -3008,11 +4170,50 @@ function enterFP() {
 function exitFP() {
   if (!fp.on) return;
   if (document.pointerLockElement) document.exitPointerLock?.();
+  if (fp.routeMode) {
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); fwd.y = 0;
+    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1); fwd.normalize();
+    const focus = new THREE.Vector3(camera.position.x, fp.feet + 1.2, camera.position.z).addScaledVector(fwd, 3.5);
+    const from = camera.position.clone(), target0 = controls.target.clone();
+    const targetPos = new THREE.Vector3(focus.x - fwd.x * 4.2, fp.feet + 5.2, focus.z - fwd.z * 4.2);
+    fp.routeMode = false; fp.currentWalkPoint = null; fp.keys.clear(); fp.joy.x = fp.joy.y = 0; fp.look = null; fp.trans = null; fp.on = false;
+    controls.target.copy(target0); controls.enabled = true; controls.autoRotate = false; controls.maxPolarAngle = Math.PI * 0.5 - 0.03;
+    fly = { p0: from, t0: target0, p1: targetPos, t1: focus, k: 0, restoreAutoRotate: true };
+    document.body.classList.remove('fp', 'fpLock', 'fpRoute', 'fpCursor'); $('fpBtn').classList.remove('on'); $('fpHud').querySelector('.txt').innerHTML = '<b>WASD</b> ходьба · <b>колесо</b> скорость · <b>мышь</b> осмотр · <b>Alt</b> курсор · <b>F</b> полёт · <b>Esc</b> выход'; updateWalkPointVisibility();
+    setStatus('Возврат к общему обзору'); wake(60); return;
+  }
   fp.keys.clear(); fp.joy.x = fp.joy.y = 0; fp.look = null; fp.trans = null; fp.on = false;
+
+  // Куда смотрел игрок — то и остаётся центром обзора, но на уровне его ног.
   const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-  controls.target.copy(camera.position).addScaledVector(fwd, 4);
-  controls.enabled = true; controls.autoRotate = on('rotBtn'); controls.update();
-  document.body.classList.remove('fp', 'fpLock'); $('fpBtn').classList.remove('on'); $('joy').firstChild.style.transform = '';
+  fwd.y = 0;
+  if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+  fwd.normalize();
+  const focus = new THREE.Vector3(camera.position.x, fp.feet + EYE * 0.35, camera.position.z)
+    .addScaledVector(fwd, 3.5);
+
+  // Камера поднимается над полом примерно на 3 метра — «чуть выше человека»,
+  // чтобы видеть планировку, но не улетать в птичий полёт.
+  // Высоту считаем от пола ПОД камерой, а не от уровня глаз: иначе на склоне
+  // или на втором этаже получалось «в земле» или «под перекрытием».
+  const gExit = fpLand(camera.position.x, camera.position.z, fp.feet + EYE);
+  const floorY = gExit != null ? gExit : fp.minY;
+  const camY = Math.max(floorY + 3.0, fp.feet + EYE * 0.5);
+
+  // Горизонтальный отход назад под 45° к вертикали: изометричный взгляд.
+  // dist по горизонтали = высоте подъёма, чтобы угол был ровно 45°.
+  const back = camY - floorY;
+  camera.position.set(focus.x - fwd.x * back, camY, focus.z - fwd.z * back);
+
+  // Ни при каких условиях не оказываемся ниже пола или внутри перекрытия
+  const gFinal = fpLand(camera.position.x, camera.position.z, camY);
+  if (gFinal != null && camY < gFinal + 1.2) camera.position.y = gFinal + 1.2;
+
+  controls.target.copy(focus);
+  controls.enabled = true; controls.autoRotate = on('rotBtn');
+  controls.maxPolarAngle = Math.PI * 0.5 - 0.03;
+  controls.update();
+  document.body.classList.remove('fp', 'fpLock', 'fpCursor'); $('fpBtn').classList.remove('on'); $('joy').firstChild.style.transform = '';
   setStatus('Обычный обзор');
 }
 function fpLook(dx, dy, k) { fp.yaw -= dx * k; fp.pitch = THREE.MathUtils.clamp(fp.pitch - dy * k, -1.45, 1.45); }
@@ -3023,6 +4224,10 @@ function fpUpdate(dt) {
     camera.position.lerpVectors(t.p0, t.p1, s); camera.quaternion.slerpQuaternions(t.q0, t.q1, s);
     if (t.k >= 1) fp.trans = null;
     return;
+  }
+  if (fp.routeMode) {
+    fpEuler.set(fp.pitch, fp.yaw, 0); camera.quaternion.setFromEuler(fpEuler);
+    return; // в режиме крестиков нет свободного перемещения — только осмотр и переходы между точками
   }
   fpEuler.set(fp.pitch, fp.yaw, 0); camera.quaternion.setFromEuler(fpEuler);
   const k = fp.keys;
@@ -3036,13 +4241,20 @@ function fpUpdate(dt) {
   if (fp.flyMode) {
     const up = (k.has('KeyE') || k.has('Space') ? 1 : 0) - (k.has('KeyQ') || k.has('KeyC') ? 1 : 0);
     camera.position.x += dx * Math.cos(fp.pitch); camera.position.z += dz * Math.cos(fp.pitch);
+    if (boundaryPoints.length >= 3) constrainToBoundary(camera.position);
     camera.position.y += f * Math.sin(fp.pitch) * sp + up * sp;
     fp.feet = camera.position.y - EYE; return;
   }
   if (dx || dz) {
     const ox = camera.position.x, oz = camera.position.z;
-    if (!fpBlocked(dx, 0)) camera.position.x += dx;
-    if (!fpBlocked(0, dz)) camera.position.z += dz;
+    if (!fpBlocked(dx, 0)) {
+      camera.position.x += dx;
+      if (boundaryPoints.length >= 3) constrainToBoundary(camera.position);
+    }
+    if (!fpBlocked(0, dz)) {
+      camera.position.z += dz;
+      if (boundaryPoints.length >= 3) constrainToBoundary(camera.position);
+    }
     // под ногами пустота (край сцены, дыра) — не шагаем туда
     if ((camera.position.x !== ox || camera.position.z !== oz) && fpGround(camera.position.x, fp.feet + 0.45, camera.position.z) == null) { camera.position.x = ox; camera.position.z = oz; }
     fp.dirty = true;
@@ -3057,7 +4269,7 @@ function fpUpdate(dt) {
   }
   camera.position.y = fp.feet + EYE;
 }
-$('fpBtn').onclick = () => fp.on ? exitFP() : enterFP();
+$('fpBtn').onclick = () => fp.on ? exitFP() : (isViewer() ? enterWalkRoute() : enterFP());
 $('fpExit').onclick = exitFP;
 $('fpFly').onclick = () => setFly(!fp.flyMode);
 // Скорость — колесом мыши
@@ -3068,7 +4280,7 @@ function showSpeed(flash) {
   if (flash) { el.classList.add('flash'); clearTimeout(spdTimer); spdTimer = setTimeout(() => el.classList.remove('flash'), 400); }
 }
 renderer.domElement.addEventListener('wheel', e => {
-  if (!fp.on) return;
+  if (!fp.on || fp.routeMode) return;
   e.preventDefault();
   const d = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
   fp.speed = THREE.MathUtils.clamp(fp.speed * Math.exp(-THREE.MathUtils.clamp(d, -200, 200) * 0.0018), SPEED_MIN, SPEED_MAX);
@@ -3076,7 +4288,7 @@ renderer.domElement.addEventListener('wheel', e => {
 }, { passive: false });
 // Лёгкая графика: без пост-эффектов, разрешение 1×, тени не перерисовываются каждый кадр
 function applyLiteGfx(v) {
-  renderer.setPixelRatio(v ? 1 : dprCap()); composer?.setPixelRatio(renderer.getPixelRatio()); onResize();
+  renderer.setPixelRatio(v ? 1 : renderDpr()); composer?.setPixelRatio(renderer.getPixelRatio()); onResize();
   renderer.shadowMap.autoUpdate = !v; renderer.shadowMap.needsUpdate = true;
 }
 function setLite(v) {
@@ -3108,6 +4320,17 @@ $('hdrIn').addEventListener('click', () => { $('hdrIn').accept = isTouchDev() ? 
 const FP_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyQ', 'KeyE', 'KeyC']);
 addEventListener('keydown', e => {
   if (!fp.on || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.code === 'Tab' && fp.routeMode) {
+    e.preventDefault();
+    if (document.pointerLockElement === fpCv) document.exitPointerLock?.();
+    else requestFPLock();
+    return;
+  }
+  if (fp.routeMode) {
+    if (e.key === 'Escape' && !helpEl.classList.contains('show') && !ddCur) { exitFP(); e.preventDefault(); e.stopImmediatePropagation(); }
+    if (FP_KEYS.has(e.code) || e.code === 'KeyF' || e.code === 'KeyR') { e.preventDefault(); e.stopImmediatePropagation(); }
+    return;
+  }
   if (FP_KEYS.has(e.code)) { fp.keys.add(e.code); e.preventDefault(); e.stopImmediatePropagation(); }
   else if (e.code === 'KeyF' && !e.repeat) { setFly(!fp.flyMode); e.stopImmediatePropagation(); }
   else if (e.code === 'KeyR' && !e.repeat) { if (fp.flyMode) setFly(false); fpReland(); e.stopImmediatePropagation(); }
@@ -3118,8 +4341,8 @@ addEventListener('keyup', e => { fp.keys.delete(e.code); if (fp.on && e.key === 
 addEventListener('keydown', e => {
   if (!fp.on || e.key !== 'Alt' || e.repeat) return;
   e.preventDefault();
-  if (document.pointerLockElement) document.exitPointerLock?.();
-  else if (fpCv.requestPointerLock && !placing && !matchMedia('(pointer:coarse)').matches) { try { const p = fpCv.requestPointerLock(); p?.catch?.(() => {}); } catch {} }
+  if (document.pointerLockElement === fpCv) document.exitPointerLock?.();
+  else if (!placing) requestFPLock();
 }, true);
 // В полном экране Esc не выкидывает из него (Chrome/Edge): выход — G, кнопка или удержание Esc
 document.addEventListener('fullscreenchange', () => {
@@ -3131,7 +4354,7 @@ addEventListener('blur', () => fp.keys.clear());
 const fpCv = renderer.domElement;
 fpCv.addEventListener('pointerdown', e => {
   if (!fp.on) return;
-  if (e.pointerType === 'mouse' && fpCv.requestPointerLock && !document.pointerLockElement && !placing) { try { const p = fpCv.requestPointerLock(); p?.catch?.(() => {}); } catch {} }
+  if (e.pointerType === 'mouse' && fpCv.requestPointerLock && !document.pointerLockElement && !placing && !document.body.classList.contains('cardOpen')) { try { const p = fpCv.requestPointerLock(); p?.catch?.(() => {}); } catch {} }
   fp.look = { id: e.pointerId, x: e.clientX, y: e.clientY };
 });
 addEventListener('pointermove', e => {
@@ -3141,7 +4364,57 @@ addEventListener('pointermove', e => {
 });
 addEventListener('pointerup', e => { if (fp.look?.id === e.pointerId) fp.look = null; });
 addEventListener('pointercancel', e => { if (fp.look?.id === e.pointerId) fp.look = null; });
-document.addEventListener('pointerlockchange', () => document.body.classList.toggle('fpLock', document.pointerLockElement === fpCv));
+function requestFPLock() {
+  if (!fp.on || !fpCv.requestPointerLock || matchMedia('(pointer:coarse)').matches) return;
+  try { const result = fpCv.requestPointerLock(); result?.catch?.(() => {}); } catch (e) {}
+}
+function syncFPCursorUI() {
+  const locked = document.pointerLockElement === fpCv;
+  document.body.classList.toggle('fpLock', locked);
+  document.body.classList.toggle('fpCursor', !!fp.on && !locked && !matchMedia('(pointer:coarse)').matches);
+  const btn = $('fpCursorBtn');
+  if (btn) btn.textContent = locked ? 'Показать курсор' : 'Вернуться к осмотру · Tab';
+}
+document.addEventListener('pointerlockchange', syncFPCursorUI);
+$('fpCursorBtn').onclick = requestFPLock;
+// ЛКМ в режиме пешехода выбирает элемент под центральной точкой прицела.
+// Это работает и при Pointer Lock (когда курсор скрыт), и при временно
+// видимом курсоре после Alt: проверяем именно центр экрана, а не координаты мыши.
+document.addEventListener('click', e => {
+  if (!fp.on || fp.trans || e.button !== 0 || placing) return;
+  const locked = document.pointerLockElement === fpCv;
+  // При захваченной мыши выбираем объект под прицелом в центре экрана.
+  // При свободном курсоре — строго под самим курсором, не перехватывая
+  // нажатия по панели управления, карточке и другим обычным элементам UI.
+  if (!locked && e.target !== fpCv && !e.target?.closest?.('#walkPoints .walk-point,#pins .pin,#triggers .trig')) return;
+  const x = locked ? innerWidth / 2 : e.clientX;
+  const y = locked ? innerHeight / 2 : e.clientY;
+  const hit = document.elementFromPoint(x, y);
+  // Когда карточка открыта, клик по свободной области самой 3D-сцены
+  // закрывает её и возвращает захват мыши для осмотра. Остальные UI-кнопки не затрагиваем.
+  if (!locked && fp.routeMode && document.body.classList.contains('cardOpen') && e.target === fpCv) {
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    closeCard(); requestFPLock(); return;
+  }
+  const walkEl = hit?.closest?.('#walkPoints .walk-point');
+  if (walkEl && fp.routeMode) {
+    const w = walkPoints[+walkEl.dataset.walkIndex]; if (w) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); jumpWalkPoint(w); return; }
+  }
+  const triggerEl = hit?.closest?.('#triggers .trig');
+  if (triggerEl?._nomaTrigger) {
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    fireTrigger(triggerEl._nomaTrigger);
+    wake(3);
+    return;
+  }
+  const pinEl = hit?.closest?.('#pins .pin');
+  if (pinEl?._nomaPoi && !pinEl._nomaPoi.hidden) {
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    openPoi(pinEl._nomaPoi);
+    if (document.pointerLockElement === fpCv) document.exitPointerLock?.();
+    wake(3);
+  }
+}, true);
 // Сенсорный джойстик
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') document.body.classList.add('touch'); }, true);
 if (matchMedia('(pointer:coarse)').matches) document.body.classList.add('touch');
@@ -3161,10 +4434,10 @@ joy.addEventListener('pointerup', joyEnd); joy.addEventListener('pointercancel',
 // Динамическая ближняя плоскость отсечения: точность глубины против мерцания (z-fighting) издалека
 function updateClip() {
   const R = modelSphere.radius || 1;
-  const dT = camera.position.distanceTo(controls.target);
-  const dOut = camera.position.distanceTo(modelSphere.center) - R;   // > 0 — камера вне модели
-  let n = fp.on ? 0.05 : Math.max(dT * 0.01, dOut > 0 ? dOut * 0.9 : 0);
-  n = THREE.MathUtils.clamp(n, Math.max(R * 2e-5, 0.001), Math.max(R, 1));
+  // Ближняя плоскость привязана к размеру сцены, а не к расстоянию до точки вращения.
+  // Иначе при осмотре вплотную к стене (точка вращения далеко) всё ближнее отсекалось.
+  // logarithmicDepthBuffer включён, поэтому малый near не даёт мерцания вдали.
+  const n = fp.on ? 0.02 : THREE.MathUtils.clamp(R * 5e-5, 0.005, 0.05);
   const f = Math.max(camera.position.distanceTo(modelSphere.center) + R * 80, n * 1000, 200);
   if (Math.abs(n - camera.near) > camera.near * 0.02 || Math.abs(f - camera.far) > camera.far * 0.05) {
     camera.near = n; camera.far = f; camera.updateProjectionMatrix();
@@ -3314,6 +4587,76 @@ function setBounds(radius) {
 // ======================================================================
 let baseModelUrl = '';
 const stageBytes = new Map();          // номер состояния → ArrayBuffer
+
+// ===== Зоны: тяжёлая детализация подгружается по выбору корпуса и выгружается обратно =====
+let zoneModel = null;                  // Object3D детальной зоны
+let zoneUrl = '';                      // что сейчас загружено
+let zoneBusy = false;
+let zoneCache = new Map();             // url → { at } для необязательного кэша браузера
+
+function disposeObject(o) {
+  if (!o) return;
+  scene.remove(o);
+  o.traverse(c => {
+    if (!c.isMesh) return;
+    c.geometry?.dispose();
+    const ms = Array.isArray(c.material) ? c.material : [c.material];
+    ms.forEach(m => {
+      if (!m) return;
+      for (const k in m) { const v = m[k]; if (v && v.isTexture) v.dispose(); }
+      m.dispose();
+    });
+  });
+}
+
+function unloadZone() {
+  if (!zoneModel) return;
+  disposeObject(zoneModel);
+  zoneModel = null; zoneUrl = '';
+  if (typeof origMats !== 'undefined') origMats.clear();
+  renderer.info.reset?.();
+  wake(3);
+  console.info('NOMA: зона выгружена, память освобождена');
+}
+
+async function loadZone(url) {
+  if (!url || url === zoneUrl || zoneBusy) return;
+  zoneBusy = true;
+  const prev = zoneModel;
+  try {
+    setStatus('Загрузка зоны…');
+    splashProgress(-1);
+    const abs = resolveAsset(url, tourBase) || url;
+    const buf = await fetchProgress(abs, p => splashProgress(p));
+    const dir = new URL('.', abs).href;
+    const gltf = await loader.parseAsync(buf, dir);
+    // Старую зону убираем только после успешного парсинга новой
+    if (prev) disposeObject(prev);
+    zoneModel = gltf.scene;
+    zoneModel.name = 'zone:' + url;
+    scene.add(zoneModel);
+    zoneUrl = url;
+    if (typeof enhanceMaterials === 'function') enhanceMaterials(zoneModel);
+    if (typeof applyMaterials === 'function') applyMaterials();
+    if (typeof mergeInstances === 'function') mergeInstances(zoneModel);
+    if (typeof bvhIdle === 'function') bvhIdle(zoneModel);
+    if (gltf.animations?.length) {
+      const zm = new THREE.AnimationMixer(zoneModel);
+      zm.clipAction(gltf.animations[0]).play();
+      addedMixers.push(zm);
+    }
+    setStatus('Зона загружена');
+    track('zone_load', { u: url });
+  } catch (e) {
+    console.error('NOMA: зона не загрузилась', url, e);
+    setStatus('Не удалось загрузить зону — остаётся общий вид');
+    // Прежняя зона остаётся на месте: показываем общий вид, а не пустоту
+  } finally {
+    zoneBusy = false;
+    splashHide();
+    wake(5);
+  }
+}
 const addedMixers = [];                // микшеры добавленных объектов (режим «добавить»)
 const addedRoots = [];                 // корни добавленных объектов — снимаем при смене сцены
 
@@ -3723,11 +5066,14 @@ async function activateStage(i) {
 }
 
 function animate() {
-  requestAnimationFrame(animate);
+  rafHandle = 0;
+  inAnimationFrame = true;
+  wakePending = false;
+  frameStats.raf++;
   const dt = clock.getDelta();
   if (uvTargets.length) updateUVTargets(Math.min(dt, 0.1));
   if (morph.on) morphTick(Math.min(dt, 0.05));
-  if (ctxLost) return;
+  if (ctxLost) { inAnimationFrame = false; return; }
   autoLiteWatch(dt);
   if (mixer && playing) mixer.update(dt);
   for (const am of addedMixers) am.update(dt);
@@ -3750,21 +5096,114 @@ function animate() {
     const s = fly.k ** 3 * (fly.k * (fly.k * 6 - 15) + 10);
     camera.position.lerpVectors(fly.p0, fly.p1, s);
     controls.target.lerpVectors(fly.t0, fly.t1, s);
-    if (fly.k >= 1) fly = null;
+    if (fly.k >= 1) { const restoreAutoRotate = !!fly.restoreAutoRotate; fly = null; if (restoreAutoRotate) controls.autoRotate = on('rotBtn'); }
   }
   if (on('timePlay') && isSun() && !(pathT !== null && on('todKeys'))) { todVal = (todVal + Math.min(dt, 0.1) * +$('timeSpeed').value) % 24; $('tod').value = todVal; updateSun(); }
-  placeKey(); updatePins();
+  placeKey();
   skyRig.position.copy(camera.position); skyRig.scale.setScalar(camera.far * 0.9);
   if (cloudAnim) cloudT += Math.min(dt, 0.1) * cloudSpeed;
   cloudMat.uniforms.uTime.value = cloudT;
-  if (!fly && pathT === null && !fp.on) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.1 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 40);
+  // Скорость горизонтального перемещения (ПКМ / Ctrl+ЛКМ): коэффициент 0.07.
+  // Увеличь его для более быстрого перемещения, уменьши — для более медленного.
+  if (!fly && pathT === null && !fp.on) controls.panSpeed = THREE.MathUtils.clamp(modelSphere.radius * 0.01 / Math.max(camera.position.distanceTo(controls.target), 1e-6), 1, 28);
   updateSnow(Math.min(dt, 0.05));
   if (fp.on) fpUpdate(Math.min(dt, 0.05)); else if (!morph.on) controls.update();
+  if (boundaryGroup) boundaryGroup.visible = !isViewer();
+  if (boundaryPoints.length >= 3) {
+    constrainToBoundary(camera.position);
+    if (!fp.on) constrainToBoundary(controls.target);
+  }
+  // HTML-оверлеи обновляем с ограничением 30 Гц. При большом количестве POI
+  // это заметно сокращает проекции Vector3 и запись CSS-стилей в каждом кадре.
+  overlayAccumulator += Math.min(dt, 0.1);
+  const overlayDue = overlayAccumulator >= OVERLAY_STEP || (needsRender > 0 && overlayAccumulator > 0);
+  if (overlayDue) {
+    overlayAccumulator = 0;
+    // Vector3.project() требует актуальную matrixWorldInverse камеры.
+    camera.updateMatrixWorld(true);
+    updateWalkPointVisibility();
+    updatePins(dt);
+    updateTriggers(dt);
+  }
   updateClip();
   if (fp.lite && (liteShadowT += dt) > 1) { liteShadowT = 0; renderer.shadowMap.needsUpdate = true; }
   if (gtao) gtao.blendIntensity = +$('aoInt').value;
-  if (usePost && !fp.lite) composer.render(dt); else renderer.render(scene, camera);
+  // Что требует перерисовки: анимации сцены, движение камеры, инерция управления
+  // Высокий приоритет: то, от чего зависит восприятие движения (камера, анимации, морфинг)
+  const dynamicHi = !!fly || pathT !== null || !!morph.on || !!(mixer && playing) ||
+    uvTargets.length > 0 || !!action || !!recorder ||
+    (on('timePlay') && isSun()) || addedMixers.length > 0 || fp.on || controls.autoRotate;
+  // Низкий приоритет: медленные фоновые эффекты (облака, снег) — им хватает ~20 кадров/с
+  const dynamicLo = (cloudAnim || snowAmt > 0) && !dynamicHi;
+  const gateOn = document.body.classList.contains('viewer') && !EDIT;
+  const moved = camMoved();
+  // Раз в ~1 секунду рисуем «страховочный» кадр: если что-то упустило wake(), сцена не застынет.
+  const safety = (++idleTick % 60 === 0);
+  // Фоновые эффекты рисуем каждый третий кадр — визуально то же, нагрузки втрое меньше.
+  const lo = dynamicLo && (idleTick % 3 === 0);
+  window.__nomaDyn = { hi: dynamicHi, lo: dynamicLo, cloud: cloudAnim, snow: snowAmt, gateOn, needsRender };
+  if (dynamicHi || lo || moved || needsRender > 0 || safety) {
+    if (usePost && !fp.lite) composer.render(dt); else renderer.render(scene, camera);
+    frameStats.drawn++;
+    if (needsRender > 0) needsRender--;
+  } else frameStats.idleSkipped++;
+
+  // Продолжаем цикл только при анимации, движении камеры или новых запросах.
+  const keepAlive = dynamicHi || dynamicLo || moved || needsRender > 0 || wakePending;
+  inAnimationFrame = false;
+  if (keepAlive && !rafHandle && !document.hidden) rafHandle = requestAnimationFrame(animate);
 }
+// Отладочный хук для автотестов (не влияет на работу приложения)
+window.__nomaDebug = {
+  THREE, scene, camera, controls, renderer,
+  // Что реально рисуется: draw calls, треугольники, текстуры, память геометрии
+  stats: () => {
+    const i = renderer.info;
+    return {
+      drawCalls: i.render.calls,
+      triangles: i.render.triangles,
+      geometries: i.memory.geometries,
+      textures: i.memory.textures,
+      programs: i.programs?.length ?? 0,
+      pixelRatio: renderer.getPixelRatio(),
+      zone: zoneUrl || null,
+      zoneLoaded: !!zoneModel
+    };
+  },
+  get model() { return model; },
+  get pois() { return pois; },
+  get groups() { return groups; },
+  get triggers() { return triggers; },
+  get walkPoints() { return walkPoints; },
+  get boundary() { return boundaryPoints; },
+  fp: () => ({ on: fp.on, feet: fp.feet, minY: fp.minY, eye: EYE }),
+  serializeScene: () => collectScene(),
+  get ready() { return !!window.__hasModel; },
+  frames: () => window.__nomaFrames(),
+  // Состояние пинов: для отладки и тестов (какой пин перекрыт, какая прозрачность)
+  pinState: () => pois.map(p => ({
+    title: p.title,
+    alpha: p.pinAlpha,
+    blocked: (() => {
+      const d = camera.position.distanceTo(p.pos);
+      if (d < 0.5) return false;
+      return pinBlocked(p, d);
+    })()
+  })),
+  framesReset: () => window.__nomaFramesReset(),
+  flags: () => window.__nomaDyn,
+  gate: () => {
+    const on = document.body.classList.contains('viewer') && !EDIT;
+    return {
+      needsRender, idleTick,
+      gateOn: on,
+      editing: !document.body.classList.contains('viewer'),
+      // закрыт ли гейт прямо сейчас: если true, ближайший кадр не будет нарисован
+      willSkip: on && !(needsRender > 0)
+    };
+  },
+  wake
+};
 animate();
 </script>
 </body>

@@ -1,6 +1,7 @@
 {
-  "name": "My 3D Viewer",
-  "short_name": "3D Viewer",
+  "name": "NOMA — интерактивные 3D-презентации",
+  "short_name": "NOMA",
+  "description": "Интерактивные 3D-презентации архитектуры и недвижимости, открывающиеся по обычной ссылке.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
